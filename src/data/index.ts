@@ -1,0 +1,35 @@
+export {
+    DATASET_ID,
+    DATASET_REFERENCE_DATE,
+    DATASET_VERSION,
+    DEFAULT_DATABASE_PATH,
+    DEFAULT_KNOWLEDGE_PATH,
+} from "./constants.ts";
+export { createDemoRepository } from "./repository.ts";
+export { ensureDemoDatabase, resetDemoDatabase } from "./seed.ts";
+export type {
+    ActionConfirmation,
+    CategorySales,
+    CustomerRegion,
+    DashboardFilters,
+    DashboardMetric,
+    DashboardSnapshot,
+    DataLayerOptions,
+    DemoActionInput,
+    DemoActionResult,
+    DemoRepository,
+    EnsureDatabaseResult,
+    OrderDetails,
+    OrderFilters,
+    OrderLineItem,
+    OrderStatus,
+    OrderSummary,
+    Page,
+    PolicyMatch,
+    ProductSearchFilters,
+    ProductSummary,
+    RegionalSales,
+    SalesSeriesPoint,
+    SeedSummary,
+    ShippingAddress,
+} from "./types.ts";

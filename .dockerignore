@@ -1,0 +1,47 @@
+# Dependencies are installed inside the image
+node_modules
+
+# VCS and tooling
+.git
+.gitignore
+.github
+.idea
+.vscode
+
+# Build output and local artefacts
+dist
+uploads
+random_file
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
+data/*.sqlite-journal
+.cache
+coverage
+.nyc_output
+*.lcov
+*.tsbuildinfo
+*.log
+
+# Local environment and credentials
+.env*
+.npmrc*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Docs and task definitions not needed at runtime
+README.md
+AGENTS.md
+design-qa.md
+Taskfile.yaml
+Taskfile.tests.yaml
+Taskfile.dev.yaml
+renovate.json
+
+# Tests are validated before building and are not needed at runtime
+src/**/*.test.ts
+
+# OS noise
+.DS_Store

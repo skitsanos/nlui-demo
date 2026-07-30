@@ -1,0 +1,33 @@
+version: 3
+
+silent: true
+
+dotenv:
+  - .env
+
+vars:
+  DOCKER_TAG: nlui-demo
+
+includes:
+  test: Taskfile.tests.yaml
+
+tasks:
+  dev:
+    cmds:
+      - bun run dev
+
+  compile:
+    cmds:
+      - bun run compile
+
+  docker-build:
+    cmds:
+      - docker build -t {{.DOCKER_TAG}} --progress plain --no-cache .
+
+  docker-run:
+    cmds:
+      - docker run -d --rm -p 3000:3000 --env-file .env --mount source=nlui-demo-data,target=/app/data {{.DOCKER_TAG}}
+
+  docker-push:
+    cmds:
+      - docker push {{.DOCKER_TAG}}

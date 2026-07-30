@@ -1,0 +1,5 @@
+- Use Bun as a package manager and run time
+- Regularly use "bun update && bun install --force" to make sure all dependencies are up to date
+- Keep all code modular and within 300-400 LOC
+- Bump the project version before each git push
+- Reuse the existing ignored `.env` values for `OPENAI_API_KEY` and `CHAT_MODEL` during local development and live verification; never print, log, commit, or replace their values unless explicitly asked
