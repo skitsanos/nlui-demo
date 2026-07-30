@@ -1,0 +1,61 @@
+import {nluiBlockSchema, nluiBlocksSchema} from './schemas.ts';
+import {OPENAI_TOOLS} from './toolDefinitions.ts';
+import {formHandler, prepareActionHandler} from './toolHandlers/actions.ts';
+import {dashboardHandler, ordersHandler} from './toolHandlers/analytics.ts';
+import {orderHandler, policiesHandler, productsHandler} from './toolHandlers/catalog.ts';
+import {queryDatasetHandler} from './toolHandlers/queryDataset.ts';
+import {getRepository} from './toolRuntime.ts';
+import type {ToolExecution, ToolHandler} from './toolTypes.ts';
+import type {NluiBlock} from './types.ts';
+
+export type {ToolExecution} from './toolTypes.ts';
+export {OPENAI_TOOLS};
+
+const handlers: Record<string, ToolHandler> = {
+    get_dashboard: dashboardHandler,
+    query_dataset: queryDatasetHandler,
+    list_orders: ordersHandler,
+    search_products: productsHandler,
+    get_order: orderHandler,
+    search_policies: policiesHandler,
+    request_details: formHandler,
+    prepare_action: prepareActionHandler
+};
+
+export const executeNluiTool = async (name: string, encodedArguments: string): Promise<ToolExecution> =>
+{
+    const handler = handlers[name];
+    if (!handler)
+    {
+        throw new Error(`The model requested an unknown tool: ${name}`);
+    }
+
+    try
+    {
+        const execution = await handler(JSON.parse(encodedArguments) as unknown);
+        return {
+            modelOutput: execution.modelOutput,
+            blocks: nluiBlocksSchema.parse(execution.blocks)
+        };
+    }
+    catch (error)
+    {
+        return {
+            modelOutput: {ok: false, error: error instanceof Error ? error.message : 'Tool execution failed'},
+            blocks: []
+        };
+    }
+};
+
+export const confirmNluiAction = (actionId: string): ToolExecution =>
+{
+    const result = getRepository().confirmAction(actionId);
+    const block: NluiBlock = {
+        id: crypto.randomUUID(),
+        type: 'result',
+        status: 'success',
+        title: 'Action completed',
+        message: result.message
+    };
+    return {modelOutput: result, blocks: [nluiBlockSchema.parse(block)]};
+};

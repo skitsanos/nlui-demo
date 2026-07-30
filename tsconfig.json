@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    // TypeScript 7 removed `baseUrl`; path mappings must now be relative.
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      // Ant Design X 2.9 deep-imports the CommonJS util build. Bun's HTML/HMR
+      // bundle double-wraps those defaults, so resolve the equivalent ESM files.
+      "@rc-component/util/lib/*": [
+        "./node_modules/@rc-component/util/es/*"
+      ],
+      // Ant Design Icons deep-imports CommonJS SVG definitions. Bun's browser
+      // bundle double-wraps them, so IconBase receives a module instead of an
+      // icon definition and omits icons such as the Sender submit arrow.
+      "@ant-design/icons-svg/lib/*": [
+        "./node_modules/@ant-design/icons-svg/es/*"
+      ]
+    },
+    // Enable latest features
+    "lib": [
+      "ESNext",
+      "DOM",
+      // Provides the iterator declarations for Headers/FormData/URLSearchParams
+      // (.entries(), .keys(), .values()) - without it `headers.entries()` fails to typecheck.
+      "DOM.Iterable"
+    ],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    // Best practices
+    //"strict": true,
+    //"strictNullChecks": false,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": false
+  }
+}
