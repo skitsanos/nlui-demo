@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {canonicalizeDatasetQuery} from './queryPolicy.ts';
 import {
     type DatasetColumnKind,
@@ -100,7 +101,9 @@ const columnKind = (values: DatasetQueryCell[]): DatasetColumnKind =>
     return 'text';
 };
 
-const normalizeResult = (response: Extract<QueryWorkerResponse, {ok: true}>): DatasetQueryResult =>
+const normalizeResult = (
+    response: Extract<QueryWorkerResponse, {ok: true}>
+): Omit<DatasetQueryResult, 'queryHash'> =>
 {
     if (response.columnNames.length === 0 || response.columnNames.length > MAX_COLUMNS)
     {
@@ -144,5 +147,8 @@ export const queryDataset = async (sql: string, options: DataLayerOptions = {}):
     {
         throw new DatasetQueryError(response.code, response.message);
     }
-    return normalizeResult(response);
+    return {
+        ...normalizeResult(response),
+        queryHash: createHash('sha256').update(canonicalSql).digest('hex')
+    };
 };

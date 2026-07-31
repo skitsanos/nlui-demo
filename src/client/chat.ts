@@ -12,18 +12,19 @@ export interface ChatMessage
 
 export interface ChatStreamOptions
 {
+    conversationId: string;
     input: ChatInput;
     previousResponseId?: string;
     signal: AbortSignal;
     onEvent: (event: ChatStreamEvent) => void;
 }
 
-export const streamChat = async ({input, previousResponseId, signal, onEvent}: ChatStreamOptions): Promise<void> =>
+export const streamChat = async ({conversationId, input, previousResponseId, signal, onEvent}: ChatStreamOptions): Promise<void> =>
 {
     const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({input, previousResponseId}),
+        body: JSON.stringify({conversationId, input, previousResponseId}),
         signal
     });
 
@@ -42,6 +43,7 @@ export const streamChat = async ({input, previousResponseId, signal, onEvent}: C
     const decoder = new TextDecoder();
     let pending = '';
     let terminalEventSeen = false;
+    let terminalError: string | undefined;
 
     const consumeLines = (flush = false): void =>
     {
@@ -54,6 +56,7 @@ export const streamChat = async ({input, previousResponseId, signal, onEvent}: C
             {
                 const event = JSON.parse(line) as ChatStreamEvent;
                 terminalEventSeen ||= event.type === 'message.completed' || event.type === 'error';
+                if (event.type === 'error') terminalError = event.message;
                 onEvent(event);
             }
         }
@@ -62,6 +65,7 @@ export const streamChat = async ({input, previousResponseId, signal, onEvent}: C
         {
             const event = JSON.parse(pending) as ChatStreamEvent;
             terminalEventSeen ||= event.type === 'message.completed' || event.type === 'error';
+            if (event.type === 'error') terminalError = event.message;
             onEvent(event);
         }
     };
@@ -83,5 +87,9 @@ export const streamChat = async ({input, previousResponseId, signal, onEvent}: C
     if (!terminalEventSeen && !signal.aborted)
     {
         throw new Error('The chat stream ended before a terminal event');
+    }
+    if (terminalError)
+    {
+        throw new Error(terminalError);
     }
 };

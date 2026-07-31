@@ -11,7 +11,7 @@ import type {NluiBlock} from './types.ts';
 export type {ToolExecution} from './toolTypes.ts';
 export {OPENAI_TOOLS};
 
-const handlers: Record<string, ToolHandler> = {
+const handlers = {
     get_dashboard: dashboardHandler,
     query_dataset: queryDatasetHandler,
     list_orders: ordersHandler,
@@ -20,11 +20,22 @@ const handlers: Record<string, ToolHandler> = {
     search_policies: policiesHandler,
     request_details: formHandler,
     prepare_action: prepareActionHandler
-};
+} satisfies Record<string, ToolHandler>;
+
+export const NLUI_TOOL_BLOCK_TYPES = {
+    get_dashboard: ['stats', 'chart'],
+    query_dataset: ['stats', 'chart', 'table', 'result'],
+    list_orders: ['table'],
+    search_products: ['choices', 'stats'],
+    get_order: ['stats', 'table'],
+    search_policies: ['sources'],
+    request_details: ['form'],
+    prepare_action: ['form', 'confirmation']
+} as const satisfies Record<keyof typeof handlers, readonly NluiBlock['type'][]>;
 
 export const executeNluiTool = async (name: string, encodedArguments: string): Promise<ToolExecution> =>
 {
-    const handler = handlers[name];
+    const handler = (handlers as Record<string, ToolHandler>)[name];
     if (!handler)
     {
         throw new Error(`The model requested an unknown tool: ${name}`);
@@ -35,6 +46,7 @@ export const executeNluiTool = async (name: string, encodedArguments: string): P
         const execution = await handler(JSON.parse(encodedArguments) as unknown);
         return {
             modelOutput: execution.modelOutput,
+            ...execution.traceOutput !== undefined && {traceOutput: execution.traceOutput},
             blocks: nluiBlocksSchema.parse(execution.blocks)
         };
     }

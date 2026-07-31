@@ -12,6 +12,7 @@ export interface DatasetQueryColumn
 
 export interface DatasetQueryResult
 {
+    queryHash: string;
     columns: DatasetQueryColumn[];
     rows: Array<Record<string, DatasetQueryCell>>;
     returnedRowCount: number;

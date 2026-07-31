@@ -38,6 +38,7 @@ describe('isolated dataset queries', () =>
             columns: [{key: 'c0', name: 'customer_count', label: 'Customer count', kind: 'number'}],
             rows: [{c0: 200}]
         });
+        expect(result.queryHash).toMatch(/^[0-9a-f]{64}$/);
     });
 
     test('supports grouped data and stable server-owned keys', async () =>

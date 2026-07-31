@@ -104,6 +104,7 @@ describe("deterministic demo dataset", () => {
 
             const result = repository.confirmAction(confirmation.actionId);
             expect(result.status).toBe("completed");
+            expect(repository.confirmAction(confirmation.actionId)).toEqual(result);
             expect(repository.getOrder(1176)?.shippingAddress).toEqual({
                 line1: "10 Demo Avenue",
                 city: "Bucharest",
@@ -121,8 +122,8 @@ describe("deterministic demo dataset", () => {
             .trim()
             .split("\n")
             .map((line) => JSON.parse(line) as Record<string, unknown>);
-        expect(scenarios).toHaveLength(33);
-        expect(new Set(scenarios.map((scenario) => scenario.id)).size).toBe(33);
+        expect(scenarios).toHaveLength(35);
+        expect(new Set(scenarios.map((scenario) => scenario.id)).size).toBe(35);
         expect(scenarios.every((scenario) => Array.isArray(scenario.expectedBlocks))).toBeTrue();
         expect(scenarios.every((scenario) => Array.isArray(scenario.mustNotInvoke))).toBeTrue();
     });

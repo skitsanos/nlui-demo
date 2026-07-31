@@ -1,5 +1,6 @@
 import {Empty, Tooltip, Typography} from 'antd';
 import type {ChartBlock} from '../../nlui/types.ts';
+import {formatTemporalValue} from '../dateFormat.ts';
 
 const WIDTH = 640;
 const HEIGHT = 220;
@@ -9,20 +10,39 @@ interface ChartPoint
 {
     id: string;
     label: string;
+    axisLabel: string;
     value: number;
 }
 
 const compactNumber = new Intl.NumberFormat('en', {notation: 'compact', maximumFractionDigits: 1});
+const compactDate = new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: '2-digit',
+    timeZone: 'UTC'
+});
+
+const compactTemporalLabel = (rawLabel: string, dateTime: string, formattedLabel: string): string =>
+{
+    if (/^\d{4}-\d{2}$/.test(rawLabel)) return formattedLabel;
+    const normalized = dateTime.length === 10 ? `${dateTime}T00:00:00.000Z` : dateTime;
+    return compactDate.format(new Date(normalized));
+};
 
 const toPoints = (block: ChartBlock): ChartPoint[] =>
 {
     const occurrences = new Map<string, number>();
     return block.data.slice(0, 24).map((item) =>
     {
-        const label = String(item[block.categoryKey] ?? '');
-        const count = (occurrences.get(label) ?? 0) + 1;
-        occurrences.set(label, count);
-        return {id: `${label}-${count}`, label, value: Number(item[block.valueKey] ?? 0)};
+        const rawLabel = String(item[block.categoryKey] ?? '');
+        const temporal = block.categoryFormat === 'date' ? formatTemporalValue(rawLabel) : undefined;
+        const label = temporal?.text ?? rawLabel;
+        const axisLabel = temporal
+            ? compactTemporalLabel(rawLabel, temporal.dateTime, label)
+            : label.length > 10 ? `${label.slice(0, 9)}…` : label;
+        const count = (occurrences.get(rawLabel) ?? 0) + 1;
+        occurrences.set(rawLabel, count);
+        return {id: `${rawLabel}-${count}`, label, axisLabel, value: Number(item[block.valueKey] ?? 0)};
     }).filter((item) => Number.isFinite(item.value));
 };
 
@@ -85,13 +105,14 @@ export const MiniChart = ({block}: {block: ChartBlock}) =>
                 {block.variant === 'line' && <>
                     <polyline points={linePoints} className="chart-line"/>
                     {points.map((point, index) =>
-                        <circle
-                            key={point.id}
-                            cx={PADDING.left + step * (index + 0.5)}
-                            cy={y(point.value)}
-                            r="4"
-                            className="chart-dot"
-                        />
+                        <Tooltip key={point.id} title={`${point.label}: ${point.value.toLocaleString()}`}>
+                            <circle
+                                cx={PADDING.left + step * (index + 0.5)}
+                                cy={y(point.value)}
+                                r="4"
+                                className="chart-dot"
+                            />
+                        </Tooltip>
                     )}
                 </>}
 
@@ -103,7 +124,7 @@ export const MiniChart = ({block}: {block: ChartBlock}) =>
                         className="chart-axis"
                         textAnchor="middle"
                     >
-                        {point.label.length > 10 ? `${point.label.slice(0, 9)}…` : point.label}
+                        {point.axisLabel}
                     </text>
                 )}
             </svg>

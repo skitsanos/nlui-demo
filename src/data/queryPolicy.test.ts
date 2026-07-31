@@ -1,8 +1,27 @@
 import {describe, expect, test} from 'bun:test';
-import {canonicalizeDatasetQuery} from './queryPolicy.ts';
+import {canonicalizeDatasetQuery, datasetQueryHasWhereEquality} from './queryPolicy.ts';
 
 describe('dataset SQL policy', () =>
 {
+    test('inspects equality filters semantically across quoting and operand order', () =>
+    {
+        expect(datasetQueryHasWhereEquality(
+            "SELECT MAX(joined_at) AS joined_at FROM customers c WHERE c.tier = 'gold'",
+            'tier',
+            'gold'
+        )).toBeTrue();
+        expect(datasetQueryHasWhereEquality(
+            "SELECT MAX(joined_at) AS joined_at FROM customers WHERE 'gold' = tier",
+            'tier',
+            'gold'
+        )).toBeTrue();
+        expect(datasetQueryHasWhereEquality(
+            'SELECT MAX(joined_at) AS joined_at FROM customers',
+            'tier',
+            'gold'
+        )).toBeFalse();
+    });
+
     test('canonicalizes a single aggregate SELECT', () =>
     {
         const sql = canonicalizeDatasetQuery('SELECT COUNT(*) AS customer_count FROM customers');
@@ -43,7 +62,9 @@ describe('dataset SQL policy', () =>
         ['double-quoted literal ambiguity', 'SELECT strftime("%Y-%m", created_at) AS label FROM orders'],
         ['implicit join', 'SELECT orders.id FROM orders, customers'],
         ['cartesian join', 'SELECT o.id FROM orders AS o JOIN customers AS c ON 1 = 1'],
-        ['parameter', 'SELECT id FROM customers WHERE id = ?']
+        ['parameter', 'SELECT id FROM customers WHERE id = ?'],
+        ['computed column without alias', 'SELECT unixepoch(MAX(joined_at)) FROM customers'],
+        ['non-snake-case alias', 'SELECT MAX(joined_at) AS "Latest registration" FROM customers']
     ])('rejects %s', (_name, sql) =>
     {
         expect(() => canonicalizeDatasetQuery(sql)).toThrow(/^SQL_(?:INVALID|POLICY):/);

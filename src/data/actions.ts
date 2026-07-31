@@ -26,6 +26,7 @@ interface PendingActionRow {
     payloadJson: string;
     status: string;
     expiresAt: string;
+    completedAt: string | null;
 }
 
 function cleanText(value: string, label: string, maximum: number): string {
@@ -133,14 +134,25 @@ function pendingAction(database: Database, actionId: string): PendingActionRow {
     const row = database
         .query<PendingActionRow, [string]>(
             `SELECT pa.action_id AS actionId, pa.action_type AS actionType, pa.order_id AS orderId,
-                    o.order_number AS orderNumber, pa.payload_json AS payloadJson, pa.status, pa.expires_at AS expiresAt
+                    o.order_number AS orderNumber, pa.payload_json AS payloadJson, pa.status,
+                    pa.expires_at AS expiresAt, pa.completed_at AS completedAt
              FROM pending_actions pa JOIN orders o ON o.id = pa.order_id WHERE pa.action_id = ?`,
         )
         .get(actionId);
     if (!row) throw new Error("The requested action was not found");
-    if (row.status !== "pending") throw new Error("The requested action is no longer pending");
-    if (new Date(row.expiresAt).getTime() < Date.now()) throw new Error("The requested action has expired");
+    if (row.status !== "pending" && row.status !== "completed") {
+        throw new Error("The requested action is no longer pending");
+    }
+    if (row.status === "pending" && new Date(row.expiresAt).getTime() < Date.now()) {
+        throw new Error("The requested action has expired");
+    }
     return row;
+}
+
+function completedMessage(input: DemoActionInput): string {
+    if (input.type === "return_order") return `Return requested for ${input.orderNumber}`;
+    if (input.type === "update_shipping_address") return `Shipping address updated for ${input.orderNumber}`;
+    return `Order ${input.orderNumber} cancelled`;
 }
 
 function requestReturn(database: Database, row: PendingActionRow, input: Extract<DemoActionInput, { type: "return_order" }>): string {
@@ -205,6 +217,17 @@ export function confirmDemoAction(database: Database, actionId: string): DemoAct
     return database.transaction(() => {
         const row = pendingAction(database, actionId);
         const input = JSON.parse(row.payloadJson) as DemoActionInput;
+        if (row.status === "completed") {
+            if (!row.completedAt) throw new Error("The completed action is missing its completion timestamp");
+            return {
+                actionId,
+                actionType: input.type,
+                orderNumber: row.orderNumber,
+                status: "completed" as const,
+                message: completedMessage(input),
+                completedAt: row.completedAt,
+            };
+        }
         const message =
             input.type === "return_order"
                 ? requestReturn(database, row, input)

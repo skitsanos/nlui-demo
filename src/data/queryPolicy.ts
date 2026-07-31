@@ -20,6 +20,7 @@ const MAX_AST_NODES = 800;
 const MAX_SELECTS = 5;
 const MAX_CTES = 4;
 const MAX_JOINS = 4;
+const OUTPUT_ALIAS = /^_?[a-z][a-z0-9_]{0,62}$/;
 
 const isNode = (value: unknown): value is AstNode => typeof value === 'object' && value !== null;
 const lower = (value: unknown): string => String(value ?? '').toLowerCase();
@@ -177,6 +178,28 @@ const validateSelectSources = (select: AstNode, ctes: Set<string>): number =>
     return joins;
 };
 
+const validateSelectColumns = (select: AstNode, allowCanonicalQuotes: boolean): void =>
+{
+    if (!Array.isArray(select.columns) || select.columns.length === 0)
+    {
+        policyError('Every SELECT must project at least one named column.');
+    }
+    for (const item of select.columns)
+    {
+        if (!isNode(item) || !isNode(item.expr)) policyError('Malformed SELECT columns are not allowed.');
+        const simpleColumn = item.expr.type === 'column_ref'
+            || (allowCanonicalQuotes && item.expr.type === 'double_quote_string');
+        if (!simpleColumn && typeof item.as !== 'string')
+        {
+            policyError('Every computed result column must have a descriptive snake_case alias.');
+        }
+        if (typeof item.as === 'string' && !OUTPUT_ALIAS.test(item.as))
+        {
+            policyError('Result aliases must use short snake_case names.');
+        }
+    }
+};
+
 const validateAst = (ast: AstNode, allowCanonicalQuotes = false): void =>
 {
     if (lower(ast.type) !== 'select') policyError('Only a SELECT statement is allowed.');
@@ -196,6 +219,7 @@ const validateAst = (ast: AstNode, allowCanonicalQuotes = false): void =>
             selectCount += 1;
             if (node._next || node.set_op) policyError('Compound SELECT statements are not allowed.');
             if (node.into || node.for_update || node.options) policyError('This SELECT option is not allowed.');
+            validateSelectColumns(node, allowCanonicalQuotes);
             joinCount += validateSelectSources(node, ctes);
             for (const source of node.from ?? [])
             {
@@ -269,6 +293,37 @@ export const canonicalizeDatasetQuery = (sql: string): string =>
     const reparsed = parseOne(canonical);
     validateAst(reparsed, true);
     return canonical;
+};
+
+const stringLiteral = (node: AstNode): string | undefined =>
+    lower(node.type) === 'single_quote_string'
+        ? String(node.value)
+        : undefined;
+
+export const datasetQueryHasWhereEquality = (sql: string, column: string, expected: string): boolean =>
+{
+    canonicalizeDatasetQuery(sql);
+    const ast = parseOne(sql);
+    const normalizedColumn = lower(column);
+    let matched = false;
+    walkAst(ast, (node) =>
+    {
+        if (node.type !== 'select' || !node.where) return;
+        walkAst(node.where, (candidate) =>
+        {
+            if (candidate.type !== 'binary_expr' || candidate.operator !== '=') return;
+            const leftColumn = columnReference(candidate.left)?.column;
+            const rightColumn = columnReference(candidate.right)?.column;
+            const leftLiteral = stringLiteral(candidate.left);
+            const rightLiteral = stringLiteral(candidate.right);
+            if ((leftColumn === normalizedColumn && rightLiteral === expected)
+                || (rightColumn === normalizedColumn && leftLiteral === expected))
+            {
+                matched = true;
+            }
+        });
+    });
+    return matched;
 };
 
 export const isPublishedQueryTable = (value: string): value is QueryTableName => TABLES.has(value);

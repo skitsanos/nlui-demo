@@ -1,4 +1,6 @@
 import type {RouteHandler} from '../../../core/types.ts';
+import {ConversationStateError, conversationStates} from '../../../nlui/conversationState.ts';
+import {InteractionCapabilityError, interactionCapabilities} from '../../../nlui/interactionCapabilities.ts';
 import {chatRequestSchema} from '../../../nlui/schemas.ts';
 import type {ChatStreamEvent} from '../../../nlui/types.ts';
 import {ChatConfigurationError, runOpenAIChat} from '../../../services/openaiChat.ts';
@@ -39,6 +41,45 @@ export const POST: RouteHandler = async ({req, server}) =>
         }, {status: 400});
     }
 
+    let request = parsed.data;
+    let claimedInteraction: {conversationId: string; interactionId: string} | undefined;
+    try
+    {
+        conversationStates.begin(request.conversationId, request.previousResponseId);
+    }
+    catch (error)
+    {
+        return Response.json({
+            message: error instanceof ConversationStateError ? error.message : 'The conversation could not be started'
+        }, {status: 409});
+    }
+    if (request.input.type === 'ui_result')
+    {
+        const interactionId = request.input.interactionId;
+        try
+        {
+            const values = interactionCapabilities.consume(
+                request.conversationId,
+                interactionId,
+                request.input.values
+            );
+            request = {...request, input: {...request.input, values}};
+            claimedInteraction = {
+                conversationId: request.conversationId,
+                interactionId
+            };
+        }
+        catch (error)
+        {
+            conversationStates.release(request.conversationId);
+            if (error instanceof InteractionCapabilityError)
+            {
+                return Response.json({message: error.message}, {status: 400});
+            }
+            throw error;
+        }
+    }
+
     // LLM calls may pause while tools execute; keep only this streaming request alive.
     server.timeout(req, 0);
     const controller = new AbortController();
@@ -55,9 +96,18 @@ export const POST: RouteHandler = async ({req, server}) =>
                 }
             };
 
-            void runOpenAIChat(parsed.data, emit, controller.signal)
+            void runOpenAIChat(request, emit, controller.signal)
+                .then((result) => conversationStates.complete(request.conversationId, result.responseId))
                 .catch((error: unknown) =>
                 {
+                    conversationStates.release(request.conversationId);
+                    if (claimedInteraction)
+                    {
+                        interactionCapabilities.releaseSubmission(
+                            claimedInteraction.conversationId,
+                            claimedInteraction.interactionId
+                        );
+                    }
                     if (!controller.signal.aborted)
                     {
                         emit({type: 'error', message: errorMessage(error)});

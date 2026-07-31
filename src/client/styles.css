@@ -140,6 +140,7 @@ body { overflow: hidden; }
 .stat-card { position: relative; overflow: hidden; border-color: #e1e3eb; background: linear-gradient(145deg, #fff, #fafaff); }
 .stat-card .ant-statistic-title { font-size: 12px; }
 .stat-card .ant-statistic-content { color: #25283f; font-size: 22px; }
+.stat-card-temporal .ant-statistic-content { font-size: clamp(16px, 3.8vw, 22px); line-height: 1.3; }
 .trend { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; }
 .trend svg { width: 14px; height: 14px; }
 .trend-up { color: #16854a; background: #e7f8ed; }
@@ -187,6 +188,10 @@ body { overflow: hidden; }
     .message-list .ant-bubble-content { max-width: calc(100vw - 82px); }
     .composer-wrap { padding: 10px 12px 12px; }
     .composer-hint { display: none; }
+}
+
+@media (max-width: 520px) {
+    .stat-card-temporal { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

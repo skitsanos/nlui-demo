@@ -50,7 +50,7 @@ const App = () =>
 {
     const [draft, setDraft] = useState('');
     const [chatConfigured, setChatConfigured] = useState<boolean>();
-    const {messages, loading, submit, cancel, reset} = useChat();
+    const {messages, loading, conversationId, submit, cancel, reset} = useChat();
     const consumedInteractions = useRef(new Set<string>());
 
     useEffect(() =>
@@ -71,17 +71,26 @@ const App = () =>
         return () => controller.abort();
     }, []);
 
-    const send = useCallback((input: ChatInput, displayText: string): void =>
+    const pendingInteractions = useRef(new Set<string>());
+
+    const send = useCallback(async (input: ChatInput, displayText: string): Promise<boolean> =>
     {
         if (input.type === 'ui_result')
         {
-            if (consumedInteractions.current.has(input.interactionId))
+            if (consumedInteractions.current.has(input.interactionId)
+                || pendingInteractions.current.has(input.interactionId))
             {
-                return;
+                return false;
             }
-            consumedInteractions.current.add(input.interactionId);
+            pendingInteractions.current.add(input.interactionId);
         }
-        void submit(input, displayText);
+        const completed = await submit(input, displayText);
+        if (input.type === 'ui_result')
+        {
+            pendingInteractions.current.delete(input.interactionId);
+            if (completed) consumedInteractions.current.add(input.interactionId);
+        }
+        return completed;
     }, [submit]);
 
     const sendText = (text: string): void =>
@@ -92,16 +101,16 @@ const App = () =>
             return;
         }
         setDraft('');
-        send({type: 'user_text', text: trimmed}, trimmed);
+        void send({type: 'user_text', text: trimmed}, trimmed);
     };
 
     const resetChat = (): void =>
     {
         consumedInteractions.current.clear();
+        pendingInteractions.current.clear();
         reset();
     };
 
-    const latestAssistantId = messages.findLast(({role}) => role === 'assistant')?.id;
     const bubbleItems = useMemo(() => messages.map((message) => ({
         key: message.id,
         role: message.role,
@@ -121,12 +130,13 @@ const App = () =>
                 </Typography.Text>}
                 <NluiRenderer
                     blocks={message.blocks}
-                    disabled={loading || message.state !== 'complete' || message.id !== latestAssistantId}
+                    conversationId={conversationId}
+                    disabled={loading || message.state !== 'complete'}
                     onInteraction={send}
                 />
             </div>
         )
-    })), [latestAssistantId, loading, messages, send]);
+    })), [conversationId, loading, messages, send]);
 
     return (
         <XProvider theme={{
