@@ -45,29 +45,32 @@ describe('structured assistant response', () =>
         });
     });
 
-    test('renders table data once through a trusted block-only response', () =>
+    test('adds a conversational table annotation without copying trusted row data', () =>
     {
         const block = table();
         const resolved = resolveStructuredResponse(encoded({
             presentation: 'blocks',
             answer: null,
-            caption: null,
+            caption: 'I found the latest customer records and kept them in registration order for a quick review.',
             block_ids: [block.id]
         }), [block]);
 
-        expect(resolved.text).toBe('');
+        expect(resolved.text).toContain('quick review');
         expect(resolved.blocks).toEqual([block]);
         expect(JSON.stringify(resolved.envelope)).not.toContain('CUS-0160');
         expect(JSON.stringify(resolved.blocks)).toContain('CUS-0160');
         expect(responseTextConfigFor([block])).toMatchObject({
-            format: {schema: {properties: {caption: {type: 'null'}}}}
+            format: {schema: {properties: {caption: {type: 'string', minLength: 1, maxLength: 280}}}}
         });
-        expect(() => resolveStructuredResponse(encoded({
-            presentation: 'blocks',
-            answer: null,
-            caption: 'Here are the rows again.',
-            block_ids: [block.id]
-        }), [block])).toThrow(StructuredResponseError);
+        for (const caption of [null, '   ', 'x'.repeat(281)])
+        {
+            expect(() => resolveStructuredResponse(encoded({
+                presentation: 'blocks',
+                answer: null,
+                caption,
+                block_ids: [block.id]
+            }), [block])).toThrow(StructuredResponseError);
+        }
     });
 
     test('preserves selected block order and a concise caption', () =>

@@ -1,11 +1,72 @@
 import {describe, expect, test} from 'bun:test';
-import {executeNluiTool, NLUI_TOOL_BLOCK_TYPES, OPENAI_TOOLS} from './tools.ts';
+import {executeNluiTool, NLUI_TOOL_BLOCK_TYPES, OPENAI_TOOLS, toolsForQueryArm} from './tools.ts';
 
 describe('NLUI tool catalog', () =>
 {
-    test('keeps provider definitions aligned with the runtime tool registry', () =>
+    test('keeps query arms exclusive, specialized tools identical, and provider schemas strict', () =>
     {
-        expect(OPENAI_TOOLS.map(({name}) => name).sort()).toEqual(Object.keys(NLUI_TOOL_BLOCK_TYPES).sort());
+        const control = toolsForQueryArm('control');
+        const semantic = toolsForQueryArm('semantic');
+        const generic = new Set(['query_dataset', 'semantic_query']);
+        expect(control.filter(({name}) => generic.has(name)).map(({name}) => name)).toEqual(['query_dataset']);
+        expect(semantic.filter(({name}) => generic.has(name)).map(({name}) => name)).toEqual(['semantic_query']);
+        expect(control.filter(({name}) => !generic.has(name)).map(({name}) => name))
+            .toEqual(semantic.filter(({name}) => !generic.has(name)).map(({name}) => name));
+        expect(OPENAI_TOOLS.map(({name}) => name)).toEqual(control.map(({name}) => name));
+        expect([...new Set([...control, ...semantic].map(({name}) => name))].sort())
+            .toEqual(Object.keys(NLUI_TOOL_BLOCK_TYPES).sort());
+
+        const definition = semantic.find(({name}) => name === 'semantic_query');
+        const parameters = definition?.parameters as Record<string, any>;
+        const plan = parameters.properties.plan as Record<string, any>;
+        const filterVariants = plan.properties.filters.items.anyOf as Array<Record<string, any>>;
+        expect(definition?.strict).toBeTrue();
+        expect(parameters.additionalProperties).toBeFalse();
+        expect(plan.additionalProperties).toBeFalse();
+        expect(filterVariants.every(({additionalProperties}) => additionalProperties === false)).toBeTrue();
+        expect(JSON.stringify(parameters)).not.toContain('uniqueItems');
+    });
+
+    test('executes semantic plans with control denotation and trace-only provenance', async () =>
+    {
+        const control = await executeNluiTool('query_dataset', JSON.stringify({
+            sql: 'SELECT COUNT(*) AS registered_customer_count FROM customers',
+            title: 'Registered customers',
+            presentation: 'metric'
+        }));
+        const semantic = await executeNluiTool('semantic_query', JSON.stringify({
+            plan: {
+                metric: 'registered_customer_count', dimensions: [], filters: [],
+                timeRange: null, orderBy: null, limit: null
+            },
+            title: 'Registered customers',
+            presentation: 'metric'
+        }));
+
+        expect((semantic.modelOutput as {rows: unknown}).rows).toEqual((control.modelOutput as {rows: unknown}).rows);
+        expect(semantic.blocks[0]).toMatchObject({
+            type: 'stats', title: 'Registered customers', items: [{value: 200}]
+        });
+        expect(semantic.traceOutput).toMatchObject({
+            semanticPlan: {catalogId: 'retail-operations', catalogVersion: 1, metric: 'registered_customer_count'},
+            relationships: [],
+            metric: {id: 'registered_customer_count', unit: 'count', grain: 'customer'}
+        });
+        expect((semantic.traceOutput as {planHash: string}).planHash).toMatch(/^[a-f0-9]{64}$/);
+        expect(semantic.modelOutput).not.toHaveProperty('semanticPlan');
+        expect(semantic.modelOutput).not.toHaveProperty('planHash');
+
+        const limited = await executeNluiTool('semantic_query', JSON.stringify({
+            plan: {
+                metric: 'registered_customer_count', dimensions: ['customer_tier'],
+                filters: [{dimension: 'region', values: ['East', 'West']}],
+                timeRange: null, orderBy: null, limit: 2
+            },
+            title: 'Customers by tier',
+            presentation: 'bar'
+        }));
+        expect(limited.modelOutput).toMatchObject({ok: true, returnedRowCount: 2, renderedAs: 'bar'});
+        expect(limited.blocks[0]).toMatchObject({type: 'chart', title: 'Customers by tier'});
     });
 
     test('turns dashboard data into trusted metrics and a chart', async () =>

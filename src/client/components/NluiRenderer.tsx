@@ -32,6 +32,23 @@ interface Props
     onInteraction: (input: ChatInput, displayText: string) => Promise<boolean>;
 }
 
+const tableColumnMinWidth = (format: TableBlock['columns'][number]['format']): number =>
+{
+    switch (format)
+    {
+        case 'number':
+            return 96;
+        case 'currency':
+            return 128;
+        case 'status':
+            return 120;
+        case 'date':
+            return 176;
+        default:
+            return 160;
+    }
+};
+
 const DynamicForm = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 'onInteraction'> & {block: FormBlock}) =>
 {
     const [submitted, setSubmitted] = useState(false);
@@ -63,7 +80,7 @@ const DynamicForm = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
                                     : <Input type={field.input === 'date' ? 'date' : 'text'} placeholder={'placeholder' in field ? field.placeholder : undefined}/>}
                     </Form.Item>
                 )}
-                <Button type="primary" htmlType="submit" icon={<ArrowRight size={16}/>} iconPosition="end" loading={submitted}>
+                <Button type="primary" htmlType="submit" icon={<ArrowRight size={16}/>} iconPlacement="end" loading={submitted}>
                     {block.submitLabel}
                 </Button>
             </Form>
@@ -289,22 +306,30 @@ export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: 
                         <MiniChart block={block}/>
                     </Card>;
                 case 'table':
-                    return <Card key={block.id} className="nlui-card" title={block.title}>
-                        <Table
-                            rowKey={(row) => String(row[block.rowKey])}
-                            dataSource={block.rows}
-                            columns={block.columns.map((column) => ({
-                                title: column.label,
-                                dataIndex: column.key,
-                                key: column.key,
-                                render: (value: TableBlock['rows'][number][string]) => (
-                                    <FormattedValue value={value} format={column.format}/>
-                                )
-                            }))}
-                            size="small"
-                            scroll={{x: true}}
-                            pagination={block.rows.length > 8 ? {pageSize: 8, size: 'small'} : false}
-                        />
+                    return <Card key={block.id} className="nlui-card nlui-table-card" title={block.title}>
+                        <section
+                            className="nlui-table-region"
+                            aria-label={block.title ?? 'Data table'}
+                        >
+                            <Table
+                                className="nlui-table"
+                                rowKey={(row) => String(row[block.rowKey])}
+                                dataSource={block.rows}
+                                columns={block.columns.map((column) => ({
+                                    title: column.label,
+                                    dataIndex: column.key,
+                                    key: column.key,
+                                    minWidth: tableColumnMinWidth(column.format),
+                                    align: column.format === 'number' || column.format === 'currency' ? 'right' : 'left',
+                                    render: (value: TableBlock['rows'][number][string]) => (
+                                        <FormattedValue value={value} format={column.format}/>
+                                    )
+                                }))}
+                                size="small"
+                                scroll={{x: 'max-content'}}
+                                pagination={block.rows.length > 8 ? {pageSize: 8, size: 'small'} : false}
+                            />
+                        </section>
                     </Card>;
                 case 'choices':
                     return <ChoiceInput key={block.id} block={block} disabled={disabled} onInteraction={onInteraction}/>;

@@ -1,6 +1,6 @@
 {
   "name": "nlui-demo",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
@@ -13,6 +13,7 @@
     "test": "bun test",
     "eval:offline": "bun run scripts/eval-offline.ts",
     "eval:live": "bun run scripts/eval-live.ts",
+    "eval:query-ab": "bun run scripts/eval-query-ab.ts",
     "check": "bun run lint && bun run typecheck && bun test"
   },
   "devDependencies": {
@@ -26,7 +27,7 @@
     "@ant-design/x": "^2.9.0",
     "@ant-design/x-markdown": "^2.9.0",
     "@phosphor-icons/react": "^2.1.10",
-    "antd": "^6.5.2",
+    "antd": "^6.5.3",
     "node-sql-parser": "^5.4.0",
     "openai": "^7.2.0",
     "react": "^19.2.8",

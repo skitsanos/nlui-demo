@@ -46,6 +46,14 @@ describe('dataset SQL policy', () =>
         `)).not.toThrow();
     });
 
+    test('allows placeholders only for application-compiled queries', () =>
+    {
+        const sql = 'SELECT COUNT(*) AS customer_count FROM customers WHERE tier = ?';
+        expect(() => canonicalizeDatasetQuery(sql)).toThrow('SQL parameters are not allowed');
+        expect(canonicalizeDatasetQuery(sql, {allowParameters: true}))
+            .toBe('SELECT COUNT(*) AS "customer_count" FROM "customers" WHERE "tier" = ?');
+    });
+
     test.each([
         ['multiple statements', 'SELECT COUNT(*) FROM customers; DELETE FROM customers'],
         ['write', 'UPDATE customers SET tier = \'gold\''],

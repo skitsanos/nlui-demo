@@ -50,12 +50,12 @@ const toolRound = (): ResponseStreamEvent[] => [
     responseCompleted('response-tool')
 ];
 
-const finalRound = (blockIds: string[]): ResponseStreamEvent[] =>
+const finalRound = (blockIds: string[], caption: string | null = 'I found the latest customer records and kept the details in the table for a quick scan.'): ResponseStreamEvent[] =>
 {
     const encoded = JSON.stringify({
         presentation: 'blocks',
         answer: null,
-        caption: null,
+        caption,
         block_ids: blockIds
     });
     return [
@@ -65,6 +65,20 @@ const finalRound = (blockIds: string[]): ResponseStreamEvent[] =>
         responseCompleted('response-final')
     ];
 };
+
+const messageRound = (): ResponseStreamEvent[] => [
+    responseCreated('response-message'),
+    event({
+        type: 'response.output_text.delta',
+        delta: JSON.stringify({
+            presentation: 'message',
+            answer: 'The semantic query arm returned a concise answer.',
+            caption: null,
+            block_ids: []
+        })
+    }),
+    responseCompleted('response-message')
+];
 
 const dependenciesFor = (rounds: ResponseStreamEvent[][]) =>
 {
@@ -95,7 +109,37 @@ const dependenciesFor = (rounds: ResponseStreamEvent[][]) =>
 
 describe('OpenAI chat structured composition', () =>
 {
-    test('buffers provisional prose and raw JSON until one trusted table is selected', async () =>
+    test('uses injected tools, instructions, and prompt version for an experiment arm', async () =>
+    {
+        const {dependencies, requests} = dependenciesFor([messageRound()]);
+        const tools: NonNullable<OpenAIChatDependencies['tools']> = [{
+            type: 'function',
+            name: 'semantic_query',
+            description: 'Run one server-owned semantic query.',
+            strict: true,
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: [],
+                additionalProperties: false
+            }
+        }];
+        const instructions = 'Use semantic_query for analytical dataset questions.';
+        const promptVersion = 'nlui-controller-semantic-test';
+        const runner = createOpenAIChatRunner({...dependencies, tools, instructions, promptVersion});
+
+        const result = await runner({
+            conversationId: 'conversation-semantic-arm',
+            input: {type: 'user_text', text: 'How many customers are there?'}
+        }, () => undefined, new AbortController().signal);
+
+        expect(requests).toHaveLength(1);
+        expect(requests[0]?.tools).toEqual(tools);
+        expect(requests[0]?.instructions).toBe(instructions);
+        expect(result.promptVersion).toBe(promptVersion);
+    });
+
+    test('buffers provisional prose and raw JSON until an annotation and one trusted table are selected', async () =>
     {
         const {dependencies, requests, issued} = dependenciesFor([toolRound(), finalRound([table.id])]);
         const events: ChatStreamEvent[] = [];
@@ -105,10 +149,17 @@ describe('OpenAI chat structured composition', () =>
             input: {type: 'user_text', text: 'Show me the last 5 customers'}
         }, (next) => events.push(next), new AbortController().signal);
 
-        expect(events.filter(({type}) => type === 'text.delta')).toEqual([]);
+        expect(events.filter(({type}) => type === 'text.delta')).toEqual([{
+            type: 'text.delta',
+            delta: 'I found the latest customer records and kept the details in the table for a quick scan.'
+        }]);
         expect(events.filter(({type}) => type === 'ui.block')).toEqual([{type: 'ui.block', block: table}]);
+        expect(events.filter(({type}) => ['text.delta', 'ui.block', 'message.completed'].includes(type))
+            .map(({type}) => type)).toEqual(['text.delta', 'ui.block', 'message.completed']);
+        expect(events.filter(({type}) => type === 'text.delta').some((item) => JSON.stringify(item).includes('CUS-0160')))
+            .toBeFalse();
         expect(events.at(-1)?.type).toBe('message.completed');
-        expect(result.text).toBe('');
+        expect(result.text).toContain('quick scan');
         expect(result.blocks).toEqual([table]);
         expect(issued).toEqual([[table]]);
 
@@ -133,6 +184,21 @@ describe('OpenAI chat structured composition', () =>
 
         expect(runner({
             conversationId: 'conversation-invalid-reference',
+            input: {type: 'user_text', text: 'Show me customers'}
+        }, (next) => events.push(next), new AbortController().signal)).rejects.toThrow(StructuredResponseError);
+        expect(events.some(({type}) => type === 'text.delta' || type === 'ui.block' || type === 'message.completed'))
+            .toBeFalse();
+        expect(issued).toEqual([]);
+    });
+
+    test('rejects a missing block annotation before emitting content or issuing capabilities', async () =>
+    {
+        const {dependencies, issued} = dependenciesFor([toolRound(), finalRound([table.id], null)]);
+        const events: ChatStreamEvent[] = [];
+        const runner = createOpenAIChatRunner(dependencies);
+
+        expect(runner({
+            conversationId: 'conversation-missing-annotation',
             input: {type: 'user_text', text: 'Show me customers'}
         }, (next) => events.push(next), new AbortController().signal)).rejects.toThrow(StructuredResponseError);
         expect(events.some(({type}) => type === 'text.delta' || type === 'ui.block' || type === 'message.completed'))

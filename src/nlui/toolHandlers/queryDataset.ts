@@ -7,6 +7,7 @@ import type {ToolExecution} from '../toolTypes.ts';
 import type {ChartBlock, NluiBlock, TableBlock} from '../types.ts';
 
 type Presentation = 'bar' | 'line' | 'metric' | 'table' | 'text';
+export type DatasetPresentation = 'auto' | 'metric' | 'table' | 'bar' | 'line';
 
 const currency = new Intl.NumberFormat('en', {style: 'currency', currency: 'EUR'});
 
@@ -90,7 +91,7 @@ const tableBlock = (result: DatasetQueryResult, title: string): TableBlock => ({
 const chartBlock = (
     result: DatasetQueryResult,
     title: string,
-    requested: 'auto' | 'bar' | 'line'
+    requested: Extract<DatasetPresentation, 'auto' | 'bar' | 'line'>
 ): ChartBlock | undefined =>
 {
     if (result.rows.length < 2 || result.rows.length > 24 || result.columns.length !== 2) return undefined;
@@ -132,7 +133,7 @@ const chartBlock = (
 const renderResult = (
     result: DatasetQueryResult,
     title: string,
-    requested: 'auto' | 'metric' | 'table' | 'bar' | 'line'
+    requested: DatasetPresentation
 ): {blocks: NluiBlock[]; renderedAs: Presentation | 'empty'} =>
 {
     if (result.rows.length === 0)
@@ -183,10 +184,12 @@ const renderResult = (
     return {renderedAs: 'table', blocks: [tableBlock(result, title)]};
 };
 
-export const queryDatasetHandler = async (raw: unknown): Promise<ToolExecution> =>
+export const renderDatasetResult = (
+    result: DatasetQueryResult,
+    title: string,
+    presentation: DatasetPresentation
+): ToolExecution =>
 {
-    const args = queryDatasetArguments.parse(raw);
-    const result = await queryDataset(args.sql);
     const presented = presentationResult(result);
     if (result.rows.length > 0 && presented.columns.length === 0)
     {
@@ -202,7 +205,7 @@ export const queryDatasetHandler = async (raw: unknown): Promise<ToolExecution> 
             blocks: []
         };
     }
-    const rendered = renderResult(presented, args.title, args.presentation);
+    const rendered = renderResult(presented, title, presentation);
     return {
         modelOutput: modelQueryOutput(presented, rendered.renderedAs),
         traceOutput: {
@@ -211,4 +214,10 @@ export const queryDatasetHandler = async (raw: unknown): Promise<ToolExecution> 
         },
         blocks: rendered.blocks
     };
+};
+
+export const queryDatasetHandler = async (raw: unknown): Promise<ToolExecution> =>
+{
+    const args = queryDatasetArguments.parse(raw);
+    return renderDatasetResult(await queryDataset(args.sql), args.title, args.presentation);
 };

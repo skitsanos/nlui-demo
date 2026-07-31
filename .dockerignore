@@ -44,6 +44,7 @@ renovate.json
 
 # Tests are validated before building and are not needed at runtime
 src/**/*.test.ts
+src/**/*.test.tsx
 
 # OS noise
 .DS_Store

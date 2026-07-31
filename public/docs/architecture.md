@@ -50,7 +50,7 @@ The request also carries an application `conversationId`. The server validates t
 - `message.completed`
 - `error`
 
-Tool activity remains incrementally visible over NDJSON, but the provider's terminal Structured Output is buffered until its complete JSON envelope validates. The envelope chooses either a prose answer or trusted block identifiers with an optional caption; raw JSON fragments never enter XMarkdown. Tool blocks remain server-owned candidates until every selected identifier resolves, the selected aggregate passes Zod validation, and interactive capabilities can be issued as one batch. Only then does the server emit the final `text.delta` and `ui.block` events. A later `ui_result` is resolved through that registry before its canonical values enter model context.
+Tool activity remains incrementally visible over NDJSON, but the provider's terminal Structured Output is buffered until its complete JSON envelope validates. The envelope chooses either a prose answer or trusted block identifiers with a required concise annotation; raw JSON fragments never enter XMarkdown. The annotation adds conversational context or one useful takeaway without transcribing values already rendered by a block. Tool blocks remain server-owned candidates until every selected identifier resolves, the selected aggregate passes Zod validation, and interactive capabilities can be issued as one batch. Only then does the server emit the final annotation as `text.delta`, followed by `ui.block` events. A later `ui_result` is resolved through that registry before its canonical values enter model context.
 
 The service uses Responses API `text.format` with a strict JSON Schema, chains turns with `previous_response_id`, bounds execution to six tool rounds, twelve calls, twelve candidate blocks, and 1,200 output tokens per provider response, and cancels the provider stream when the HTTP client disconnects. A bounded server-side conversation registry binds every continuation to the last response ID and prevents concurrent turns from splicing unrelated provider chains.
 
@@ -97,6 +97,12 @@ Every call is parsed again with a Zod schema before it reaches a handler. Most h
 
 Internal tables, wildcard selection, schema qualifiers, table-valued or unapproved functions, recursive/compound queries, implicit or cartesian joins, and contact/address columns are outside this capability. This gate is designed for the synthetic demo dataset; it does not replace production authentication, tenant filters, database roles, row-level security, or audited analytics views.
 
+### Semantic Query Plan experiment
+
+Production chat continues to expose `query_dataset`; the semantic path is an explicit evaluation arm, not a runtime replacement. That arm swaps only the generic analytics capability for `semantic_query` and leaves the specialized data, retrieval, and action tools unchanged. The model selects from a versioned catalog of server-defined metrics and dimensions and may supply only validated filters, a bounded time range, ordering, and a result limit. It does not author or receive SQL.
+
+The server canonicalizes the semantic plan, records a stable plan hash for internal evaluation, resolves only catalog-approved relationships, and compiles one parameterized query. Filter and date values are bound parameters; the already validated integer limit is embedded because the SQL policy parser does not accept a parameter in that position. Execution still uses the isolated read-only worker and the same bounded trusted-result renderer as the control. SQL, plan provenance, and complete table rows remain out of the browser protocol and model-facing result.
+
 Policy search is deterministic local lexical retrieval over four Markdown documents loaded during seeding. This version does not require embeddings, a vector database, or hosted file search.
 
 ## Action boundary
@@ -122,7 +128,7 @@ The generator uses a fixed seed, dataset version, and reference timestamp. The e
 
 Money is stored as integer euro cents and timestamps as ISO 8601 UTC strings. `bun run reset:data` recreates the baseline after action demonstrations.
 
-`data/scenarios.jsonl` contains 35 golden specifications spanning analytics, orders, products, retrieval, disambiguation, and guarded actions. They define expected tools, UI classes, forbidden mutations, data assertions, and—where needed—single-turn, multi-turn, or application-route execution mode. The latest-customer scenario requires a table-only response, making prose duplication a deterministic regression.
+`data/scenarios.jsonl` contains 35 golden specifications spanning analytics, orders, products, retrieval, disambiguation, and guarded actions. They define expected tools, UI classes, forbidden mutations, data assertions, and—where needed—single-turn, multi-turn, or application-route execution mode. Model-driven block scenarios require a conversational annotation, while the latest-customer scenario still verifies that trusted table rows are rendered once rather than transcribed into that annotation.
 
 ## Evaluation boundary
 
@@ -130,7 +136,9 @@ Money is stored as integer euro cents and timestamps as ISO 8601 UTC strings. `b
 
 The double-opt-in `eval:live` runner currently handles selected single-turn scenarios. It first verifies a logical fingerprint of the active database against a freshly generated baseline, then fails read-only runs if the final fingerprint changed. Safe-action runs require an additional flag and exactly one repeat until isolated mutation runners exist. It captures browser-protocol events plus an internal trace containing validated tool arguments/results, canonical query hashes, tool and provider-round timing, model and prompt versions, final text, UI blocks, response IDs, and token usage—including completed rounds before a later failure. Internal trace data is returned only to the explicit evaluation process; SQL, tool results, and provider metadata are not added to the browser NDJSON protocol or normal HTTP logs.
 
-The scorer deterministically checks required tools, forbidden tools, renderer-class coverage, failures, structured tool-output assertions, and configured assistant-text faithfulness rules. Natural-language assertions without a migrated deterministic rule are reported as `not_evaluated`, making the run `incomplete` and the command nonzero unless the operator explicitly allows incomplete research runs. The v1 adapter intentionally refuses the two route confirmations and one context-dependent multi-turn scenario until those workflows have isolated runners.
+The scorer deterministically checks required tools, forbidden tools, renderer-class coverage, failures, structured tool-output assertions, SQL intent where applicable, and configured assistant-text faithfulness rules. Denotation assertions normalize selected query columns into ordered value tuples, so model-selected SQL aliases do not affect control-versus-semantic grading. Natural-language assertions without a migrated deterministic rule are reported as `not_evaluated`, making the run `incomplete` and the command nonzero unless the operator explicitly allows incomplete research runs. The v1 adapter intentionally refuses the two route confirmations and one context-dependent multi-turn scenario until those workflows have isolated runners.
+
+`data/experiments/semantic-query-v1.jsonl` is a separate versioned fixture of paired paraphrases. `bun run eval:query-ab` adapts each case to the guarded `query_dataset` control and the server-compiled `semantic_query` arm, requires `NLUI_EVAL_LIVE=1` plus `--confirm-billable`, and validates the projected paired run count before provider work. The operator must explicitly select `--all`, one or more `--case` values, or one or more `--id` values. Reports compare exact tool choice, denotation and UI success, latency, token use, provider rounds, rejected attempts, and whether every paraphrase in a case passes. Full raw reports can be written only beneath the ignored `eval-results/` directory. The harness does not itself establish a winner; no live comparative result is claimed here.
 
 ## Deployment and persistence
 

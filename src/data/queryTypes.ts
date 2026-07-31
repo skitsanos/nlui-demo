@@ -19,11 +19,14 @@ export interface DatasetQueryResult
     truncated: boolean;
 }
 
+export type DatasetQueryParameter = string | number | null;
+
 export interface QueryWorkerRequest
 {
     databasePath: string;
     sql: string;
     rowLimit: number;
+    parameters?: DatasetQueryParameter[];
 }
 
 export type QueryWorkerResponse =

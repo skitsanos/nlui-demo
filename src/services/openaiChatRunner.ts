@@ -1,4 +1,5 @@
 import type {
+    FunctionTool,
     ResponseCreateParamsStreaming,
     ResponseFunctionToolCall,
     ResponseInputItem,
@@ -35,6 +36,9 @@ type ResponseEventStream = AsyncIterable<ResponseStreamEvent>;
 export interface OpenAIChatDependencies
 {
     model: string;
+    tools?: FunctionTool[];
+    instructions?: string;
+    promptVersion?: string;
     createResponse: (
         params: ResponseCreateParamsStreaming,
         signal: AbortSignal
@@ -120,10 +124,10 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
             const roundStarted = performance.now();
             const stream = await dependencies.createResponse({
                 model: dependencies.model,
-                instructions: CHAT_INSTRUCTIONS,
+                instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
                 input,
                 previous_response_id: previousResponseId,
-                tools: OPENAI_TOOLS,
+                tools: dependencies.tools ?? OPENAI_TOOLS,
                 parallel_tool_calls: false,
                 max_output_tokens: MAX_OUTPUT_TOKENS,
                 store: true,
@@ -191,7 +195,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                     messageId,
                     responseId,
                     model: responseModel,
-                    promptVersion: CHAT_PROMPT_VERSION,
+                    promptVersion: dependencies.promptVersion ?? CHAT_PROMPT_VERSION,
                     text: resolved.text,
                     blocks: resolved.blocks,
                     tools,

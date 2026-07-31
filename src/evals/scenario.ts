@@ -1,30 +1,18 @@
 import {join} from 'node:path';
 import {z} from 'zod';
+import {
+    deterministicAssertionSchema,
+    EVALUATION_BLOCK_NAMES,
+    EVALUATION_TOOL_NAMES
+} from './assertionSchema.ts';
 
-export const EVALUATION_TOOL_NAMES = [
-    'confirm_action',
-    'get_dashboard',
-    'get_order',
-    'list_orders',
-    'prepare_action',
-    'query_dataset',
-    'request_details',
-    'search_policies',
-    'search_products'
-] as const;
-
-export const EVALUATION_BLOCK_NAMES = [
-    'action_result',
-    'chart',
-    'choice',
-    'citations',
-    'confirmation',
-    'error',
-    'form',
-    'markdown',
-    'metrics',
-    'table'
-] as const;
+export {
+    type DeterministicAssertion,
+    EVALUATION_BLOCK_NAMES,
+    EVALUATION_TOOL_NAMES,
+    type EvaluationBlockName,
+    type EvaluationToolName
+} from './assertionSchema.ts';
 
 export const EVALUATION_CATEGORIES = [
     'analytics',
@@ -45,57 +33,15 @@ const executionSchema = z.discriminatedUnion('mode', [
     z.object({mode: z.literal('skip'), reason: z.string().trim().min(1)}).strict()
 ]);
 
-const assertionLabel = z.string().trim().min(1);
-const deterministicAssertionSchema = z.discriminatedUnion('source', [
-    z.object({
-        source: z.literal('tool'),
-        label: assertionLabel,
-        tool: z.enum(EVALUATION_TOOL_NAMES),
-        path: z.string().regex(/^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$/),
-        operator: z.enum(['equals', 'contains', 'contains_value', 'length_equals']),
-        expected: z.union([z.string(), z.number(), z.boolean()])
-    }).strict(),
-    z.object({
-        source: z.literal('assistant_text'),
-        label: assertionLabel,
-        operator: z.enum(['contains_ci', 'not_contains_ci', 'number_equals']),
-        expected: z.union([z.string(), z.number()])
-    }).strict(),
-    z.object({
-        source: z.literal('tool_arguments'),
-        label: assertionLabel,
-        tool: z.literal('query_dataset'),
-        operator: z.literal('sql_where_equals'),
-        expected: z.object({
-            column: z.string().regex(/^[a-z][a-z0-9_]*$/),
-            value: z.string()
-        }).strict()
-    }).strict(),
-    z.object({
-        source: z.literal('ui'),
-        label: assertionLabel,
-        operator: z.literal('block_types_equal'),
-        expected: z.array(z.enum(EVALUATION_BLOCK_NAMES)).refine(
-            (items) => new Set(items).size === items.length,
-            'Values must be unique'
-        )
-    }).strict()
-]).superRefine((assertion, context) =>
-{
-    if ((assertion.operator === 'length_equals' || assertion.operator === 'number_equals')
-        && (typeof assertion.expected !== 'number' || !Number.isFinite(assertion.expected)))
-    {
-        context.addIssue({code: 'custom', message: `${assertion.operator} requires a numeric expectation`});
-    }
-    if ((assertion.operator === 'contains_ci' || assertion.operator === 'not_contains_ci')
-        && typeof assertion.expected !== 'string')
-    {
-        context.addIssue({code: 'custom', message: `${assertion.operator} requires a string expectation`});
-    }
-});
-
 const uniqueArray = <T extends z.ZodType>(schema: T) =>
     z.array(schema).refine((items) => new Set(items).size === items.length, 'Values must be unique');
+
+const experimentIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+const experimentSchema = z.object({
+    id: experimentIdSchema,
+    caseId: experimentIdSchema,
+    paraphraseId: experimentIdSchema
+}).strict();
 
 const orderNumberSchema = z.string().regex(/^ORD-\d+$/);
 const reasonActionSchema = z.object({
@@ -122,6 +68,7 @@ export const evaluationScenarioSchema = z.object({
     id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     category: z.enum(EVALUATION_CATEGORIES),
     prompt: z.string().trim().min(1).max(500),
+    experiment: experimentSchema.optional(),
     execution: executionSchema.optional(),
     setup: z.object({pendingAction: pendingActionSchema}).strict().optional(),
     expectedTools: uniqueArray(z.enum(EVALUATION_TOOL_NAMES)),
@@ -177,11 +124,8 @@ export const evaluationScenarioSchema = z.object({
 });
 
 export type EvaluationScenario = z.infer<typeof evaluationScenarioSchema>;
-export type EvaluationToolName = typeof EVALUATION_TOOL_NAMES[number];
-export type EvaluationBlockName = typeof EVALUATION_BLOCK_NAMES[number];
 export type EvaluationCategory = typeof EVALUATION_CATEGORIES[number];
 export type ScenarioExecution = z.infer<typeof executionSchema>;
-export type DeterministicAssertion = z.infer<typeof deterministicAssertionSchema>;
 
 export const executionFor = (scenario: EvaluationScenario): ScenarioExecution =>
     scenario.execution ?? {mode: 'single-turn'};

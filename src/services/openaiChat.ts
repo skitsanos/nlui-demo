@@ -1,7 +1,8 @@
 import OpenAI from 'openai';
 import {interactionCapabilities} from '../nlui/interactionCapabilities.ts';
+import {type QueryArm, toolsForQueryArm} from '../nlui/toolDefinitions.ts';
 import {executeNluiTool} from '../nlui/tools.ts';
-import {CHAT_PROMPT_VERSION} from './chatPrompt.ts';
+import {CHAT_PROMPT_VERSION, chatInstructionsFor, promptVersionFor} from './chatPrompt.ts';
 import {createOpenAIChatRunner} from './openaiChatRunner.ts';
 
 export type {OpenAIChatDependencies, OpenAIChatRunner} from './openaiChatRunner.ts';
@@ -18,7 +19,7 @@ export class ChatConfigurationError extends Error
 
 let client: OpenAI | undefined;
 
-const configuredRunner = () =>
+export const createConfiguredOpenAIChatRunner = (arm: QueryArm) =>
 {
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     const model = process.env.CHAT_MODEL?.trim();
@@ -29,6 +30,9 @@ const configuredRunner = () =>
     const openai = client;
     return createOpenAIChatRunner({
         model,
+        tools: toolsForQueryArm(arm),
+        instructions: chatInstructionsFor(arm),
+        promptVersion: promptVersionFor(arm),
         createResponse: async (params, signal) => await openai.responses.create(params, {signal}),
         executeTool: executeNluiTool,
         issueCapabilities: (conversationId, blocks) => interactionCapabilities.issueMany(conversationId, blocks)
@@ -36,4 +40,4 @@ const configuredRunner = () =>
 };
 
 export const runOpenAIChat: ReturnType<typeof createOpenAIChatRunner> =
-    (request, emit, signal, observe) => configuredRunner()(request, emit, signal, observe);
+    (request, emit, signal, observe) => createConfiguredOpenAIChatRunner('control')(request, emit, signal, observe);

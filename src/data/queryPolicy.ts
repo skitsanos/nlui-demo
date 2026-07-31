@@ -200,7 +200,7 @@ const validateSelectColumns = (select: AstNode, allowCanonicalQuotes: boolean): 
     }
 };
 
-const validateAst = (ast: AstNode, allowCanonicalQuotes = false): void =>
+const validateAst = (ast: AstNode, allowCanonicalQuotes = false, allowParameters = false): void =>
 {
     if (lower(ast.type) !== 'select') policyError('Only a SELECT statement is allowed.');
     const ctes = collectCtes(ast);
@@ -239,7 +239,8 @@ const validateAst = (ast: AstNode, allowCanonicalQuotes = false): void =>
             if (HIDDEN_COLUMNS.has(column)) policyError('That column is outside the published analytics schema.');
             if (node.collate) policyError('Custom collations are not allowed.');
         }
-        else if (node.type === 'param' || (node.type === 'origin' && /^[?$:@]/.test(String(node.value))))
+        else if (!allowParameters
+            && (node.type === 'param' || (node.type === 'origin' && /^[?$:@]/.test(String(node.value)))))
         {
             policyError('SQL parameters are not allowed.');
         }
@@ -281,17 +282,17 @@ const parseOne = (sql: string): AstNode =>
     }
 };
 
-export const canonicalizeDatasetQuery = (sql: string): string =>
+export const canonicalizeDatasetQuery = (sql: string, options: {allowParameters?: boolean} = {}): string =>
 {
     const trimmed = sql.trim();
     if (!trimmed) policyError('The generated query is empty.');
     if (trimmed.length > MAX_SQL_LENGTH) policyError(`SQL is limited to ${MAX_SQL_LENGTH.toLocaleString()} characters.`);
 
     const ast = parseOne(trimmed);
-    validateAst(ast);
+    validateAst(ast, false, options.allowParameters);
     const canonical = parser.sqlify(ast as any, {database: 'sqlite'});
     const reparsed = parseOne(canonical);
-    validateAst(reparsed, true);
+    validateAst(reparsed, true, options.allowParameters);
     return canonical;
 };
 

@@ -1,4 +1,5 @@
 import {Bubble, Conversations, Prompts, Sender, Welcome, XProvider} from '@ant-design/x';
+import type {BubbleListRef} from '@ant-design/x/es/bubble';
 import XMarkdown, {type ComponentProps} from '@ant-design/x-markdown';
 import {
     ChartLine,
@@ -52,6 +53,8 @@ const App = () =>
     const [chatConfigured, setChatConfigured] = useState<boolean>();
     const {messages, loading, conversationId, submit, cancel, reset} = useChat();
     const consumedInteractions = useRef(new Set<string>());
+    const messageListRef = useRef<BubbleListRef>(null);
+    const latestMessageId = messages[messages.length - 1]?.id;
 
     useEffect(() =>
     {
@@ -70,6 +73,20 @@ const App = () =>
             });
         return () => controller.abort();
     }, []);
+
+    useEffect(() =>
+    {
+        if (!latestMessageId)
+        {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() =>
+        {
+            messageListRef.current?.scrollTo({key: latestMessageId, block: 'start', behavior: 'auto'});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [latestMessageId]);
 
     const pendingInteractions = useRef(new Set<string>());
 
@@ -114,13 +131,16 @@ const App = () =>
     const bubbleItems = useMemo(() => messages.map((message) => ({
         key: message.id,
         role: message.role,
+        classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table')
+            ? {root: 'assistant-bubble-table'}
+            : undefined,
         loading: message.state === 'loading' && !message.content && message.blocks.length === 0,
         streaming: message.state === 'streaming',
         content: message.role === 'user' ? message.content : (
             <div className="assistant-message">
                 {message.content && <XMarkdown
                     content={message.content}
-                    className="x-markdown-light"
+                    className={`x-markdown-light${message.blocks.length > 0 ? ' assistant-annotation' : ''}`}
                     components={{a: TextOnlyLink, img: OmittedImage}}
                     escapeRawHtml
                     streaming={{hasNextChunk: message.state === 'streaming', tail: message.state === 'streaming'}}
@@ -210,7 +230,8 @@ const App = () =>
                                 onItemClick={({data}) => sendText(String(data.label))}
                             />
                         </div> : <Bubble.List
-                            autoScroll
+                            ref={messageListRef}
+                            autoScroll={false}
                             className="message-list"
                             items={bubbleItems}
                             role={{

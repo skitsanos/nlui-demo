@@ -78,6 +78,17 @@ const executionIssues = (scenario: EvaluationScenario): CatalogIssue[] =>
     }];
 };
 
+const annotationIssues = (scenario: EvaluationScenario): CatalogIssue[] =>
+{
+    const execution = executionFor(scenario);
+    if (execution.mode === 'route' || execution.mode === 'skip') return [];
+    const hasStructuredBlock = scenario.expectedBlocks.some((block) => block !== 'markdown');
+    return hasStructuredBlock && !scenario.expectedBlocks.includes('markdown') ? [{
+        scenarioId: scenario.id,
+        message: 'Model-driven UI block scenarios must expect a conversational markdown annotation'
+    }] : [];
+};
+
 export const validateScenarioCatalog = (scenarios: EvaluationScenario[]): CatalogValidationReport =>
 {
     const executionModes = {'single-turn': 0, 'multi-turn': 0, route: 0, skip: 0};
@@ -93,7 +104,7 @@ export const validateScenarioCatalog = (scenarios: EvaluationScenario[]): Catalo
         deterministicAssertions += graded.size;
         deterministicRules += scenario.deterministicAssertions?.length ?? 0;
         ungradedAssertions += scenario.dataAssertions.length - graded.size;
-        issues.push(...executionIssues(scenario), ...expectedBlockIssues(scenario));
+        issues.push(...executionIssues(scenario), ...expectedBlockIssues(scenario), ...annotationIssues(scenario));
     }
 
     return {

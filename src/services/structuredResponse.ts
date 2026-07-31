@@ -32,22 +32,22 @@ export class StructuredResponseError extends Error
     }
 }
 
-const nullableCaptionSchema = {
-    type: ['string', 'null'],
+const blockCaptionSchema = {
+    type: 'string',
+    minLength: 1,
     maxLength: MAX_CAPTION_LENGTH,
-    description: 'Null for a self-explanatory table/list; otherwise one short contextual sentence that does not repeat block data.'
+    description: 'A brief conversational annotation that adds context or one useful takeaway without repeating data already rendered in the selected blocks.'
 };
 
 export const responseTextConfigFor = (blocks: NluiBlock[]): ResponseTextConfig =>
 {
     const ids = blocks.map(({id}) => id);
     const hasBlocks = ids.length > 0;
-    const tableOnly = hasBlocks && blocks.every(({type}) => type === 'table');
     return {
         format: {
             type: 'json_schema',
             name: 'nlui_assistant_response',
-            description: 'Selects either a prose answer or trusted server-owned UI blocks with an optional non-duplicative caption.',
+            description: 'Selects either a prose answer or trusted server-owned UI blocks with a brief non-duplicative annotation.',
             strict: true,
             schema: {
                 type: 'object',
@@ -61,10 +61,7 @@ export const responseTextConfigFor = (blocks: NluiBlock[]): ResponseTextConfig =
                         minLength: 1,
                         description: 'The complete concise user-facing Markdown answer.'
                     },
-                    caption: hasBlocks && !tableOnly ? nullableCaptionSchema : {
-                        type: 'null',
-                        description: tableOnly ? 'Table-only responses do not include duplicate prose.' : undefined
-                    },
+                    caption: hasBlocks ? blockCaptionSchema : {type: 'null'},
                     block_ids: hasBlocks ? {
                         type: 'array',
                         items: {type: 'string', enum: ids},
@@ -135,14 +132,13 @@ export const resolveStructuredResponse = (encoded: string, candidates: NluiBlock
     }
 
     if (envelope.presentation !== 'blocks' || envelope.answer !== null
-        || (envelope.caption !== null && (!envelope.caption.trim() || envelope.caption.length > MAX_CAPTION_LENGTH))
+        || !envelope.caption?.trim()
+        || envelope.caption.length > MAX_CAPTION_LENGTH
         || envelope.block_ids.length === 0
         || new Set(envelope.block_ids).size !== envelope.block_ids.length)
     {
         return invalid();
     }
-
-    if (candidates.every(({type}) => type === 'table') && envelope.caption !== null) return invalid();
 
     const selected = envelope.block_ids.map((id) => candidatesById.get(id) ?? invalid());
     const selectedIds = new Set(envelope.block_ids);
@@ -152,7 +148,7 @@ export const resolveStructuredResponse = (encoded: string, candidates: NluiBlock
     }
     const blocks = nluiBlocksSchema.safeParse(selected);
     if (!blocks.success) return invalid();
-    return {envelope, text: envelope.caption ?? '', blocks: blocks.data};
+    return {envelope, text: envelope.caption, blocks: blocks.data};
 };
 
 export const refusalResponse = (text: string): ResolvedAssistantResponse => ({
