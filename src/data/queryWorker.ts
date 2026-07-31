@@ -18,7 +18,7 @@ const sanitizedMessage = (error: unknown): QueryWorkerResponse =>
 
 self.onmessage = (event: MessageEvent<QueryWorkerRequest>): void =>
 {
-    const {databasePath, sql, rowLimit} = event.data;
+    const {databasePath, sql, rowLimit, parameters = []} = event.data;
     const database = new Database(databasePath, {readonly: true, strict: true});
     try
     {
@@ -26,13 +26,17 @@ self.onmessage = (event: MessageEvent<QueryWorkerRequest>): void =>
         database.run('PRAGMA busy_timeout = 250');
         database.run('PRAGMA query_only = ON');
         const statement = database.prepare(`SELECT * FROM (${sql}) AS __nlui_result LIMIT ${rowLimit + 1}`);
-        if (statement.paramsCount !== 0)
+        if (statement.paramsCount !== parameters.length)
         {
-            postMessage({ok: false, code: 'SQL_INVALID', message: 'SQL parameters are not supported.'} satisfies QueryWorkerResponse);
+            postMessage({
+                ok: false,
+                code: 'SQL_INVALID',
+                message: 'SQL parameter values did not match the compiled query.'
+            } satisfies QueryWorkerResponse);
             return;
         }
         const columnNames = [...statement.columnNames];
-        const values = statement.values() as unknown[][];
+        const values = statement.values(...parameters) as unknown[][];
         postMessage({ok: true, columnNames, values} satisfies QueryWorkerResponse);
     }
     catch (error)

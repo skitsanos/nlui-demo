@@ -1,4 +1,5 @@
 import {Bubble, Conversations, Prompts, Sender, Welcome, XProvider} from '@ant-design/x';
+import type {BubbleListRef} from '@ant-design/x/es/bubble';
 import XMarkdown, {type ComponentProps} from '@ant-design/x-markdown';
 import {
     ChartLine,
@@ -50,8 +51,10 @@ const App = () =>
 {
     const [draft, setDraft] = useState('');
     const [chatConfigured, setChatConfigured] = useState<boolean>();
-    const {messages, loading, submit, cancel, reset} = useChat();
+    const {messages, loading, conversationId, submit, cancel, reset} = useChat();
     const consumedInteractions = useRef(new Set<string>());
+    const messageListRef = useRef<BubbleListRef>(null);
+    const latestMessageId = messages[messages.length - 1]?.id;
 
     useEffect(() =>
     {
@@ -71,17 +74,40 @@ const App = () =>
         return () => controller.abort();
     }, []);
 
-    const send = useCallback((input: ChatInput, displayText: string): void =>
+    useEffect(() =>
+    {
+        if (!latestMessageId)
+        {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() =>
+        {
+            messageListRef.current?.scrollTo({key: latestMessageId, block: 'start', behavior: 'auto'});
+        });
+        return () => cancelAnimationFrame(frame);
+    }, [latestMessageId]);
+
+    const pendingInteractions = useRef(new Set<string>());
+
+    const send = useCallback(async (input: ChatInput, displayText: string): Promise<boolean> =>
     {
         if (input.type === 'ui_result')
         {
-            if (consumedInteractions.current.has(input.interactionId))
+            if (consumedInteractions.current.has(input.interactionId)
+                || pendingInteractions.current.has(input.interactionId))
             {
-                return;
+                return false;
             }
-            consumedInteractions.current.add(input.interactionId);
+            pendingInteractions.current.add(input.interactionId);
         }
-        void submit(input, displayText);
+        const completed = await submit(input, displayText);
+        if (input.type === 'ui_result')
+        {
+            pendingInteractions.current.delete(input.interactionId);
+            if (completed) consumedInteractions.current.add(input.interactionId);
+        }
+        return completed;
     }, [submit]);
 
     const sendText = (text: string): void =>
@@ -92,26 +118,29 @@ const App = () =>
             return;
         }
         setDraft('');
-        send({type: 'user_text', text: trimmed}, trimmed);
+        void send({type: 'user_text', text: trimmed}, trimmed);
     };
 
     const resetChat = (): void =>
     {
         consumedInteractions.current.clear();
+        pendingInteractions.current.clear();
         reset();
     };
 
-    const latestAssistantId = messages.findLast(({role}) => role === 'assistant')?.id;
     const bubbleItems = useMemo(() => messages.map((message) => ({
         key: message.id,
         role: message.role,
+        classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table')
+            ? {root: 'assistant-bubble-table'}
+            : undefined,
         loading: message.state === 'loading' && !message.content && message.blocks.length === 0,
         streaming: message.state === 'streaming',
         content: message.role === 'user' ? message.content : (
             <div className="assistant-message">
                 {message.content && <XMarkdown
                     content={message.content}
-                    className="x-markdown-light"
+                    className={`x-markdown-light${message.blocks.length > 0 ? ' assistant-annotation' : ''}`}
                     components={{a: TextOnlyLink, img: OmittedImage}}
                     escapeRawHtml
                     streaming={{hasNextChunk: message.state === 'streaming', tail: message.state === 'streaming'}}
@@ -121,12 +150,13 @@ const App = () =>
                 </Typography.Text>}
                 <NluiRenderer
                     blocks={message.blocks}
-                    disabled={loading || message.state !== 'complete' || message.id !== latestAssistantId}
+                    conversationId={conversationId}
+                    disabled={loading || message.state !== 'complete'}
                     onInteraction={send}
                 />
             </div>
         )
-    })), [latestAssistantId, loading, messages, send]);
+    })), [conversationId, loading, messages, send]);
 
     return (
         <XProvider theme={{
@@ -200,7 +230,8 @@ const App = () =>
                                 onItemClick={({data}) => sendText(String(data.label))}
                             />
                         </div> : <Bubble.List
-                            autoScroll
+                            ref={messageListRef}
+                            autoScroll={false}
                             className="message-list"
                             items={bubbleItems}
                             role={{

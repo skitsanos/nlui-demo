@@ -40,7 +40,7 @@ type ChatInput =
     | {type: 'ui_result'; interactionId: string; values: Record<string, unknown>};
 ```
 
-The server validates the complete request before opening a stream. A valid response uses `application/x-ndjson` and emits discrete events:
+The request also carries an application `conversationId`. The server validates the complete request before opening a stream. A valid response uses `application/x-ndjson` and emits discrete events:
 
 - `message.started`
 - `tool.started`
@@ -50,9 +50,9 @@ The server validates the complete request before opening a stream. A valid respo
 - `message.completed`
 - `error`
 
-NDJSON keeps text incrementally renderable without exposing a partially parsed JSON UI tree. Markdown streams through XMarkdown. A UI block is emitted only after a tool has returned and the complete block array has passed server-side Zod validation.
+Tool activity remains incrementally visible over NDJSON, but the provider's terminal Structured Output is buffered until its complete JSON envelope validates. The envelope chooses either a prose answer or trusted block identifiers with a required concise annotation; raw JSON fragments never enter XMarkdown. The annotation adds conversational context or one useful takeaway without transcribing values already rendered by a block. Tool blocks remain server-owned candidates until every selected identifier resolves, the selected aggregate passes Zod validation, and interactive capabilities can be issued as one batch. Only then does the server emit the final annotation as `text.delta`, followed by `ui.block` events. A later `ui_result` is resolved through that registry before its canonical values enter model context.
 
-The service chains turns with `previous_response_id`, bounds execution to six tool rounds and twelve calls, and cancels the provider stream when the HTTP client disconnects.
+The service uses Responses API `text.format` with a strict JSON Schema, chains turns with `previous_response_id`, bounds execution to six tool rounds, twelve calls, twelve candidate blocks, and 1,200 output tokens per provider response, and cancels the provider stream when the HTTP client disconnects. A bounded server-side conversation registry binds every continuation to the last response ID and prevents concurrent turns from splicing unrelated provider chains.
 
 ## Controlled NLUI rendering
 
@@ -69,7 +69,7 @@ The model does not describe component trees. It selects from eight strict tools;
 | `sources` | Policy evidence from the local corpus |
 | `result` | Completed action or error outcome |
 
-React switches exhaustively on `block.type` and maps each variant to known Ant Design components. Descriptors contain data, labels, and opaque identifiers—not functions, URLs, SQL, JSX, or endpoint names. Generated SQL remains server-side and is never used as a rendering description.
+React switches exhaustively on `block.type` and maps each variant to known Ant Design components. Descriptors contain data, labels, and opaque identifiers—not functions, URLs, SQL, JSX, or endpoint names. The model can reference a validated descriptor by ID but cannot generate or alter its props. Generated SQL remains server-side and is never used as a rendering description.
 
 ## Tool and data boundary
 
@@ -93,9 +93,15 @@ Every call is parsed again with a Zod schema before it reaches a handler. Most h
 3. canonicalizes the accepted AST and reparses it, so the original model string is never executed;
 4. sends only the canonical query to a separate read-only/query-only Bun worker;
 5. terminates work after 1.5 seconds and bounds the result to 100 rows, 12 columns, scalar cells, and a 96 KiB payload;
-6. gives result columns server-owned keys before building a trusted stats, chart, table, or empty-result block.
+6. gives result columns server-owned keys, removes technical projection helpers from model-facing and presentation data, and builds a trusted stats, chart, table, or empty-result block; simple non-numeric scalars remain prose-only, while table rows are withheld from the model-facing result and complete validated rows remain available only to explicit internal evaluation traces.
 
 Internal tables, wildcard selection, schema qualifiers, table-valued or unapproved functions, recursive/compound queries, implicit or cartesian joins, and contact/address columns are outside this capability. This gate is designed for the synthetic demo dataset; it does not replace production authentication, tenant filters, database roles, row-level security, or audited analytics views.
+
+### Semantic Query Plan experiment
+
+Production chat continues to expose `query_dataset`; the semantic path is an explicit evaluation arm, not a runtime replacement. That arm swaps only the generic analytics capability for `semantic_query` and leaves the specialized data, retrieval, and action tools unchanged. The model selects from a versioned catalog of server-defined metrics and dimensions and may supply only validated filters, a bounded time range, ordering, and a result limit. It does not author or receive SQL.
+
+The server canonicalizes the semantic plan, records a stable plan hash for internal evaluation, resolves only catalog-approved relationships, and compiles one parameterized query. Filter and date values are bound parameters; the already validated integer limit is embedded because the SQL policy parser does not accept a parameter in that position. Execution still uses the isolated read-only worker and the same bounded trusted-result renderer as the control. SQL, plan provenance, and complete table rows remain out of the browser protocol and model-facing result.
 
 Policy search is deterministic local lexical retrieval over four Markdown documents loaded during seeding. This version does not require embeddings, a vector database, or hosted file search.
 
@@ -104,11 +110,11 @@ Policy search is deterministic local lexical retrieval over four Markdown docume
 Mutations use two phases:
 
 1. `prepare_action` validates the domain request and stores a pending action. Data is unchanged. The model sees only a summary; the browser receives an opaque, expiring `actionId` inside a confirmation block.
-2. After the user explicitly confirms, the browser posts that identifier to `POST /api/actions`. The server resolves it against the pending-action table and applies the fixed repository mutation.
+2. After the user explicitly confirms, the browser posts the action, interaction, and conversation identifiers to `POST /api/actions`. The server reserves the issued confirmation capability, resolves the action against the pending-action table, and applies the fixed repository mutation.
 
-Unknown, expired, superseded, or already consumed actions fail without mutation. The current actions are limited to returns, processing-order cancellation, and pre-shipment address changes in the synthetic database.
+Unknown, altered, expired, cross-conversation, superseded, or already consumed interactions fail without mutation. A completed result is cached on the capability so retrying the confirmation request is idempotent, and the repository reconstructs the same result from a durably completed action rather than executing it again. The subsequent confirmed `ui_result` receives the canonical server result and is accepted only after completion. Failed or cancelled model continuations release their interaction claim for retry. The current actions are limited to returns, processing-order cancellation, and pre-shipment address changes in the synthetic database.
 
-This capability check is the real trust boundary. A button label or layout is cosmetic; an action identifier is authoritative only when the server recognizes its current pending state.
+This capability check is the real trust boundary. A button label or layout is cosmetic; an action identifier is authoritative only when the server recognizes its current pending state. Interaction and conversation registries are bounded but process-local in this research demo. Pending actions are also de-duplicated globally by order and action type, so another demo conversation can supersede an earlier proposal. Restart safety, horizontal replicas, principal-scoped ownership, and multi-user authorization need a durable shared implementation before production use.
 
 ## Deterministic fixture
 
@@ -122,7 +128,17 @@ The generator uses a fixed seed, dataset version, and reference timestamp. The e
 
 Money is stored as integer euro cents and timestamps as ISO 8601 UTC strings. `bun run reset:data` recreates the baseline after action demonstrations.
 
-`data/scenarios.jsonl` contains 33 golden specifications spanning analytics, orders, products, retrieval, disambiguation, and guarded actions. They define expected tools, UI classes, forbidden mutations, and data assertions. The default automated suite verifies fixture integrity, SQL-policy bypasses, worker timeouts, and representative tools, but it does not run a live model evaluation.
+`data/scenarios.jsonl` contains 35 golden specifications spanning analytics, orders, products, retrieval, disambiguation, and guarded actions. They define expected tools, UI classes, forbidden mutations, data assertions, and—where needed—single-turn, multi-turn, or application-route execution mode. Model-driven block scenarios require a conversational annotation, while the latest-customer scenario still verifies that trusted table rows are rendered once rather than transcribed into that annotation.
+
+## Evaluation boundary
+
+`bun run eval:offline` parses the JSONL with the reusable strict schema and checks execution-mode/tool expectations against the current compatibility map. It does not contact a model or replace direct handler tests; the compatibility map must evolve with the tool catalog.
+
+The double-opt-in `eval:live` runner currently handles selected single-turn scenarios. It first verifies a logical fingerprint of the active database against a freshly generated baseline, then fails read-only runs if the final fingerprint changed. Safe-action runs require an additional flag and exactly one repeat until isolated mutation runners exist. It captures browser-protocol events plus an internal trace containing validated tool arguments/results, canonical query hashes, tool and provider-round timing, model and prompt versions, final text, UI blocks, response IDs, and token usage—including completed rounds before a later failure. Internal trace data is returned only to the explicit evaluation process; SQL, tool results, and provider metadata are not added to the browser NDJSON protocol or normal HTTP logs.
+
+The scorer deterministically checks required tools, forbidden tools, renderer-class coverage, failures, structured tool-output assertions, SQL intent where applicable, and configured assistant-text faithfulness rules. Denotation assertions normalize selected query columns into ordered value tuples, so model-selected SQL aliases do not affect control-versus-semantic grading. Natural-language assertions without a migrated deterministic rule are reported as `not_evaluated`, making the run `incomplete` and the command nonzero unless the operator explicitly allows incomplete research runs. The v1 adapter intentionally refuses the two route confirmations and one context-dependent multi-turn scenario until those workflows have isolated runners.
+
+`data/experiments/semantic-query-v1.jsonl` is a separate versioned fixture of paired paraphrases. `bun run eval:query-ab` adapts each case to the guarded `query_dataset` control and the server-compiled `semantic_query` arm, requires `NLUI_EVAL_LIVE=1` plus `--confirm-billable`, and validates the projected paired run count before provider work. The operator must explicitly select `--all`, one or more `--case` values, or one or more `--id` values. Reports compare exact tool choice, denotation and UI success, latency, token use, provider rounds, rejected attempts, and whether every paraphrase in a case passes. Full raw reports can be written only beneath the ignored `eval-results/` directory. The harness does not itself establish a winner; no live comparative result is claimed here.
 
 ## Deployment and persistence
 

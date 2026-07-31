@@ -1,5 +1,14 @@
 import type {FunctionTool} from 'openai/resources/responses/responses';
+import {DATASET_REFERENCE_DATE} from '../data/constants.ts';
 import {DATASET_QUERY_GUIDE} from '../data/querySchema.ts';
+import {
+    CUSTOMER_REGIONS,
+    CUSTOMER_TIERS,
+    SEMANTIC_DIMENSION_IDS,
+    SEMANTIC_METRIC_IDS,
+    SEMANTIC_METRICS,
+    ORDER_STATUSES as SEMANTIC_ORDER_STATUSES
+} from '../data/semantic/catalog.ts';
 import {ORDER_STATUSES, PRODUCT_CATEGORIES, REGIONS} from './toolArguments.ts';
 
 const objectSchema = (properties: Record<string, unknown>, required = Object.keys(properties)) => ({
@@ -12,7 +21,7 @@ const objectSchema = (properties: Record<string, unknown>, required = Object.key
 const nullable = (type: 'string' | 'number') => ({type: [type, 'null']});
 const stringArray = {type: 'array', items: {type: 'string'}};
 
-export const OPENAI_TOOLS: FunctionTool[] = [
+const CONTROL_TOOLS: FunctionTool[] = [
     {
         type: 'function',
         name: 'get_dashboard',
@@ -144,3 +153,90 @@ export const OPENAI_TOOLS: FunctionTool[] = [
         })
     }
 ];
+
+const semanticFilter = (dimension: string, values: Record<string, unknown>) => objectSchema({
+    dimension: {type: 'string', const: dimension},
+    values: {type: 'array', minItems: 1, ...values}
+});
+
+const semanticMetricGuide = SEMANTIC_METRIC_IDS
+    .map((id) => `${id}: ${SEMANTIC_METRICS[id].description}`)
+    .join(' ');
+
+const SEMANTIC_QUERY_TOOL: FunctionTool = {
+    type: 'function',
+    name: 'semantic_query',
+    description: `Query approved retail metrics through a server-compiled semantic plan. Dataset snapshot: ${DATASET_REFERENCE_DATE}. Observed time ranges must end on or before that date. ${semanticMetricGuide}`,
+    strict: true,
+    parameters: objectSchema({
+        plan: objectSchema({
+            metric: {type: 'string', enum: SEMANTIC_METRIC_IDS},
+            dimensions: {
+                type: 'array',
+                items: {type: 'string', enum: SEMANTIC_DIMENSION_IDS},
+                maxItems: 3
+            },
+            filters: {
+                type: 'array',
+                maxItems: 4,
+                items: {
+                    anyOf: [
+                        semanticFilter('month', {
+                            items: {type: 'string', pattern: '^\\d{4}-(?:0[1-9]|1[0-2])$'},
+                            maxItems: 24
+                        }),
+                        semanticFilter('region', {
+                            items: {type: 'string', enum: CUSTOMER_REGIONS},
+                            maxItems: CUSTOMER_REGIONS.length
+                        }),
+                        semanticFilter('customer_tier', {
+                            items: {type: 'string', enum: CUSTOMER_TIERS},
+                            maxItems: CUSTOMER_TIERS.length
+                        }),
+                        semanticFilter('order_status', {
+                            items: {type: 'string', enum: SEMANTIC_ORDER_STATUSES},
+                            maxItems: SEMANTIC_ORDER_STATUSES.length
+                        })
+                    ]
+                }
+            },
+            timeRange: {
+                anyOf: [
+                    objectSchema({
+                        from: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'},
+                        to: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'}
+                    }),
+                    {type: 'null'}
+                ]
+            },
+            orderBy: {
+                anyOf: [
+                    objectSchema({
+                        field: {type: 'string', enum: ['metric', ...SEMANTIC_DIMENSION_IDS]},
+                        direction: {type: 'string', enum: ['asc', 'desc']}
+                    }),
+                    {type: 'null'}
+                ]
+            },
+            limit: {type: ['integer', 'null'], minimum: 1, maximum: 100}
+        }),
+        title: {
+            type: 'string',
+            minLength: 1,
+            maxLength: 120,
+            description: 'A concise user-facing title for the verified semantic result.'
+        },
+        presentation: {
+            type: 'string',
+            enum: ['auto', 'metric', 'table', 'bar', 'line'],
+            description: 'Preferred controlled renderer. The server falls back when the result shape is incompatible.'
+        }
+    })
+};
+
+export type QueryArm = 'control' | 'semantic';
+
+export const toolsForQueryArm = (arm: QueryArm): FunctionTool[] =>
+    CONTROL_TOOLS.map((tool) => tool.name === 'query_dataset' && arm === 'semantic' ? SEMANTIC_QUERY_TOOL : tool);
+
+export const OPENAI_TOOLS = toolsForQueryArm('control');

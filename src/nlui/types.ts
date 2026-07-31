@@ -1,4 +1,6 @@
 export type CellValue = string | number | boolean | null;
+export type ValueFormat = 'text' | 'number' | 'currency' | 'date' | 'status';
+export type StringValueFormat = Extract<ValueFormat, 'text' | 'date' | 'status'>;
 
 export type NluiBlock =
     | StatsBlock
@@ -23,6 +25,7 @@ export interface StatsBlock extends BlockBase
     items: Array<{
         label: string;
         value: string | number;
+        format?: ValueFormat;
         suffix?: string;
         trend?: 'up' | 'down' | 'flat';
     }>;
@@ -35,6 +38,7 @@ export interface ChartBlock extends BlockBase
     categoryKey: string;
     valueKey: string;
     valueLabel?: string;
+    categoryFormat?: 'date';
     data: Array<Record<string, string | number>>;
 }
 
@@ -44,7 +48,7 @@ export interface TableBlock extends BlockBase
     columns: Array<{
         key: string;
         label: string;
-        format?: 'text' | 'number' | 'currency' | 'date' | 'status';
+        format?: ValueFormat;
     }>;
     rows: Array<Record<string, CellValue>>;
     rowKey: string;
@@ -118,7 +122,7 @@ export interface ConfirmationBlock extends BlockBase
     confirmLabel: string;
     cancelLabel?: string;
     severity?: 'default' | 'warning' | 'danger';
-    details: Array<{label: string; value: string}>;
+    details: Array<{label: string; value: string; format?: StringValueFormat}>;
 }
 
 export interface SourcesBlock extends BlockBase
@@ -140,6 +144,7 @@ export type ChatInput =
 
 export interface ChatRequest
 {
+    conversationId: string;
     input: ChatInput;
     previousResponseId?: string;
 }
@@ -155,6 +160,8 @@ export type ChatStreamEvent =
 
 export interface ActionRequest
 {
+    conversationId: string;
+    interactionId: string;
     actionId: string;
 }
 

@@ -2,7 +2,7 @@ import {afterEach, describe, expect, test} from 'bun:test';
 import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {queryDataset, runCanonicalDatasetQuery} from './queryDataset.ts';
+import {queryDataset, queryParameterizedDataset, runCanonicalDatasetQuery} from './queryDataset.ts';
 import {DatasetQueryError} from './queryTypes.ts';
 import {resetDemoDatabase} from './seed.ts';
 
@@ -38,6 +38,7 @@ describe('isolated dataset queries', () =>
             columns: [{key: 'c0', name: 'customer_count', label: 'Customer count', kind: 'number'}],
             rows: [{c0: 200}]
         });
+        expect(result.queryHash).toMatch(/^[0-9a-f]{64}$/);
     });
 
     test('supports grouped data and stable server-owned keys', async () =>
@@ -59,6 +60,25 @@ describe('isolated dataset queries', () =>
             {c0: 'silver', c1: 40},
             {c0: 'gold', c1: 20}
         ]);
+    });
+
+    test('executes application-compiled SQL with bound parameter values', async () =>
+    {
+        const databasePath = temporaryDatabase();
+        const gold = await queryParameterizedDataset(
+            'SELECT COUNT(*) AS customer_count FROM customers WHERE tier = ?',
+            ['gold'],
+            {databasePath}
+        );
+        const silver = await queryParameterizedDataset(
+            'SELECT COUNT(*) AS customer_count FROM customers WHERE tier = ?',
+            ['silver'],
+            {databasePath}
+        );
+
+        expect(gold.rows).toEqual([{c0: 20}]);
+        expect(silver.rows).toEqual([{c0: 40}]);
+        expect(gold.queryHash).not.toBe(silver.queryHash);
     });
 
     test('caps returned rows and reports truncation', async () =>

@@ -1,6 +1,8 @@
 import {z} from 'zod';
 
 const cellValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+const valueFormatSchema = z.enum(['text', 'number', 'currency', 'date', 'status']);
+const stringValueFormatSchema = z.enum(['text', 'date', 'status']);
 
 export const chatInputSchema = z.discriminatedUnion('type', [
     z.object({
@@ -15,11 +17,14 @@ export const chatInputSchema = z.discriminatedUnion('type', [
 ]);
 
 export const chatRequestSchema = z.object({
+    conversationId: z.string().min(12).max(120),
     input: chatInputSchema,
     previousResponseId: z.string().min(1).max(200).optional()
 });
 
 export const actionRequestSchema = z.object({
+    conversationId: z.string().min(12).max(120),
+    interactionId: z.string().min(1).max(120),
     actionId: z.string().min(1).max(200)
 });
 
@@ -34,6 +39,7 @@ const statsBlockSchema = blockBaseSchema.extend({
     items: z.array(z.object({
         label: z.string(),
         value: z.union([z.string(), z.number()]),
+        format: valueFormatSchema.optional(),
         suffix: z.string().optional(),
         trend: z.enum(['up', 'down', 'flat']).optional()
     })).min(1).max(8)
@@ -45,6 +51,7 @@ const chartBlockSchema = blockBaseSchema.extend({
     categoryKey: z.string(),
     valueKey: z.string(),
     valueLabel: z.string().optional(),
+    categoryFormat: z.literal('date').optional(),
     data: z.array(z.record(z.string(), z.union([z.string(), z.number()]))).max(24)
 });
 
@@ -53,7 +60,7 @@ const tableBlockSchema = blockBaseSchema.extend({
     columns: z.array(z.object({
         key: z.string(),
         label: z.string(),
-        format: z.enum(['text', 'number', 'currency', 'date', 'status']).optional()
+        format: valueFormatSchema.optional()
     })).min(1).max(20),
     rows: z.array(z.record(z.string(), cellValueSchema)).max(100),
     rowKey: z.string()
@@ -133,7 +140,11 @@ const confirmationBlockSchema = blockBaseSchema.extend({
     confirmLabel: z.string(),
     cancelLabel: z.string().optional(),
     severity: z.enum(['default', 'warning', 'danger']).optional(),
-    details: z.array(z.object({label: z.string(), value: z.string()})).max(20)
+    details: z.array(z.object({
+        label: z.string(),
+        value: z.string(),
+        format: stringValueFormatSchema.optional()
+    })).max(20)
 });
 
 const sourcesBlockSchema = blockBaseSchema.extend({

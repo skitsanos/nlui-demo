@@ -21,57 +21,51 @@ import {
 } from 'antd';
 import {useState} from 'react';
 import type {ChatInput, ChoicesBlock, FormBlock, NluiBlock, ResultBlock, TableBlock} from '../../nlui/types.ts';
+import {FormattedValue} from './FormattedValue.tsx';
 import {MiniChart} from './MiniChart.tsx';
 
 interface Props
 {
     blocks: NluiBlock[];
+    conversationId: string;
     disabled?: boolean;
-    onInteraction: (input: ChatInput, displayText: string) => void;
+    onInteraction: (input: ChatInput, displayText: string) => Promise<boolean>;
 }
 
-const currency = new Intl.NumberFormat('en', {style: 'currency', currency: 'EUR'});
-const number = new Intl.NumberFormat('en', {maximumFractionDigits: 2});
-
-const formatCell = (value: unknown, format?: TableBlock['columns'][number]['format']) =>
+const tableColumnMinWidth = (format: TableBlock['columns'][number]['format']): number =>
 {
-    if (value === null || value === undefined)
+    switch (format)
     {
-        return '—';
+        case 'number':
+            return 96;
+        case 'currency':
+            return 128;
+        case 'status':
+            return 120;
+        case 'date':
+            return 176;
+        default:
+            return 160;
     }
-    if (format === 'currency' && typeof value === 'number')
-    {
-        return currency.format(value);
-    }
-    if (format === 'number' && typeof value === 'number')
-    {
-        return number.format(value);
-    }
-    if (format === 'status')
-    {
-        const text = String(value);
-        const color = /complete|delivered|success/i.test(text) ? 'green'
-            : /delay|cancel|failed|return/i.test(text) ? 'red'
-                : 'blue';
-        return <Tag color={color}>{text}</Tag>;
-    }
-    return String(value);
 };
 
-const DynamicForm = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {block: FormBlock}) =>
+const DynamicForm = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 'onInteraction'> & {block: FormBlock}) =>
 {
-    const submit = (values: Record<string, string | number>): void =>
+    const [submitted, setSubmitted] = useState(false);
+    const submit = async (values: Record<string, string | number>): Promise<void> =>
     {
-        onInteraction(
+        setSubmitted(true);
+        const completed = await onInteraction(
             {type: 'ui_result', interactionId: block.interactionId, values},
             `Submitted ${block.title ?? 'the requested details'}`
         );
+        if (!completed) setSubmitted(false);
     };
 
     return (
         <Card className="nlui-card" title={block.title} extra={<Tag color="purple">Interactive</Tag>}>
             {block.description && <Typography.Paragraph type="secondary">{block.description}</Typography.Paragraph>}
-            <Form name={block.id} layout="vertical" initialValues={block.initialValues} onFinish={submit} disabled={disabled}>
+            <Form name={block.id} layout="vertical" initialValues={block.initialValues} onFinish={submit} disabled={disabled || submitted}>
                 {block.fields.map((field) =>
                     <Form.Item
                         key={field.name}
@@ -86,7 +80,7 @@ const DynamicForm = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {
                                     : <Input type={field.input === 'date' ? 'date' : 'text'} placeholder={'placeholder' in field ? field.placeholder : undefined}/>}
                     </Form.Item>
                 )}
-                <Button type="primary" htmlType="submit" icon={<ArrowRight size={16}/>} iconPosition="end">
+                <Button type="primary" htmlType="submit" icon={<ArrowRight size={16}/>} iconPlacement="end" loading={submitted}>
                     {block.submitLabel}
                 </Button>
             </Form>
@@ -94,14 +88,14 @@ const DynamicForm = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {
     );
 };
 
-const ChoiceInput = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {block: ChoicesBlock}) =>
+const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 'onInteraction'> & {block: ChoicesBlock}) =>
 {
     const [selection, setSelection] = useState<string | string[]>(block.multiple ? [] : '');
     const [submitted, setSubmitted] = useState(false);
     const locked = disabled || submitted;
     const values = Array.isArray(selection) ? selection : selection ? [selection] : [];
 
-    const submit = (): void =>
+    const submit = async (): Promise<void> =>
     {
         if (values.length === 0)
         {
@@ -109,7 +103,7 @@ const ChoiceInput = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {
         }
         setSubmitted(true);
         const selectedLabels = block.options.filter(({value}) => values.includes(value)).map(({label}) => label);
-        onInteraction(
+        const completed = await onInteraction(
             {
                 type: 'ui_result',
                 interactionId: block.interactionId,
@@ -117,6 +111,7 @@ const ChoiceInput = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {
             },
             `Selected: ${selectedLabels.join(', ')}`
         );
+        if (!completed) setSubmitted(false);
     };
 
     const cards = block.options.map((option) =>
@@ -154,12 +149,35 @@ const ChoiceInput = ({block, disabled, onInteraction}: Omit<Props, 'blocks'> & {
 
 const Confirmation = ({
     block,
+    conversationId,
     disabled,
     onInteraction
 }: Omit<Props, 'blocks'> & {block: Extract<NluiBlock, {type: 'confirmation'}>}) =>
 {
     const [result, setResult] = useState<ResultBlock>();
     const [loading, setLoading] = useState(false);
+    const [continuing, setContinuing] = useState(false);
+    const [pendingContinuation, setPendingContinuation] = useState<{
+        input: ChatInput;
+        displayText: string;
+    }>();
+
+    const continueChat = async (continuation: {input: ChatInput; displayText: string}): Promise<void> =>
+    {
+        setPendingContinuation(continuation);
+        setContinuing(true);
+        try
+        {
+            if (await onInteraction(continuation.input, continuation.displayText))
+            {
+                setPendingContinuation(undefined);
+            }
+        }
+        finally
+        {
+            setContinuing(false);
+        }
+    };
 
     const confirm = async (): Promise<void> =>
     {
@@ -169,7 +187,7 @@ const Confirmation = ({
             const response = await fetch('/api/actions', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({actionId: block.actionId})
+                body: JSON.stringify({conversationId, interactionId: block.id, actionId: block.actionId})
             });
             const payload = await response.json() as {block?: ResultBlock; message?: string};
             if (!response.ok || !payload.block)
@@ -177,11 +195,14 @@ const Confirmation = ({
                 throw new Error(payload.message ?? 'The action could not be completed');
             }
             setResult(payload.block);
-            onInteraction({
-                type: 'ui_result',
-                interactionId: block.id,
-                values: {outcome: 'confirmed', action_id: block.actionId, message: payload.block.message}
-            }, payload.block.message);
+            await continueChat({
+                input: {
+                    type: 'ui_result',
+                    interactionId: block.id,
+                    values: {outcome: 'confirmed', action_id: block.actionId}
+                },
+                displayText: payload.block.message
+            });
         }
         catch (error)
         {
@@ -198,7 +219,7 @@ const Confirmation = ({
         }
     };
 
-    const reject = (): void =>
+    const reject = async (): Promise<void> =>
     {
         const rejected: ResultBlock = {
             id: `${block.id}-cancelled`,
@@ -208,35 +229,53 @@ const Confirmation = ({
             message: 'No changes were made.'
         };
         setResult(rejected);
-        onInteraction({
-            type: 'ui_result',
-            interactionId: block.id,
-            values: {outcome: 'rejected', action_id: block.actionId}
-        }, 'Cancelled the proposed action');
+        await continueChat({
+            input: {
+                type: 'ui_result',
+                interactionId: block.id,
+                values: {outcome: 'rejected', action_id: block.actionId}
+            },
+            displayText: 'Cancelled the proposed action'
+        });
     };
 
     if (result)
     {
-        return <Alert type={result.status === 'error' ? 'error' : 'success'} showIcon message={result.title ?? 'Action result'} description={result.message}/>;
+        return <Space orientation="vertical" size={8} className="nlui-stack">
+            <Alert
+                type={result.status === 'error' ? 'error' : result.status === 'info' ? 'info' : 'success'}
+                showIcon
+                message={result.title ?? 'Action result'}
+                description={result.message}
+            />
+            {pendingContinuation && <Button
+                loading={continuing}
+                onClick={() => void continueChat(pendingContinuation)}
+            >Continue chat</Button>}
+        </Space>;
     }
 
     return (
         <Card className="nlui-card nlui-confirm" title={block.title}>
             {block.description && <Typography.Paragraph>{block.description}</Typography.Paragraph>}
-            <Descriptions size="small" column={1} items={block.details.map((item, index) => ({key: index, ...item}))}/>
+            <Descriptions size="small" column={1} items={block.details.map((item, index) => ({
+                key: index,
+                label: item.label,
+                children: <FormattedValue value={item.value} format={item.format}/>
+            }))}/>
             <Space className="confirm-actions">
                 <Popconfirm title="Confirm this demo action?" onConfirm={confirm} okText="Confirm">
                     <Button danger={block.severity === 'danger'} type="primary" loading={loading} disabled={disabled}>
                         {block.confirmLabel}
                     </Button>
                 </Popconfirm>
-                {block.cancelLabel && <Button disabled={disabled} onClick={reject}>{block.cancelLabel}</Button>}
+                {block.cancelLabel && <Button disabled={disabled} onClick={() => void reject()}>{block.cancelLabel}</Button>}
             </Space>
         </Card>
     );
 };
 
-export const NluiRenderer = ({blocks, disabled, onInteraction}: Props) => (
+export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: Props) => (
     <Space orientation="vertical" size={12} className="nlui-stack">
         {blocks.map((block) =>
         {
@@ -244,8 +283,19 @@ export const NluiRenderer = ({blocks, disabled, onInteraction}: Props) => (
             {
                 case 'stats':
                     return <div className="stat-grid" key={block.id}>{block.items.map((item) =>
-                        <Card size="small" key={item.label} className="stat-card">
-                            <Statistic title={item.label} value={item.value} suffix={item.suffix}/>
+                        <Card
+                            size="small"
+                            key={item.label}
+                            className={`stat-card${item.format === 'date' ? ' stat-card-temporal' : ''}`}
+                        >
+                            <Statistic
+                                title={item.label}
+                                value={item.value}
+                                suffix={item.suffix}
+                                formatter={item.format
+                                    ? () => <FormattedValue value={item.value} format={item.format}/>
+                                    : undefined}
+                            />
                             {item.trend && <span className={`trend trend-${item.trend}`}>
                                 {item.trend === 'up' ? <ArrowUpRight/> : item.trend === 'down' ? <ArrowDownRight/> : <ArrowRight/>}
                             </span>}
@@ -256,27 +306,37 @@ export const NluiRenderer = ({blocks, disabled, onInteraction}: Props) => (
                         <MiniChart block={block}/>
                     </Card>;
                 case 'table':
-                    return <Card key={block.id} className="nlui-card" title={block.title}>
-                        <Table
-                            rowKey={(row) => String(row[block.rowKey])}
-                            dataSource={block.rows}
-                            columns={block.columns.map((column) => ({
-                                title: column.label,
-                                dataIndex: column.key,
-                                key: column.key,
-                                render: (value: unknown) => formatCell(value, column.format)
-                            }))}
-                            size="small"
-                            scroll={{x: true}}
-                            pagination={block.rows.length > 8 ? {pageSize: 8, size: 'small'} : false}
-                        />
+                    return <Card key={block.id} className="nlui-card nlui-table-card" title={block.title}>
+                        <section
+                            className="nlui-table-region"
+                            aria-label={block.title ?? 'Data table'}
+                        >
+                            <Table
+                                className="nlui-table"
+                                rowKey={(row) => String(row[block.rowKey])}
+                                dataSource={block.rows}
+                                columns={block.columns.map((column) => ({
+                                    title: column.label,
+                                    dataIndex: column.key,
+                                    key: column.key,
+                                    minWidth: tableColumnMinWidth(column.format),
+                                    align: column.format === 'number' || column.format === 'currency' ? 'right' : 'left',
+                                    render: (value: TableBlock['rows'][number][string]) => (
+                                        <FormattedValue value={value} format={column.format}/>
+                                    )
+                                }))}
+                                size="small"
+                                scroll={{x: 'max-content'}}
+                                pagination={block.rows.length > 8 ? {pageSize: 8, size: 'small'} : false}
+                            />
+                        </section>
                     </Card>;
                 case 'choices':
                     return <ChoiceInput key={block.id} block={block} disabled={disabled} onInteraction={onInteraction}/>;
                 case 'form':
                     return <DynamicForm key={block.id} block={block} disabled={disabled} onInteraction={onInteraction}/>;
                 case 'confirmation':
-                    return <Confirmation key={block.id} block={block} disabled={disabled} onInteraction={onInteraction}/>;
+                    return <Confirmation key={block.id} block={block} conversationId={conversationId} disabled={disabled} onInteraction={onInteraction}/>;
                 case 'sources':
                     return <Card key={block.id} className="nlui-card" title={block.title ?? 'Sources'}>
                         <List dataSource={block.items} renderItem={(item) => <List.Item>

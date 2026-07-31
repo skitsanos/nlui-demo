@@ -7,6 +7,7 @@ export const useChat = () =>
 {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loading, setLoading] = useState(false);
+    const [conversationId, setConversationId] = useState(() => createClientId('conversation'));
     const previousResponseId = useRef<string | undefined>(undefined);
     const abortController = useRef<AbortController | undefined>(undefined);
     const activeRequestId = useRef<string | undefined>(undefined);
@@ -40,11 +41,11 @@ export const useChat = () =>
         }));
     }, []);
 
-    const submit = useCallback(async (input: ChatInput, displayText: string): Promise<void> =>
+    const submit = useCallback(async (input: ChatInput, displayText: string): Promise<boolean> =>
     {
         if (activeRequestId.current)
         {
-            return;
+            return false;
         }
 
         const requestId = createClientId('request');
@@ -59,9 +60,11 @@ export const useChat = () =>
             {id: assistantId, role: 'assistant', content: '', blocks: [], state: 'loading'}
         ]);
 
+        let completed = false;
         try
         {
             await streamChat({
+                conversationId,
                 input,
                 previousResponseId: previousResponseId.current,
                 signal: controller.signal,
@@ -74,6 +77,7 @@ export const useChat = () =>
                     }
                 }
             });
+            completed = true;
         }
         catch (error)
         {
@@ -92,7 +96,8 @@ export const useChat = () =>
                 abortController.current = undefined;
             }
         }
-    }, [updateAssistant]);
+        return completed;
+    }, [conversationId, updateAssistant]);
 
     const reset = useCallback((): void =>
     {
@@ -100,6 +105,7 @@ export const useChat = () =>
         activeRequestId.current = undefined;
         abortController.current = undefined;
         previousResponseId.current = undefined;
+        setConversationId(createClientId('conversation'));
         setMessages([]);
         setLoading(false);
     }, []);
@@ -119,5 +125,5 @@ export const useChat = () =>
             : message));
     }, []);
 
-    return {messages, loading, submit, cancel, reset};
+    return {messages, loading, conversationId, submit, cancel, reset};
 };

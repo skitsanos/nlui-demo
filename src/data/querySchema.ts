@@ -53,7 +53,7 @@ export const DATASET_QUERY_GUIDE = `Query the synthetic retail dataset when the 
 Dataset snapshot: ${DATASET_REFERENCE_DATE}. Interpret "now", "current", and relative periods against that timestamp. Expected-delivery dates may be later because they are forecasts. For observed events, exclude event timestamps later than the snapshot.
 
 SQLite schema exposed to this tool:
-- customers(id PK, customer_number, first_name, last_name, region, city, country, tier, joined_at)
+- customers(id PK, customer_number, first_name, last_name, region, city, country, tier enum: standard | silver | gold, joined_at)
 - products(id PK, sku, name, description, category, brand, price_cents, stock_quantity, rating, active)
 - orders(id PK, order_number, customer_id FK customers.id, status, region, subtotal_cents, discount_cents, shipping_cents, tax_cents, total_cents, currency, shipping_city, shipping_country, created_at, updated_at)
 - order_items(id PK, order_id FK orders.id, product_id FK products.id, quantity, unit_price_cents, line_total_cents)
@@ -64,6 +64,7 @@ SQLite schema exposed to this tool:
 
 Semantic rules:
 - "Customers" means rows in customers. "Active customers" means COUNT(DISTINCT orders.customer_id) over an explicit period.
+- Customer tier values are exactly standard, silver, and gold. Treat an obvious phrase such as "golden tier" as gold; do not invent or compare speculative tier values.
 - Revenue uses orders.total_cents and excludes cancelled and returned orders unless the user asks otherwise.
 - When joining order_items, use COUNT(DISTINCT orders.id) for order counts. line_total_cents is merchandise value before order-level discount, tax, and shipping.
 - All *_cents fields are integer EUR cents. Divide by 100.0, ROUND to 2 decimals, and alias the result with an _eur suffix.
@@ -74,6 +75,7 @@ SQL contract:
 - Use only the published tables, relationship joins, and these functions: ${QUERY_FUNCTIONS.join(', ')}.
 - Never use SELECT *, table.*, schema-qualified names, comments, parameters, table-valued functions, or hidden/internal tables.
 - Give every computed column a short, descriptive snake_case alias. For a metric use customer_count or another semantic name, never generic value. For bar/line charts, return exactly two columns: alias the category label and give the numeric column a semantic alias such as customer_count or revenue_eur. Sort/top-N in SQL and keep at most 24 points.
+- Select only values the user asked to see. For a one-value answer, return exactly one semantic output column. ISO timestamps sort chronologically and work directly with MIN/MAX; never expose Unix, epoch, Julian-day, sort-key, or other intermediate calculations as result columns. If an outer query cannot avoid selecting a technical helper, prefix its alias with an underscore so the renderer can suppress it.
 - Keep detailed tables narrow and bounded. The server returns at most 100 rows and 12 columns.
 
 The server parses and canonicalizes the SELECT, validates every source/function/join, executes it in an isolated read-only worker, and renders the result. If the tool returns a policy or syntax error, correct the query once using this published schema.`;

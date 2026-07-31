@@ -1,9 +1,11 @@
+import {createHash} from 'node:crypto';
 import {canonicalizeDatasetQuery} from './queryPolicy.ts';
 import {
     type DatasetColumnKind,
     type DatasetQueryCell,
     type DatasetQueryColumn,
     DatasetQueryError,
+    type DatasetQueryParameter,
     type DatasetQueryResult,
     type QueryWorkerRequest,
     type QueryWorkerResponse
@@ -16,6 +18,7 @@ const MAX_COLUMNS = 12;
 const MAX_CELL_CHARACTERS = 500;
 const MAX_RESULT_BYTES = 96 * 1024;
 const DEFAULT_TIMEOUT_MS = 1_500;
+const MAX_PARAMETERS = 32;
 const workerUrl = new URL('./queryWorker.ts', import.meta.url).href;
 
 const closeWorker = (worker: Worker): void =>
@@ -100,7 +103,9 @@ const columnKind = (values: DatasetQueryCell[]): DatasetColumnKind =>
     return 'text';
 };
 
-const normalizeResult = (response: Extract<QueryWorkerResponse, {ok: true}>): DatasetQueryResult =>
+const normalizeResult = (
+    response: Extract<QueryWorkerResponse, {ok: true}>
+): Omit<DatasetQueryResult, 'queryHash'> =>
 {
     if (response.columnNames.length === 0 || response.columnNames.length > MAX_COLUMNS)
     {
@@ -135,14 +140,52 @@ const normalizeResult = (response: Extract<QueryWorkerResponse, {ok: true}>): Da
     return {columns, rows, returnedRowCount: rows.length, truncated};
 };
 
-export const queryDataset = async (sql: string, options: DataLayerOptions = {}): Promise<DatasetQueryResult> =>
+const executeDatasetQuery = async (
+    canonicalSql: string,
+    parameters: DatasetQueryParameter[],
+    options: DataLayerOptions
+): Promise<DatasetQueryResult> =>
 {
-    const canonicalSql = canonicalizeDatasetQuery(sql);
     const {databasePath} = ensureDemoDatabase(options);
-    const response = await runCanonicalDatasetQuery({databasePath, sql: canonicalSql, rowLimit: MAX_ROWS});
+    const response = await runCanonicalDatasetQuery({
+        databasePath,
+        sql: canonicalSql,
+        rowLimit: MAX_ROWS,
+        ...parameters.length > 0 && {parameters}
+    });
     if (!response.ok)
     {
         throw new DatasetQueryError(response.code, response.message);
     }
-    return normalizeResult(response);
+    return {
+        ...normalizeResult(response),
+        queryHash: createHash('sha256')
+            .update(canonicalSql)
+            .update('\0')
+            .update(JSON.stringify(parameters))
+            .digest('hex')
+    };
+};
+
+export const queryDataset = async (sql: string, options: DataLayerOptions = {}): Promise<DatasetQueryResult> =>
+    executeDatasetQuery(canonicalizeDatasetQuery(sql), [], options);
+
+export const queryParameterizedDataset = async (
+    sql: string,
+    parameters: DatasetQueryParameter[],
+    options: DataLayerOptions = {}
+): Promise<DatasetQueryResult> =>
+{
+    if (parameters.length > MAX_PARAMETERS)
+    {
+        throw new DatasetQueryError('SQL_POLICY', `Compiled queries support at most ${MAX_PARAMETERS} parameters.`);
+    }
+    if (parameters.some((value) => value !== null
+        && typeof value !== 'string'
+        && (typeof value !== 'number' || !Number.isFinite(value))))
+    {
+        throw new DatasetQueryError('SQL_POLICY', 'Compiled query parameters must be finite numbers, strings, or null.');
+    }
+    const canonicalSql = canonicalizeDatasetQuery(sql, {allowParameters: true});
+    return executeDatasetQuery(canonicalSql, parameters, options);
 };

@@ -1,4 +1,11 @@
 import {z} from 'zod';
+import {
+    SEMANTIC_DIMENSION_IDS,
+    SEMANTIC_METRIC_IDS,
+    semanticFilterSchema,
+    semanticOrderSchema,
+    semanticTimeRangeSchema
+} from '../data/semantic/index.ts';
 
 export const REGIONS = ['Central', 'East', 'North', 'South', 'West'] as const;
 export const ORDER_STATUSES = ['cancelled', 'delayed', 'delivered', 'processing', 'returned', 'shipped'] as const;
@@ -28,6 +35,19 @@ export const dashboardArguments = z.object({
 
 export const queryDatasetArguments = z.object({
     sql: z.string().trim().min(1).max(6_000),
+    title: z.string().trim().min(1).max(120),
+    presentation: z.enum(['auto', 'metric', 'table', 'bar', 'line'])
+}).strict();
+
+export const semanticQueryArguments = z.object({
+    plan: z.object({
+        metric: z.enum(SEMANTIC_METRIC_IDS),
+        dimensions: z.array(z.enum(SEMANTIC_DIMENSION_IDS)).max(3),
+        filters: z.array(semanticFilterSchema).max(4),
+        timeRange: semanticTimeRangeSchema.nullable(),
+        orderBy: semanticOrderSchema.nullable(),
+        limit: z.number().int().min(1).max(100).nullable()
+    }).strict(),
     title: z.string().trim().min(1).max(120),
     presentation: z.enum(['auto', 'metric', 'table', 'bar', 'line'])
 }).strict();

@@ -12,17 +12,21 @@ export interface DatasetQueryColumn
 
 export interface DatasetQueryResult
 {
+    queryHash: string;
     columns: DatasetQueryColumn[];
     rows: Array<Record<string, DatasetQueryCell>>;
     returnedRowCount: number;
     truncated: boolean;
 }
 
+export type DatasetQueryParameter = string | number | null;
+
 export interface QueryWorkerRequest
 {
     databasePath: string;
     sql: string;
     rowLimit: number;
+    parameters?: DatasetQueryParameter[];
 }
 
 export type QueryWorkerResponse =

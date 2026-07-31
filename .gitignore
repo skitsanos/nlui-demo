@@ -1,5 +1,7 @@
 .idea/
 Taskfile.dev.yaml
+/TODO.md
+/eval-results/
 
 # Logs
 

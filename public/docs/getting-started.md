@@ -70,6 +70,12 @@ bun run check
 
 That command runs Biome, TypeScript, and Bun tests. The tests use deterministic or disposable SQLite fixtures and do not contact OpenAI.
 
+Validate the 35-scenario evaluation catalog and its tool-to-renderer expectations without contacting OpenAI:
+
+```bash
+bun run eval:offline
+```
+
 To exercise the HTTP boundary, leave the server running and use the Hurl-backed task:
 
 ```bash
@@ -104,3 +110,13 @@ The image exposes port 3000 and reports health through `/api/health`.
 ## Cost boundary
 
 Valid chat messages call the configured OpenAI model and can incur charges. `bun run check` and the default Hurl smoke suite are intentionally non-billable. The current conversation implementation chains stored Responses API results, so use synthetic or otherwise demo-safe prompts.
+
+The live evaluation runner requires both an environment opt-in and a command-line acknowledgement, plus an explicit scenario or category:
+
+```bash
+NLUI_EVAL_LIVE=1 bun run eval:live -- \
+  --id analytics-customer-count \
+  --confirm-billable
+```
+
+Selection is capped at 10 scenarios and repeat count at 3. Each provider response is capped at 1,200 output tokens, and runs are serial in v1. Before billing, the runner compares the active database with a freshly generated logical fingerprint and refuses a modified fixture; read-only runs also fail if that fingerprint changes unexpectedly. Safe-action runs require an additional flag and exactly one repeat until isolated mutation runners exist. `--json` includes provider events, validated synthetic tool results, model and prompt versions, latency, and token usage; do not use it with sensitive prompts. Pricing is intentionally not hardcoded. Incomplete runs exit nonzero unless `--allow-incomplete` is given. Two route-action cases and one multi-turn case are identified in the catalog but refused by the single-turn live adapter until isolated workflow adapters exist.

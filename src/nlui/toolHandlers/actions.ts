@@ -114,7 +114,7 @@ export const prepareActionHandler = (raw: unknown): ToolExecution =>
             details: [
                 {label: 'Order', value: confirmation.orderNumber},
                 {label: 'Action', value: confirmation.actionType.replaceAll('_', ' ')},
-                {label: 'Expires', value: new Date(confirmation.expiresAt).toLocaleString()}
+                {label: 'Expires', value: confirmation.expiresAt, format: 'date'}
             ]
         }]
     };

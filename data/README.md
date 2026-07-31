@@ -12,7 +12,7 @@ Stable records intended for demonstrations include:
 - `ORD-1176`: still processing, so its address can be changed or it can be cancelled after confirmation.
 - `ORD-1320` and `ORD-2088`: high-value delayed orders; `ORD-2088` has an urgent support case.
 
-The Markdown files in `knowledge/` are loaded into the database during seeding for deterministic lexical retrieval. `scenarios.jsonl` contains independent golden scenario specifications, including schema-aware customer and cross-table questions. Each line declares expected tool selections, NLUI blocks, forbidden mutations, and optional setup or data assertions. They are fixtures for evaluation work, not a billable live-model test suite. Reset the database before scenarios that exercise actions.
+The Markdown files in `knowledge/` are loaded into the database during seeding for deterministic lexical retrieval. `scenarios.jsonl` contains independent golden scenario specifications, including schema-aware customer and cross-table questions. Each line declares expected tool selections, NLUI blocks, forbidden mutations, and optional setup or data assertions. `experiments/semantic-query-v1.jsonl` separately contains versioned paraphrases for the paired guarded-SQL versus semantic-plan pilot. Its deterministic denotations are alias-neutral and shared by both arms. These files are evaluation fixtures, not billable live-model runs; reset the database before scenarios that exercise actions.
 
 The generic analytics tool exposes only a curated subset of these tables and columns. It accepts one parsed and canonicalized `SELECT`, never control-plane tables or arbitrary database access. Money is stored in cents and should be divided by 100.0 and aliased with an `_eur` suffix for display.
 

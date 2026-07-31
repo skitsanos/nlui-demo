@@ -35,6 +35,7 @@ export const dashboardHandler = (raw: unknown): ToolExecution =>
                 categoryKey: 'label',
                 valueKey: 'value',
                 valueLabel: 'Revenue (EUR)',
+                ...args.group_by === 'month' && {categoryFormat: 'date' as const},
                 data: series
             }
         ]
@@ -62,23 +63,25 @@ export const ordersHandler = (raw: unknown): ToolExecution =>
         status: order.status,
         items: order.itemCount,
         total: euros(order.totalCents),
-        created: order.createdAt.slice(0, 10)
+        created: order.createdAt.slice(0, 10),
+        expectedDeliveryAt: order.expectedDeliveryAt?.slice(0, 10) ?? null
     }));
 
+    const summary = {
+        matchedOrderCount: page.total,
+        returnedOrderCount: rows.length,
+        totalsAreIn: 'EUR',
+        appliedFilters: {
+            statuses: args.statuses,
+            region: args.region,
+            minimumTotalEur: args.minimum_total_eur,
+            maximumTotalEur: args.maximum_total_eur,
+            sort: args.sort
+        }
+    };
     return {
-        modelOutput: {
-            matchedOrderCount: page.total,
-            returnedOrderCount: rows.length,
-            totalsAreIn: 'EUR',
-            appliedFilters: {
-                statuses: args.statuses,
-                region: args.region,
-                minimumTotalEur: args.minimum_total_eur,
-                maximumTotalEur: args.maximum_total_eur,
-                sort: args.sort
-            },
-            orders: rows
-        },
+        modelOutput: {...summary, dataLocation: 'trusted_ui_block'},
+        traceOutput: {...summary, orders: rows},
         blocks: [{
             id: crypto.randomUUID(),
             type: 'table',
@@ -92,7 +95,8 @@ export const ordersHandler = (raw: unknown): ToolExecution =>
                 {key: 'status', label: 'Status', format: 'status'},
                 {key: 'items', label: 'Items', format: 'number'},
                 {key: 'total', label: 'Total', format: 'currency'},
-                {key: 'created', label: 'Created', format: 'date'}
+                {key: 'created', label: 'Created', format: 'date'},
+                {key: 'expectedDeliveryAt', label: 'Expected delivery', format: 'date'}
             ],
             rows,
             rowKey: 'order'
