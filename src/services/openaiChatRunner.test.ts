@@ -5,6 +5,7 @@ import type {
 } from 'openai/resources/responses/responses';
 import type {ToolExecution} from '../nlui/tools.ts';
 import type {ChatStreamEvent, TableBlock} from '../nlui/types.ts';
+import {chatInstructionsFor, promptVersionFor} from './chatPrompt.ts';
 import {createOpenAIChatRunner, type OpenAIChatDependencies} from './openaiChatRunner.ts';
 import {StructuredResponseError} from './structuredResponse.ts';
 
@@ -109,6 +110,22 @@ const dependenciesFor = (rounds: ResponseStreamEvent[][]) =>
 
 describe('OpenAI chat structured composition', () =>
 {
+    test('keeps control guidance stable while semantic v2 owns metric scope and presentation', () =>
+    {
+        const control = chatInstructionsFor('control');
+        const semantic = chatInstructionsFor('semantic');
+
+        expect(promptVersionFor('control')).toBe('nlui-controller-v5-annotated');
+        expect(promptVersionFor('semantic')).toBe('nlui-controller-v5-annotated-semantic-v2');
+        expect(control).toContain('Use query_dataset for customer counts');
+        expect(control).not.toContain('customer_registrations');
+        expect(semantic).toContain('registered_customer_count only for the current lifetime');
+        expect(semantic).toContain('Use customer_registrations');
+        expect(semantic).toContain('do not repeat it with a month filter');
+        expect(semantic).toContain('already exclude cancelled and returned orders');
+        expect(semantic).toContain('server, not you, chooses the renderer');
+    });
+
     test('uses injected tools, instructions, and prompt version for an experiment arm', async () =>
     {
         const {dependencies, requests} = dependenciesFor([messageRound()]);

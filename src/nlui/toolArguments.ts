@@ -49,7 +49,7 @@ export const semanticQueryArguments = z.object({
         limit: z.number().int().min(1).max(100).nullable()
     }).strict(),
     title: z.string().trim().min(1).max(120),
-    presentation: z.enum(['auto', 'metric', 'table', 'bar', 'line'])
+    presentation: z.enum(['auto', 'metric', 'table', 'bar', 'line']).optional()
 }).strict();
 
 export const ordersArguments = z.object({

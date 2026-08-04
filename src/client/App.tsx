@@ -14,6 +14,8 @@ import {
 import {Button, Flex, Tag, Typography} from 'antd';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ChatInput} from '../nlui/types.ts';
+import {selectCurrentActivity} from './chatActivity.ts';
+import {ActivityPresentation} from './components/ActivityPresentation.tsx';
 import {NluiRenderer} from './components/NluiRenderer.tsx';
 import {useChat} from './useChat.ts';
 
@@ -128,35 +130,41 @@ const App = () =>
         reset();
     };
 
-    const bubbleItems = useMemo(() => messages.map((message) => ({
-        key: message.id,
-        role: message.role,
-        classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table')
-            ? {root: 'assistant-bubble-table'}
-            : undefined,
-        loading: message.state === 'loading' && !message.content && message.blocks.length === 0,
-        streaming: message.state === 'streaming',
-        content: message.role === 'user' ? message.content : (
-            <div className="assistant-message">
-                {message.content && <XMarkdown
-                    content={message.content}
-                    className={`x-markdown-light${message.blocks.length > 0 ? ' assistant-annotation' : ''}`}
-                    components={{a: TextOnlyLink, img: OmittedImage}}
-                    escapeRawHtml
-                    streaming={{hasNextChunk: message.state === 'streaming', tail: message.state === 'streaming'}}
-                />}
-                {message.activity && <Typography.Text type="secondary" className="tool-activity" role="status" aria-live="polite">
-                    <Sparkle weight="fill"/> {message.activity}
-                </Typography.Text>}
-                <NluiRenderer
-                    blocks={message.blocks}
-                    conversationId={conversationId}
-                    disabled={loading || message.state !== 'complete'}
-                    onInteraction={send}
-                />
-            </div>
-        )
-    })), [conversationId, loading, messages, send]);
+    const bubbleItems = useMemo(() => messages.map((message) =>
+    {
+        const currentActivity = selectCurrentActivity(message);
+
+        return {
+            key: message.id,
+            role: message.role,
+            classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table')
+                ? {root: 'assistant-bubble-table'}
+                : undefined,
+            loading: message.state === 'loading'
+                && !message.content
+                && message.blocks.length === 0
+                && !currentActivity,
+            streaming: message.state === 'streaming',
+            content: message.role === 'user' ? message.content : (
+                <div className="assistant-message">
+                    {message.content && <XMarkdown
+                        content={message.content}
+                        className={`x-markdown-light${message.blocks.length > 0 ? ' assistant-annotation' : ''}`}
+                        components={{a: TextOnlyLink, img: OmittedImage}}
+                        escapeRawHtml
+                        streaming={{hasNextChunk: message.state === 'streaming', tail: message.state === 'streaming'}}
+                    />}
+                    <ActivityPresentation message={message}/>
+                    <NluiRenderer
+                        blocks={message.blocks}
+                        conversationId={conversationId}
+                        disabled={loading || message.state !== 'complete'}
+                        onInteraction={send}
+                    />
+                </div>
+            )
+        };
+    }), [conversationId, loading, messages, send]);
 
     return (
         <XProvider theme={{

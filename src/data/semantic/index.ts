@@ -8,8 +8,10 @@ export {
     SEMANTIC_METRICS,
     SEMANTIC_RELATIONSHIPS,
     type SemanticDimensionId,
+    type SemanticMetricDefinition,
     type SemanticMetricId,
-    type SemanticRelationshipId
+    type SemanticRelationshipId,
+    type SemanticTimeScope
 } from './catalog.ts';
 export {
     type CanonicalSemanticQuery,

@@ -137,8 +137,27 @@ body { overflow: hidden; }
 .assistant-message .x-markdown > :first-child { margin-top: 0; }
 .assistant-message .assistant-annotation { max-width: 68ch; }
 .assistant-message .assistant-annotation > :last-child { margin-bottom: 0; }
-.tool-activity { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 12px; }
-.tool-activity svg { color: #6b62dc; }
+.activity-think { margin: 8px 0; }
+.activity-think .activity-think-status { cursor: default; pointer-events: none; }
+.activity-think .ant-think-status-down-icon { display: none; }
+.activity-think-copy { display: grid; gap: 1px; }
+.activity-think-description { color: #7c8499; font-size: 12px; }
+.activity-receipt { max-width: 68ch; margin-top: 10px; border: 1px solid #e1e3eb; border-radius: 12px; background: rgb(255 255 255 / 56%); }
+.activity-receipt > .ant-collapse-item > .ant-collapse-header { min-height: 40px; padding: 8px 12px; color: #5d6476; font-size: 12px; }
+.activity-receipt > .ant-collapse-item > .ant-collapse-content > .ant-collapse-content-box { padding: 0 12px 12px; }
+.activity-chain .ant-thought-chain-node-title { color: #34394f; font-size: 13px; }
+.activity-chain .ant-thought-chain-node-description { margin-bottom: 10px; font-size: 12px; }
+.activity-chain-status-icon { display: inline-flex; font-size: 16px; }
+.activity-chain-status-loading { color: #5b5bd6; }
+.activity-chain-status-success { color: #16854a; }
+.activity-chain-status-error { color: #c43f4d; }
+.activity-chain-status-abort { color: #64748b; }
+.activity-chain-status-loading svg { animation: activity-status-spin 1.1s linear infinite; }
+.activity-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+@keyframes activity-status-spin {
+    to { transform: rotate(360deg); }
+}
 
 .nlui-stack { width: 100%; min-width: 0; margin-top: 12px; }
 .nlui-stack > .ant-space-item { min-width: 0; }

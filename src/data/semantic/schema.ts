@@ -146,7 +146,17 @@ export const semanticQuerySchema = z.object({
         }
     }
 
-    if (metric.requiresTimeRange && !plan.timeRange)
+    if (metric.timeScope.kind === 'lifetime' && plan.timeRange)
+    {
+        context.addIssue({
+            code: 'custom',
+            message: `${plan.metric} is a lifetime metric and does not accept a time range`,
+            path: ['timeRange']
+        });
+    }
+    if (metric.timeScope.kind === 'period'
+        && metric.timeScope.requirement === 'required'
+        && !plan.timeRange)
     {
         context.addIssue({
             code: 'custom',

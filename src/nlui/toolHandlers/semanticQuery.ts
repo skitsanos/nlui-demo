@@ -1,5 +1,9 @@
 import {queryParameterizedDataset} from '../../data/queryDataset.ts';
 import {compileSemanticQuery, SEMANTIC_METRICS} from '../../data/semantic/index.ts';
+import {
+    SEMANTIC_PRESENTATION_POLICY_VERSION,
+    semanticPresentationFor
+} from '../semanticPresentation.ts';
 import {semanticQueryArguments} from '../toolArguments.ts';
 import type {ToolExecution} from '../toolTypes.ts';
 import {renderDatasetResult} from './queryDataset.ts';
@@ -20,11 +24,10 @@ export const semanticQueryHandler = async (raw: unknown): Promise<ToolExecution>
         ...args.plan.orderBy && {orderBy: args.plan.orderBy},
         ...args.plan.limit !== null && {limit: args.plan.limit}
     });
-    const rendered = renderDatasetResult(
-        await queryParameterizedDataset(compiled.sql, compiled.parameters),
-        args.title,
-        args.presentation
-    );
+    const result = await queryParameterizedDataset(compiled.sql, compiled.parameters);
+    const presentation = semanticPresentationFor(compiled.plan, result);
+    const rendered = renderDatasetResult(result, args.title, presentation.presentation);
+    const renderedOutput = record(rendered.modelOutput);
     const metric = SEMANTIC_METRICS[compiled.plan.metric];
 
     return {
@@ -34,6 +37,13 @@ export const semanticQueryHandler = async (raw: unknown): Promise<ToolExecution>
             semanticPlan: compiled.plan,
             planHash: compiled.planHash,
             relationships: compiled.relationships,
+            presentationPolicy: {
+                version: SEMANTIC_PRESENTATION_POLICY_VERSION,
+                requested: args.presentation ?? null,
+                resolved: presentation.presentation,
+                renderedAs: renderedOutput.renderedAs ?? null,
+                reason: presentation.reason
+            },
             metric: {
                 id: metric.id,
                 unit: metric.unit,

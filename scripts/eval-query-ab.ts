@@ -5,17 +5,21 @@ import {
     adaptScenarioForArm,
     compareQueryExperiment,
     createOpenAIExecutor,
+    evaluateQueryExperimentPromotion,
     evaluationExitCode,
     inspectEvaluationDataset,
     loadEvaluationScenarios,
     MAX_REPEAT_COUNT,
     projectBillableRuns,
     QUERY_EXPERIMENT_ARMS,
+    redactConfiguredText,
+    redactConfiguredValues,
     runEvaluationSuite,
     type EvaluationReport,
     type EvaluationScenario,
     type QueryExperimentArm,
-    type QueryExperimentComparison
+    type QueryExperimentComparison,
+    type QueryExperimentPromotionDecision
 } from '../src/evals/index.ts';
 import {createConfiguredOpenAIChatRunner} from '../src/services/openaiChat.ts';
 
@@ -182,12 +186,13 @@ const printArm = (arm: QueryExperimentArm, comparison: QueryExperimentComparison
 const printSummary = (
     scenarios: EvaluationScenario[],
     reports: Record<QueryExperimentArm, EvaluationReport>,
-    comparison: QueryExperimentComparison
+    comparison: QueryExperimentComparison,
+    promotion: QueryExperimentPromotionDecision
 ): void =>
 {
-    const models = unique(QUERY_EXPERIMENT_ARMS.flatMap((arm) =>
+    const modelConfigurationCount = unique(QUERY_EXPERIMENT_ARMS.flatMap((arm) =>
         reports[arm].results.map(({trace}) => trace.model).filter((model): model is string => Boolean(model))
-    ));
+    )).length;
     const prompts = QUERY_EXPERIMENT_ARMS.map((arm) =>
         `${arm}:${unique(reports[arm].results.map(({trace}) => trace.promptVersion ?? 'unknown')).join(',')}`
     );
@@ -197,7 +202,8 @@ const printSummary = (
     );
     console.log(
         `dataset=${reports.control.dataset.id}@${reports.control.dataset.version} `
-        + `model=${models.join(',') || 'unknown'} catalog=${SEMANTIC_CATALOG_ID}@${SEMANTIC_CATALOG_VERSION}`
+        + `model-configurations=${modelConfigurationCount} `
+        + `catalog=${SEMANTIC_CATALOG_ID}@${SEMANTIC_CATALOG_VERSION}`
     );
     console.log(`prompts ${prompts.join(' ')}`);
     printArm('control', comparison);
@@ -211,13 +217,18 @@ const printSummary = (
             + `paired-denotation=${denotation}`
         );
     }
+    console.log(`promotion=${promotion.recommendation}`);
+    for (const check of promotion.checks)
+    {
+        console.log(`${check.passed ? 'pass' : 'fail'} gate=${check.id} ${check.detail}`);
+    }
 };
 
 const reportMetadata = (reports: Record<QueryExperimentArm, EvaluationReport>) => ({
     dataset: `${reports.control.dataset.id}@${reports.control.dataset.version}`,
-    models: unique(QUERY_EXPERIMENT_ARMS.flatMap((arm) =>
+    modelConfigurationCount: unique(QUERY_EXPERIMENT_ARMS.flatMap((arm) =>
         reports[arm].results.map(({trace}) => trace.model).filter((model): model is string => Boolean(model))
-    )),
+    )).length,
     prompts: Object.fromEntries(QUERY_EXPERIMENT_ARMS.map((arm) => [
         arm,
         unique(reports[arm].results.map(({trace}) => trace.promptVersion ?? 'unknown'))
@@ -233,7 +244,8 @@ const main = async (): Promise<void> =>
     }
     const options = parseArguments(Bun.argv.slice(2));
     if (!options.confirmBillable) throw new Error('Live query experiment requires --confirm-billable.');
-    const scenarios = selectExperimentScenarios(await loadEvaluationScenarios(EXPERIMENT_PATH), options);
+    const catalog = await loadEvaluationScenarios(EXPERIMENT_PATH);
+    const scenarios = selectExperimentScenarios(catalog, options);
     const projection = projectBillableRuns(scenarios, options.repeat);
     const initial = inspectEvaluationDataset();
     if (!initial.isBaseline)
@@ -251,11 +263,14 @@ const main = async (): Promise<void> =>
         reports[arm] = await runArm(scenarios, arm, options, initial.fingerprint);
     }
     const comparison = compareQueryExperiment(scenarios, reports.control, reports.semantic);
+    const promotion = evaluateQueryExperimentPromotion(comparison, catalog.map(({id}) => id));
     const integrityViolation = QUERY_EXPERIMENT_ARMS.some((arm) => reports[arm].dataset.unexpectedMutation);
     const exitCode = Math.max(...QUERY_EXPERIMENT_ARMS.map((arm) =>
         evaluationExitCode(reports[arm].summary, false, integrityViolation)
     )) as 0 | 1 | 2;
-    const payload = {metadata: reportMetadata(reports), projection, comparison, reports};
+    const payload = redactConfiguredValues({
+        metadata: reportMetadata(reports), projection, comparison, promotion, reports
+    });
     if (options.output)
     {
         await mkdir(dirname(options.output), {recursive: true});
@@ -266,12 +281,12 @@ const main = async (): Promise<void> =>
     {
         console.log(JSON.stringify(payload, null, 2));
     }
-    else printSummary(scenarios, reports, comparison);
+    else printSummary(scenarios, reports, comparison, promotion);
     process.exitCode = exitCode;
 };
 
 await main().catch((error: unknown) =>
 {
-    console.error(error instanceof Error ? error.message : 'Query experiment failed');
+    console.error(redactConfiguredText(error instanceof Error ? error.message : 'Query experiment failed'));
     process.exitCode = 1;
 });

@@ -7,6 +7,8 @@ import {
     loadEvaluationScenarios,
     MAX_LIVE_SCENARIOS,
     MAX_REPEAT_COUNT,
+    redactConfiguredText,
+    redactConfiguredValues,
     runEvaluationSuite,
     selectScenarios,
     type EvaluationCategory
@@ -177,7 +179,7 @@ const main = async (): Promise<void> =>
 
     if (options.json)
     {
-        console.log(JSON.stringify(report, null, 2));
+        console.log(JSON.stringify(redactConfiguredValues(report), null, 2));
         process.exitCode = exitCode;
         return;
     }
@@ -196,7 +198,7 @@ const main = async (): Promise<void> =>
                 ...result.error ? [result.error] : []
             ])
             {
-                console.log(`  ${detail}`);
+                console.log(`  ${redactConfiguredText(detail)}`);
             }
         }
         else if (result.status === 'incomplete')
@@ -227,6 +229,6 @@ const main = async (): Promise<void> =>
 
 await main().catch((error: unknown) =>
 {
-    console.error(error instanceof Error ? error.message : 'Live evaluation failed');
+    console.error(redactConfiguredText(error instanceof Error ? error.message : 'Live evaluation failed'));
     process.exitCode = 1;
 });

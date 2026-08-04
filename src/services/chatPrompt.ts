@@ -1,13 +1,18 @@
 import type {QueryArm} from '../nlui/toolDefinitions.ts';
 
 const CONTROL_PROMPT_VERSION = 'nlui-controller-v5-annotated';
-const SEMANTIC_PROMPT_VERSION = 'nlui-controller-v5-annotated-semantic-v1';
+const SEMANTIC_PROMPT_VERSION = 'nlui-controller-v5-annotated-semantic-v2';
 
 export const promptVersionFor = (arm: QueryArm): string =>
     arm === 'semantic' ? SEMANTIC_PROMPT_VERSION : CONTROL_PROMPT_VERSION;
 
 const queryRulesFor = (arm: QueryArm): string => arm === 'semantic' ? `- Use semantic_query for customer counts, customer groupings, custom aggregates, and cross-table questions that a specialized tool does not answer exactly. Never claim a dataset metric is unavailable before trying that tool.
 - Provide only the strict semantic_query parameters. Never generate, request, infer, or expose SQL in the semantic experiment arm.
+- Use registered_customer_count only for the current lifetime customer population. When the user asks how many customers exist or are registered now without a period, keep timeRange null and do not add a month dimension or filter.
+- Use customer_registrations for customers who joined or registered during a requested period, and always provide its explicit timeRange. Use active_customer_count only with an explicit order period.
+- Never infer a period merely from the dataset snapshot or current date. Use timeRange for requested period bounds and do not repeat it with a month filter. Add the month dimension only when the user asks for a monthly breakdown or trend.
+- Eligible order, revenue, and average-order-value metrics already exclude cancelled and returned orders. Do not recreate those metric-owned exclusions with order_status filters.
+- Leave orderBy and limit null unless the user asks for ranking or a bounded number of grouped rows. The server, not you, chooses the renderer from the verified plan and result shape.
 - For one analytical question, use semantic_query by itself instead of pairing it with an unrelated dashboard or list tool. If its first request is rejected, repair the semantic parameters once from the returned error.` : `- Use query_dataset for customer counts, customer groupings, custom aggregates, and cross-table questions that a specialized tool does not answer exactly. Never claim a dataset metric is unavailable before trying that tool.
 - Generate SQL only inside query_dataset. Follow its published schema exactly, and never expose generated SQL in user-facing text unless the user asks to see it.
 - For one analytical question, use query_dataset by itself instead of pairing it with an unrelated dashboard or list tool. If its first query is rejected, repair it once from the returned error.`;

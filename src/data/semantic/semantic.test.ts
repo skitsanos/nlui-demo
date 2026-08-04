@@ -61,9 +61,15 @@ describe('semantic catalog', () =>
     test('publishes a versioned metric, dimension, and relationship contract', () =>
     {
         expect(SEMANTIC_CATALOG.id).toBe('retail-operations');
-        expect(SEMANTIC_CATALOG.version).toBe(1);
+        expect(SEMANTIC_CATALOG.version).toBe(2);
         expect(Object.keys(SEMANTIC_CATALOG.metrics)).toEqual([...SEMANTIC_METRIC_IDS]);
         expect(Object.keys(SEMANTIC_CATALOG.dimensions)).toEqual([...SEMANTIC_DIMENSION_IDS]);
+        expect(SEMANTIC_CATALOG.metrics.registered_customer_count.timeScope)
+            .toEqual({kind: 'lifetime'});
+        expect(SEMANTIC_CATALOG.metrics.customer_registrations.timeScope)
+            .toEqual({kind: 'period', requirement: 'required', field: 'customers.joined_at'});
+        expect(SEMANTIC_CATALOG.metrics.eligible_revenue_eur.timeScope)
+            .toEqual({kind: 'period', requirement: 'optional', field: 'orders.created_at'});
         expect(SEMANTIC_RELATIONSHIPS.orders_customer).toMatchObject({
             fromField: 'orders.customer_id',
             toField: 'customers.id',
@@ -91,14 +97,30 @@ describe('semantic query validation', () =>
         })).toContain('order_status is incompatible with registered_customer_count');
     });
 
-    test('requires an explicit period for active customers', () =>
+    test('enforces catalog-owned lifetime and required-period scopes', () =>
     {
+        for (const timeRange of [
+            {from: '2026-01-01', to: '2026-06-30'},
+            {from: '2025-01-01', to: '2025-12-31'}
+        ])
+        {
+            expect(messagesFor({metric: 'registered_customer_count', timeRange}))
+                .toContain('registered_customer_count is a lifetime metric and does not accept a time range');
+        }
+        expect(messagesFor({metric: 'registered_customer_count', dimensions: ['month']}))
+            .toContain('month is incompatible with registered_customer_count');
+        expect(messagesFor({metric: 'customer_registrations'}))
+            .toContain('customer_registrations requires an explicit time range');
         expect(messagesFor({metric: 'active_customer_count'}))
             .toContain('active_customer_count requires an explicit time range');
-        expect(semanticQuerySchema.safeParse({
-            metric: 'active_customer_count',
-            timeRange: {from: '2026-01-01', to: '2026-01-31'}
-        }).success).toBeTrue();
+        for (const metric of ['customer_registrations', 'active_customer_count'] as const)
+        {
+            expect(semanticQuerySchema.safeParse({
+                metric,
+                timeRange: {from: '2026-01-01', to: '2026-01-31'}
+            }).success).toBeTrue();
+        }
+        expect(semanticQuerySchema.safeParse({metric: 'eligible_order_count'}).success).toBeTrue();
     });
 
     test('rejects ambiguous grouping, ordering, filters, and dates', () =>
@@ -144,8 +166,7 @@ describe('semantic query compilation', () =>
 FROM customers
 WHERE customers.tier = ?
 GROUP BY customers.region
-ORDER BY region ASC
-LIMIT 10`);
+ORDER BY region ASC`);
         expect(compiled.parameters).toEqual(['gold']);
         expect(compiled.relationships).toEqual([]);
         expect(compiled.planHash).toMatch(/^[a-f0-9]{64}$/);
@@ -184,6 +205,21 @@ LIMIT 10`);
 
         expect(compiled.parameters).toEqual(['2026-01-01', '2026-01-31']);
         expect(execute(database, input)).toEqual([{month: '2026-01', active_customer_count: 2}]);
+    });
+
+    test('uses customer registration time for the period registration metric', () =>
+    {
+        const database = fixtureDatabase();
+        const input = {
+            metric: 'customer_registrations',
+            dimensions: ['month'],
+            timeRange: {from: '2025-02-01', to: '2025-02-28'}
+        };
+        const compiled = compileSemanticQuery(input);
+
+        expect(compiled.sql).toContain('customers.joined_at >= ?');
+        expect(compiled.parameters).toEqual(['2025-02-01', '2025-02-28']);
+        expect(execute(database, input)).toEqual([{month: '2025-02', customer_registrations: 2}]);
     });
 
     test('clamps the snapshot day to the exact observed-data instant', () =>
@@ -227,11 +263,85 @@ LIMIT 10`);
         expect(second.planHash).toBe(first.planHash);
     });
 
-    test('keeps all five metric definitions executable', () =>
+    test('removes only provable enum, ordering, and limit no-ops', () =>
+    {
+        const baseline = compileSemanticQuery({
+            metric: 'registered_customer_count',
+            dimensions: ['region']
+        });
+        const equivalent = compileSemanticQuery({
+            metric: 'registered_customer_count',
+            dimensions: ['region'],
+            filters: [
+                {dimension: 'customer_tier', values: ['gold', 'standard', 'silver']},
+                {dimension: 'region', values: ['West', 'South', 'North', 'East', 'Central']}
+            ],
+            orderBy: {field: 'region', direction: 'asc'},
+            limit: 5
+        });
+
+        expect(equivalent.plan).toEqual(baseline.plan);
+        expect(equivalent.planHash).toBe(baseline.planHash);
+        expect(equivalent.sql).toBe(baseline.sql);
+
+        for (const different of [
+            compileSemanticQuery({
+                metric: 'registered_customer_count',
+                dimensions: ['region'],
+                filters: [{dimension: 'region', values: ['East', 'West']}]
+            }),
+            compileSemanticQuery({
+                metric: 'registered_customer_count',
+                dimensions: ['region'],
+                limit: 4
+            }),
+            compileSemanticQuery({
+                metric: 'registered_customer_count',
+                dimensions: ['region'],
+                orderBy: {field: 'region', direction: 'desc'}
+            })
+        ])
+        {
+            expect(different.planHash).not.toBe(baseline.planHash);
+        }
+    });
+
+    test('removes a month filter that exactly repeats a contiguous period', () =>
+    {
+        const baseline = compileSemanticQuery({
+            metric: 'customer_registrations',
+            dimensions: ['month'],
+            timeRange: {from: '2025-01-10', to: '2025-03-05'}
+        });
+        const equivalent = compileSemanticQuery({
+            metric: 'customer_registrations',
+            dimensions: ['month'],
+            filters: [{dimension: 'month', values: ['2025-03', '2025-01', '2025-02']}],
+            timeRange: {from: '2025-01-10', to: '2025-03-05'},
+            orderBy: {field: 'month', direction: 'asc'},
+            limit: 3
+        });
+        const narrowerMonths = compileSemanticQuery({
+            metric: 'customer_registrations',
+            dimensions: ['month'],
+            filters: [{dimension: 'month', values: ['2025-01', '2025-02']}],
+            timeRange: {from: '2025-01-10', to: '2025-03-05'}
+        });
+
+        expect(equivalent.plan).toEqual(baseline.plan);
+        expect(equivalent.planHash).toBe(baseline.planHash);
+        expect(narrowerMonths.planHash).not.toBe(baseline.planHash);
+    });
+
+    test('keeps all six metric definitions executable', () =>
     {
         const database = fixtureDatabase();
         expect(execute(database, {metric: 'registered_customer_count'}))
             .toEqual([{registered_customer_count: 4}]);
+        expect(execute(database, {
+            metric: 'customer_registrations',
+            timeRange: {from: '2025-01-01', to: '2025-02-28'}
+        })).toEqual([{customer_registrations: 3}]);
         expect(execute(database, {
             metric: 'active_customer_count',
             timeRange: {from: '2026-01-01', to: '2026-02-28'}

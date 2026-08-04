@@ -58,20 +58,116 @@ const canonicalFilter = (filter: SemanticFilter): CanonicalSemanticQuery['filter
     values: [...filter.values].sort((left, right) => left.localeCompare(right))
 });
 
+const sameValues = (left: readonly string[], right: readonly string[]): boolean =>
+    left.length === right.length && left.every((value, index) => value === right[index]);
+
+const monthsTouchedBy = (timeRange: {from: string; to: string}, maximum = 100): string[] | null =>
+{
+    let year = Number(timeRange.from.slice(0, 4));
+    let month = Number(timeRange.from.slice(5, 7));
+    const endYear = Number(timeRange.to.slice(0, 4));
+    const endMonth = Number(timeRange.to.slice(5, 7));
+    const months: string[] = [];
+    while (year < endYear || (year === endYear && month <= endMonth))
+    {
+        months.push(`${year.toString().padStart(4, '0')}-${month.toString().padStart(2, '0')}`);
+        if (months.length > maximum) return null;
+        month += 1;
+        if (month === 13)
+        {
+            year += 1;
+            month = 1;
+        }
+    }
+    return months;
+};
+
+const effectiveFilterValues = (
+    metricId: SemanticMetricId,
+    dimension: SemanticDimensionId
+): string[] | null =>
+{
+    const values = SEMANTIC_DIMENSIONS[dimension].filterValues;
+    if (!values) return null;
+    const excluded = new Set<string>(dimension === 'order_status'
+        ? SEMANTIC_METRICS[metricId].excludedOrderStatuses ?? []
+        : []);
+    return values
+        .filter((value) => !excluded.has(value))
+        .sort((left, right) => left.localeCompare(right));
+};
+
+const canonicalFilters = (
+    metricId: SemanticMetricId,
+    filters: SemanticFilter[],
+    timeRange: CanonicalSemanticQuery['timeRange']
+): CanonicalSemanticQuery['filters'] =>
+{
+    const rangeMonths = timeRange ? monthsTouchedBy(timeRange, 24) : null;
+    return filters
+        .map(canonicalFilter)
+        .filter((filter) =>
+        {
+            const exhaustiveValues = effectiveFilterValues(metricId, filter.dimension);
+            if (exhaustiveValues && sameValues(filter.values, exhaustiveValues)) return false;
+            return filter.dimension !== 'month'
+                || !rangeMonths
+                || !sameValues(filter.values, rangeMonths);
+        })
+        .sort((left, right) => left.dimension.localeCompare(right.dimension));
+};
+
+const cardinalityUpperBound = (
+    metricId: SemanticMetricId,
+    dimensions: SemanticDimensionId[],
+    filters: CanonicalSemanticQuery['filters'],
+    timeRange: CanonicalSemanticQuery['timeRange']
+): number | null =>
+{
+    let maximumRows = 1;
+    for (const dimension of dimensions)
+    {
+        const filter = filters.find((candidate) => candidate.dimension === dimension);
+        const values = filter?.values
+            ?? (dimension === 'month' && timeRange ? monthsTouchedBy(timeRange) : null)
+            ?? effectiveFilterValues(metricId, dimension);
+        if (!values) return null;
+        maximumRows *= values.length;
+        if (maximumRows > 100) return 101;
+    }
+    return maximumRows;
+};
+
+const canonicalOrder = (
+    dimensions: SemanticDimensionId[],
+    orderBy: SemanticQuery['orderBy']
+): CanonicalSemanticQuery['orderBy'] =>
+{
+    if (!orderBy) return null;
+    if (dimensions.length === 0 && orderBy.field === 'metric') return null;
+    if (dimensions.length === 1 && orderBy.field === dimensions[0] && orderBy.direction === 'asc') return null;
+    return {...orderBy};
+};
+
 export const canonicalizeSemanticQuery = (input: unknown): CanonicalSemanticQuery =>
 {
     const plan = semanticQuerySchema.parse(input);
+    const dimensions = [...plan.dimensions];
+    const timeRange = plan.timeRange ? {...plan.timeRange} : null;
+    const filters = canonicalFilters(plan.metric, plan.filters, timeRange);
+    const orderBy = canonicalOrder(dimensions, plan.orderBy);
+    const maximumRows = cardinalityUpperBound(plan.metric, dimensions, filters, timeRange);
     return {
         catalogId: SEMANTIC_CATALOG_ID,
         catalogVersion: SEMANTIC_CATALOG_VERSION,
         metric: plan.metric,
-        dimensions: [...plan.dimensions],
-        filters: plan.filters
-            .map(canonicalFilter)
-            .sort((left, right) => left.dimension.localeCompare(right.dimension)),
-        timeRange: plan.timeRange ? {...plan.timeRange} : null,
-        orderBy: plan.orderBy ? {...plan.orderBy} : null,
-        limit: plan.limit ?? null
+        dimensions,
+        filters,
+        timeRange,
+        orderBy,
+        limit: plan.limit !== undefined && (maximumRows === null || plan.limit < maximumRows)
+            ? plan.limit
+            : null
     };
 };
 
@@ -114,17 +210,18 @@ const appendTimeRange = (
 ): void =>
 {
     if (!plan.timeRange) return;
-    const {timeField} = SEMANTIC_METRICS[plan.metric];
-    clauses.push(`${timeField} >= ?`);
+    const {timeScope} = SEMANTIC_METRICS[plan.metric];
+    if (timeScope.kind !== 'period') throw new Error(`${plan.metric} cannot compile a time range`);
+    clauses.push(`${timeScope.field} >= ?`);
     parameters.push(plan.timeRange.from);
     if (plan.timeRange.to === DATASET_REFERENCE_DATE.slice(0, 10))
     {
-        clauses.push(`${timeField} <= ?`);
+        clauses.push(`${timeScope.field} <= ?`);
         parameters.push(DATASET_REFERENCE_DATE);
     }
     else
     {
-        clauses.push(`${timeField} < datetime(?, '+1 day')`);
+        clauses.push(`${timeScope.field} < datetime(?, '+1 day')`);
         parameters.push(plan.timeRange.to);
     }
 };

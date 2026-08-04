@@ -163,10 +163,12 @@ const semanticMetricGuide = SEMANTIC_METRIC_IDS
     .map((id) => `${id}: ${SEMANTIC_METRICS[id].description}`)
     .join(' ');
 
+const semanticPlanGuide = `Use registered_customer_count only for the current lifetime customer population: its timeRange must be null and it cannot use the month dimension or filter. Use customer_registrations for customers registered during a period; it requires an explicit timeRange. active_customer_count also requires an explicit timeRange. Eligible order, revenue, and average-order-value metrics already exclude cancelled and returned orders, so never add those exclusions as filters. Use timeRange for period bounds and do not repeat the same constraint with a month filter. Add the month dimension only for a requested monthly grouping or trend. Leave orderBy and limit null unless the user asks for ranking or a bounded number of grouped rows. The server chooses the renderer from the verified result shape.`;
+
 const SEMANTIC_QUERY_TOOL: FunctionTool = {
     type: 'function',
     name: 'semantic_query',
-    description: `Query approved retail metrics through a server-compiled semantic plan. Dataset snapshot: ${DATASET_REFERENCE_DATE}. Observed time ranges must end on or before that date. ${semanticMetricGuide}`,
+    description: `Query approved retail metrics through a server-compiled semantic plan. Dataset snapshot: ${DATASET_REFERENCE_DATE}. Observed time ranges must end on or before that date. ${semanticPlanGuide} ${semanticMetricGuide}`,
     strict: true,
     parameters: objectSchema({
         plan: objectSchema({
@@ -174,11 +176,13 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
             dimensions: {
                 type: 'array',
                 items: {type: 'string', enum: SEMANTIC_DIMENSION_IDS},
-                maxItems: 3
+                maxItems: 3,
+                description: 'Group only by dimensions the user asked to compare. Month is for a requested monthly grouping, not a period constraint.'
             },
             filters: {
                 type: 'array',
                 maxItems: 4,
+                description: 'Explicit categorical constraints only. Do not duplicate timeRange with a month filter or restate metric-owned exclusions.',
                 items: {
                     anyOf: [
                         semanticFilter('month', {
@@ -201,6 +205,7 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
                 }
             },
             timeRange: {
+                description: 'Exact requested observation period. Null for lifetime registered_customer_count; required for customer_registrations and active_customer_count.',
                 anyOf: [
                     objectSchema({
                         from: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'},
@@ -210,6 +215,7 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
                 ]
             },
             orderBy: {
+                description: 'Requested ranking order for grouped results; otherwise null.',
                 anyOf: [
                     objectSchema({
                         field: {type: 'string', enum: ['metric', ...SEMANTIC_DIMENSION_IDS]},
@@ -218,18 +224,18 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
                     {type: 'null'}
                 ]
             },
-            limit: {type: ['integer', 'null'], minimum: 1, maximum: 100}
+            limit: {
+                type: ['integer', 'null'],
+                minimum: 1,
+                maximum: 100,
+                description: 'Requested top or bottom row count for a grouped result; otherwise null.'
+            }
         }),
         title: {
             type: 'string',
             minLength: 1,
             maxLength: 120,
             description: 'A concise user-facing title for the verified semantic result.'
-        },
-        presentation: {
-            type: 'string',
-            enum: ['auto', 'metric', 'table', 'bar', 'line'],
-            description: 'Preferred controlled renderer. The server falls back when the result shape is incompatible.'
         }
     })
 };

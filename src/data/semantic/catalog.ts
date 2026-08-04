@@ -1,8 +1,9 @@
-export const SEMANTIC_CATALOG_VERSION = 1;
+export const SEMANTIC_CATALOG_VERSION = 2;
 export const SEMANTIC_CATALOG_ID = 'retail-operations';
 
 export const SEMANTIC_METRIC_IDS = [
     'registered_customer_count',
+    'customer_registrations',
     'active_customer_count',
     'eligible_order_count',
     'eligible_revenue_eur',
@@ -33,7 +34,11 @@ export type SemanticEntity = 'customers' | 'orders';
 export type SemanticRelationshipId = 'orders_customer';
 export type SemanticUnit = 'count' | 'EUR';
 
-interface SemanticMetricDefinition
+export type SemanticTimeScope =
+    | {kind: 'lifetime'}
+    | {kind: 'period'; requirement: 'required' | 'optional'; field: string};
+
+export interface SemanticMetricDefinition
 {
     id: SemanticMetricId;
     label: string;
@@ -42,9 +47,8 @@ interface SemanticMetricDefinition
     expression: string;
     unit: SemanticUnit;
     grain: 'customer' | 'order';
-    timeField: string;
+    timeScope: SemanticTimeScope;
     compatibleDimensions: readonly SemanticDimensionId[];
-    requiresTimeRange?: boolean;
     excludedOrderStatuses?: readonly typeof ORDER_STATUSES[number][];
 }
 
@@ -60,6 +64,7 @@ interface SemanticDimensionDefinition
     label: string;
     description: string;
     sources: Partial<Record<SemanticEntity, DimensionSource>>;
+    filterValues?: readonly string[];
 }
 
 interface SemanticRelationshipDefinition
@@ -72,7 +77,8 @@ interface SemanticRelationshipDefinition
     joinSql: string;
 }
 
-const customerDimensions = ['month', 'region', 'customer_tier'] as const;
+const lifetimeCustomerDimensions = ['region', 'customer_tier'] as const;
+const registrationDimensions = ['month', 'region', 'customer_tier'] as const;
 const orderDimensions = ['month', 'region', 'customer_tier', 'order_status'] as const;
 const excludedOrderStatuses = ['cancelled', 'returned'] as const;
 
@@ -80,13 +86,24 @@ export const SEMANTIC_METRICS: Readonly<Record<SemanticMetricId, SemanticMetricD
     registered_customer_count: {
         id: 'registered_customer_count',
         label: 'Registered customers',
-        description: 'Distinct customer records registered in the selected acquisition period.',
+        description: 'Distinct customer records across the complete observed dataset.',
         baseEntity: 'customers',
         expression: 'COUNT(DISTINCT customers.id)',
         unit: 'count',
         grain: 'customer',
-        timeField: 'customers.joined_at',
-        compatibleDimensions: customerDimensions
+        timeScope: {kind: 'lifetime'},
+        compatibleDimensions: lifetimeCustomerDimensions
+    },
+    customer_registrations: {
+        id: 'customer_registrations',
+        label: 'Customer registrations',
+        description: 'Distinct customers registered during an explicit acquisition period.',
+        baseEntity: 'customers',
+        expression: 'COUNT(DISTINCT customers.id)',
+        unit: 'count',
+        grain: 'customer',
+        timeScope: {kind: 'period', requirement: 'required', field: 'customers.joined_at'},
+        compatibleDimensions: registrationDimensions
     },
     active_customer_count: {
         id: 'active_customer_count',
@@ -96,9 +113,8 @@ export const SEMANTIC_METRICS: Readonly<Record<SemanticMetricId, SemanticMetricD
         expression: 'COUNT(DISTINCT orders.customer_id)',
         unit: 'count',
         grain: 'customer',
-        timeField: 'orders.created_at',
-        compatibleDimensions: orderDimensions,
-        requiresTimeRange: true
+        timeScope: {kind: 'period', requirement: 'required', field: 'orders.created_at'},
+        compatibleDimensions: orderDimensions
     },
     eligible_order_count: {
         id: 'eligible_order_count',
@@ -108,7 +124,7 @@ export const SEMANTIC_METRICS: Readonly<Record<SemanticMetricId, SemanticMetricD
         expression: 'COUNT(DISTINCT orders.id)',
         unit: 'count',
         grain: 'order',
-        timeField: 'orders.created_at',
+        timeScope: {kind: 'period', requirement: 'optional', field: 'orders.created_at'},
         compatibleDimensions: orderDimensions,
         excludedOrderStatuses
     },
@@ -120,7 +136,7 @@ export const SEMANTIC_METRICS: Readonly<Record<SemanticMetricId, SemanticMetricD
         expression: 'ROUND(COALESCE(SUM(orders.total_cents), 0) / 100.0, 2)',
         unit: 'EUR',
         grain: 'order',
-        timeField: 'orders.created_at',
+        timeScope: {kind: 'period', requirement: 'optional', field: 'orders.created_at'},
         compatibleDimensions: orderDimensions,
         excludedOrderStatuses
     },
@@ -132,7 +148,7 @@ export const SEMANTIC_METRICS: Readonly<Record<SemanticMetricId, SemanticMetricD
         expression: 'ROUND(COALESCE(AVG(orders.total_cents), 0) / 100.0, 2)',
         unit: 'EUR',
         grain: 'order',
-        timeField: 'orders.created_at',
+        timeScope: {kind: 'period', requirement: 'optional', field: 'orders.created_at'},
         compatibleDimensions: orderDimensions,
         excludedOrderStatuses
     }
@@ -155,7 +171,8 @@ export const SEMANTIC_DIMENSIONS: Readonly<Record<SemanticDimensionId, SemanticD
         sources: {
             customers: {expression: 'customers.region'},
             orders: {expression: 'orders.region'}
-        }
+        },
+        filterValues: CUSTOMER_REGIONS
     },
     customer_tier: {
         id: 'customer_tier',
@@ -164,13 +181,15 @@ export const SEMANTIC_DIMENSIONS: Readonly<Record<SemanticDimensionId, SemanticD
         sources: {
             customers: {expression: 'customers.tier'},
             orders: {expression: 'customers.tier', relationship: 'orders_customer'}
-        }
+        },
+        filterValues: CUSTOMER_TIERS
     },
     order_status: {
         id: 'order_status',
         label: 'Order status',
         description: 'Current order lifecycle status.',
-        sources: {orders: {expression: 'orders.status'}}
+        sources: {orders: {expression: 'orders.status'}},
+        filterValues: ORDER_STATUSES
     }
 };
 

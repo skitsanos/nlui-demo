@@ -1,6 +1,7 @@
 import {useCallback, useRef, useState} from 'react';
 import type {ChatInput, ChatStreamEvent} from '../nlui/types.ts';
 import {type ChatMessage, streamChat} from './chat.ts';
+import {abortAssistantMessage, reduceAssistantEvent} from './chatActivity.ts';
 import {createClientId} from './id.ts';
 
 export const useChat = () =>
@@ -21,23 +22,7 @@ export const useChat = () =>
                 return message;
             }
 
-            switch (event.type)
-            {
-                case 'text.delta':
-                    return {...message, content: message.content + event.delta, state: 'streaming', activity: undefined};
-                case 'ui.block':
-                    return {...message, blocks: [...message.blocks, event.block]};
-                case 'tool.started':
-                    return {...message, activity: `Using ${event.name.replaceAll('_', ' ')}…`};
-                case 'tool.completed':
-                    return {...message, activity: undefined};
-                case 'message.completed':
-                    return {...message, state: 'complete', activity: undefined};
-                case 'error':
-                    return {...message, content: event.message, state: 'error', activity: undefined};
-                default:
-                    return message;
-            }
+            return reduceAssistantEvent(message, event);
         }));
     }, []);
 
@@ -56,8 +41,8 @@ export const useChat = () =>
         setLoading(true);
         setMessages((current) => [
             ...current,
-            {id: createClientId('user'), role: 'user', content: displayText, blocks: [], state: 'complete'},
-            {id: assistantId, role: 'assistant', content: '', blocks: [], state: 'loading'}
+            {id: createClientId('user'), role: 'user', content: displayText, blocks: [], activities: [], state: 'complete'},
+            {id: assistantId, role: 'assistant', content: '', blocks: [], activities: [], state: 'loading'}
         ]);
 
         let completed = false;
@@ -120,9 +105,7 @@ export const useChat = () =>
         activeRequestId.current = undefined;
         abortController.current = undefined;
         setLoading(false);
-        setMessages((current) => current.map((message) => message.state === 'loading' || message.state === 'streaming'
-            ? {...message, content: message.content || 'Response cancelled.', state: 'abort', activity: undefined}
-            : message));
+        setMessages((current) => current.map(abortAssistantMessage));
     }, []);
 
     return {messages, loading, conversationId, submit, cancel, reset};

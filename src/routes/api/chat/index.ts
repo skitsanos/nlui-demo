@@ -3,22 +3,10 @@ import {ConversationStateError, conversationStates} from '../../../nlui/conversa
 import {InteractionCapabilityError, interactionCapabilities} from '../../../nlui/interactionCapabilities.ts';
 import {chatRequestSchema} from '../../../nlui/schemas.ts';
 import type {ChatStreamEvent} from '../../../nlui/types.ts';
-import {ChatConfigurationError, runOpenAIChat} from '../../../services/openaiChat.ts';
+import {runOpenAIChat} from '../../../services/openaiChat.ts';
+import {publicChatErrorMessage, publicChatStreamEvent} from '../../../services/publicChatStream.ts';
 
 const encoder = new TextEncoder();
-
-const errorMessage = (error: unknown): string =>
-{
-    if (error instanceof ChatConfigurationError)
-    {
-        return error.message;
-    }
-    if (error instanceof Error && error.name === 'AbortError')
-    {
-        return 'The response was cancelled';
-    }
-    return error instanceof Error ? error.message : 'The chat request failed';
-};
 
 export const POST: RouteHandler = async ({req, server}) =>
 {
@@ -90,9 +78,10 @@ export const POST: RouteHandler = async ({req, server}) =>
         {
             const emit = (event: ChatStreamEvent): void =>
             {
-                if (!controller.signal.aborted)
+                const publicEvent = publicChatStreamEvent(event);
+                if (publicEvent && !controller.signal.aborted)
                 {
-                    output.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+                    output.enqueue(encoder.encode(`${JSON.stringify(publicEvent)}\n`));
                 }
             };
 
@@ -110,7 +99,7 @@ export const POST: RouteHandler = async ({req, server}) =>
                     }
                     if (!controller.signal.aborted)
                     {
-                        emit({type: 'error', message: errorMessage(error)});
+                        emit({type: 'error', message: publicChatErrorMessage(error)});
                     }
                 })
                 .finally(() =>

@@ -22,9 +22,14 @@ describe('NLUI tool catalog', () =>
         const filterVariants = plan.properties.filters.items.anyOf as Array<Record<string, any>>;
         expect(definition?.strict).toBeTrue();
         expect(parameters.additionalProperties).toBeFalse();
+        expect(parameters.required).toEqual(['plan', 'title']);
+        expect(parameters.properties).not.toHaveProperty('presentation');
         expect(plan.additionalProperties).toBeFalse();
         expect(filterVariants.every(({additionalProperties}) => additionalProperties === false)).toBeTrue();
         expect(JSON.stringify(parameters)).not.toContain('uniqueItems');
+        expect(plan.properties.metric.enum).toContain('customer_registrations');
+        expect(definition?.description).toContain('registered_customer_count only for the current lifetime');
+        expect(definition?.description).toContain('server chooses the renderer');
     });
 
     test('executes semantic plans with control denotation and trace-only provenance', async () =>
@@ -39,8 +44,7 @@ describe('NLUI tool catalog', () =>
                 metric: 'registered_customer_count', dimensions: [], filters: [],
                 timeRange: null, orderBy: null, limit: null
             },
-            title: 'Registered customers',
-            presentation: 'metric'
+            title: 'Registered customers'
         }));
 
         expect((semantic.modelOutput as {rows: unknown}).rows).toEqual((control.modelOutput as {rows: unknown}).rows);
@@ -48,7 +52,7 @@ describe('NLUI tool catalog', () =>
             type: 'stats', title: 'Registered customers', items: [{value: 200}]
         });
         expect(semantic.traceOutput).toMatchObject({
-            semanticPlan: {catalogId: 'retail-operations', catalogVersion: 1, metric: 'registered_customer_count'},
+            semanticPlan: {catalogId: 'retail-operations', catalogVersion: 2, metric: 'registered_customer_count'},
             relationships: [],
             metric: {id: 'registered_customer_count', unit: 'count', grain: 'customer'}
         });
@@ -62,8 +66,7 @@ describe('NLUI tool catalog', () =>
                 filters: [{dimension: 'region', values: ['East', 'West']}],
                 timeRange: null, orderBy: null, limit: 2
             },
-            title: 'Customers by tier',
-            presentation: 'bar'
+            title: 'Customers by tier'
         }));
         expect(limited.modelOutput).toMatchObject({ok: true, returnedRowCount: 2, renderedAs: 'bar'});
         expect(limited.blocks[0]).toMatchObject({type: 'chart', title: 'Customers by tier'});

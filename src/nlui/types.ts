@@ -149,8 +149,19 @@ export interface ChatRequest
     previousResponseId?: string;
 }
 
+export interface ChatActivity
+{
+    id: string;
+    kind: 'request' | 'data' | 'action' | 'compose';
+    title: string;
+    description?: string;
+    status: 'loading' | 'success' | 'error' | 'abort';
+    receipt: boolean;
+}
+
 export type ChatStreamEvent =
     | {type: 'message.started'; messageId: string}
+    | {type: 'activity.updated'; activity: ChatActivity}
     | {type: 'tool.started'; name: string}
     | {type: 'tool.completed'; name: string}
     | {type: 'text.delta'; delta: string}

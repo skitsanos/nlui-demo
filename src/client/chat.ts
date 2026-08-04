@@ -1,4 +1,4 @@
-import type {ChatInput, ChatStreamEvent, NluiBlock} from '../nlui/types.ts';
+import type {ChatActivity, ChatInput, ChatStreamEvent, NluiBlock} from '../nlui/types.ts';
 
 export interface ChatMessage
 {
@@ -6,8 +6,8 @@ export interface ChatMessage
     role: 'user' | 'assistant';
     content: string;
     blocks: NluiBlock[];
+    activities: ChatActivity[];
     state: 'loading' | 'streaming' | 'complete' | 'error' | 'abort';
-    activity?: string;
 }
 
 export interface ChatStreamOptions
