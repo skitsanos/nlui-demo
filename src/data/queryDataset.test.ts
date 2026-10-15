@@ -27,6 +27,48 @@ afterEach(() =>
 
 describe('isolated dataset queries', () =>
 {
+    test('terminates a running worker on caller cancellation and permits the next query', async () =>
+    {
+        const databasePath = temporaryDatabase();
+        const controller = new AbortController();
+        const pending = runCanonicalDatasetQuery({databasePath, rowLimit: 100,
+            sql: 'WITH RECURSIVE x(n) AS (VALUES(1) UNION ALL SELECT n + 1 FROM x) SELECT SUM(n) AS total FROM x'
+        }, 1_500, controller.signal);
+        const reason = new DOMException('Caller cancelled the query', 'AbortError');
+        const timer = setTimeout(() => controller.abort(reason), 25);
+        try {await expect(pending).rejects.toBe(reason);}
+        finally {clearTimeout(timer);}
+        const next = await queryDataset('SELECT COUNT(*) AS customer_count FROM customers', {databasePath});
+        expect(next.rows).toEqual([{c0: 200}]);
+    });
+
+    test('an already-cancelled query never creates its database', async () =>
+    {
+        const directory = mkdtempSync(join(tmpdir(), 'nlui-query-abort-test-'));
+        temporaryDirectories.push(directory);
+        const databasePath = join(directory, 'must-not-exist.sqlite');
+        const controller = new AbortController();
+        controller.abort();
+        await expect(queryDataset('SELECT COUNT(*) AS customer_count FROM customers', {databasePath, signal: controller.signal}))
+            .rejects.toBe(controller.signal.reason);
+        expect(await Bun.file(databasePath).exists()).toBeFalse();
+    });
+
+    test('executes legal repeated-table joins and rejects row-amplification attacks before execution', async () =>
+    {
+        const databasePath = temporaryDatabase();
+        const result = await queryDataset(`SELECT COUNT(*) AS row_count FROM orders o
+            JOIN customers c ON o.customer_id = c.id
+            JOIN customers c2 ON o.customer_id = c2.id`, {databasePath});
+        expect(result.rows).toEqual([{c0: 1500}]);
+        for (const predicate of ['o.customer_id = c.id', '(o.customer_id = c2.id) = 0'])
+        {
+            await expect(queryDataset(`SELECT COUNT(*) AS row_count FROM orders o
+                JOIN customers c ON o.customer_id = c.id
+                JOIN customers c2 ON ${predicate}`, {databasePath})).rejects.toThrow('SQL_POLICY');
+        }
+    });
+
     test('returns the exact registered customer count', async () =>
     {
         const databasePath = temporaryDatabase();

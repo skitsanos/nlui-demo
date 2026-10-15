@@ -3,6 +3,8 @@ import type {QueryExperimentComparison} from './queryExperiment.ts';
 export interface QueryExperimentPromotionCheck
 {
     id: 'full_corpus_coverage'
+        | 'complete_semantic_deterministic'
+        | 'complete_semantic_runs'
         | 'complete_semantic_denotation'
         | 'no_denotation_regression'
         | 'complete_semantic_ui'
@@ -42,6 +44,8 @@ export const evaluateQueryExperimentPromotion = (
         && sameValues(observedIds, requiredIds);
     const completeSemanticDenotation = semantic.denotation.total === pairedRuns
         && semantic.denotation.passed === pairedRuns;
+    const completeSemanticDeterministic = semantic.deterministic?.total === pairedRuns
+        && semantic.deterministic.passed === pairedRuns;
     const noDenotationRegression = semantic.denotation.total === pairedRuns
         && control.denotation.total === pairedRuns
         && semantic.denotation.rate >= control.denotation.rate;
@@ -56,10 +60,17 @@ export const evaluateQueryExperimentPromotion = (
     const reliabilityImprovement = semantic.pass.total === pairedRuns && control.pass.total === pairedRuns
         && semantic.pass.rate > control.pass.rate;
     const checks: QueryExperimentPromotionCheck[] = [
+        {id: 'complete_semantic_runs', passed: semantic.pass.total === pairedRuns && semantic.pass.passed === pairedRuns,
+            detail: 'Every candidate run must be passed, never failed, errored or incomplete'},
         {
             id: 'full_corpus_coverage',
             passed: fullCorpusCoverage,
             detail: `${observedIds.length}/${requiredIds.length} scenarios across ${comparison.repeat} repeat(s)`
+        },
+        {
+            id: 'complete_semantic_deterministic',
+            passed: completeSemanticDeterministic,
+            detail: `${semantic.deterministic?.passed ?? 0}/${pairedRuns} semantic runs passed all deterministic assertions`
         },
         {
             id: 'complete_semantic_denotation',

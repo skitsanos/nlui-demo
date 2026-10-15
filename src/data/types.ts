@@ -9,6 +9,7 @@ export type OrderStatus =
 export type CustomerRegion = "Central" | "East" | "North" | "South" | "West";
 
 export interface DataLayerOptions {
+    signal?: AbortSignal;
     databasePath?: string;
     knowledgePath?: string;
 }

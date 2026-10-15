@@ -1,5 +1,6 @@
 import {join} from 'node:path';
 import type {RouteHandler} from '../../core/types.ts';
+import {containedFile, decodeFilePath} from '../../utils/files.ts';
 import {publicDir} from '../../utils/runtime.ts';
 
 const docsDir = join(publicDir, 'docs');
@@ -65,25 +66,22 @@ ${content}
 </body>
 </html>`;
 
-export const GET: RouteHandler = async ({params}) =>
+export const createDocsHandler = (directory = docsDir): RouteHandler => async ({params}) =>
 {
-    const slug = params.slug || 'readme';
-    const safePath = slug.replace(/[^a-zA-Z0-9_\-/]/g, '');
-    const filePath = join(docsDir, `${safePath}.md`);
-
-    // Block traversal out of docs dir
-    if (!filePath.startsWith(docsDir))
+    const safePath = decodeFilePath(params.slug || 'readme');
+    // Reject invalid paths, rather than rewriting a request into another document.
+    if (!safePath || !/^[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*$/.test(safePath))
     {
         return new Response('Not Found', {status: 404});
     }
 
-    const file = Bun.file(filePath);
-    if (!await file.exists())
+    const filePath = await containedFile(directory, `${safePath}.md`);
+    if (!filePath)
     {
         return new Response('Not Found', {status: 404});
     }
 
-    const markdown = await file.text();
+    const markdown = await Bun.file(filePath).text();
     const content = Bun.markdown.html(markdown, {
         tables: true,
         strikethrough: true,
@@ -96,3 +94,5 @@ export const GET: RouteHandler = async ({params}) =>
         headers: {'Content-Type': 'text/html'}
     });
 };
+
+export const GET = createDocsHandler();

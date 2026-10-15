@@ -24,5 +24,7 @@ describe('evaluation report redaction', () =>
             'configured-a rejected test-api-token',
             {model: 'configured-a', apiKey: 'test-api-token'}
         )).toBe('[configured] rejected [redacted]');
+        expect(redactConfiguredValues({'test-api-token': {'configured-a': 'test-api-token'}},
+            {model: 'configured-a', apiKey: 'test-api-token'})).toEqual({'[redacted]': {'[configured]': '[redacted]'}});
     });
 });

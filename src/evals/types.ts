@@ -18,6 +18,8 @@ export interface TokenUsage
 
 export interface CostEstimate
 {
+    basis?: {version: string; sourceUrl: string; effectiveAt: string; model: string;
+        inputPerMillion: number; cachedInputPerMillion: number; outputPerMillion: number};
     amount: number;
     currency: 'USD';
     source: 'provider' | 'estimated';
@@ -39,6 +41,14 @@ export interface EvaluationLatency
 
 export interface EvaluationTrace
 {
+    traceVersion?: 2;
+    outcome?: 'completed' | 'error' | 'cancelled' | 'timeout' | 'truncated' | 'incomplete';
+    trajectory?: EvaluationTrace[];
+    fixture?: {
+        id: string; version: number; snapshot: string; baselineFingerprint: string;
+        initialFingerprint: string; finalFingerprint: string; unexpectedMutation: boolean;
+        before: Record<string, unknown>; after: Record<string, unknown>;
+    };
     scenarioId: string;
     runId: string;
     startedAt: string;
@@ -88,6 +98,8 @@ export type EvaluationStatus = 'passed' | 'failed' | 'incomplete' | 'error';
 
 export interface EvaluationResult
 {
+    grading?: 'deterministic' | 'external_unverified';
+    accounting?: ReturnType<typeof import('./reportAccounting.ts').traceAccounting>;
     scenarioId: string;
     category: EvaluationScenario['category'];
     runId: string;
@@ -108,6 +120,7 @@ export interface EvaluationResult
 
 export interface EvaluationReportSummary
 {
+    accountingCoverage?: {usageRuns: number; pricedRuns: number; totalRuns: number};
     total: number;
     passed: number;
     failed: number;
@@ -121,6 +134,8 @@ export interface EvaluationReportSummary
 
 export interface EvaluationReport
 {
+    versions?: ReturnType<typeof import('./reportAccounting.ts').evaluationVersions>;
+    stability?: ReturnType<typeof import('./reportAccounting.ts').repeatStability>;
     startedAt: string;
     completedAt: string;
     dataset: {
@@ -142,6 +157,7 @@ export interface EvaluationReport
 
 export interface ScenarioExecutionContext
 {
+    retain?: (partial: EvaluationTrace) => void;
     scenario: EvaluationScenario;
     runId: string;
     signal: AbortSignal;

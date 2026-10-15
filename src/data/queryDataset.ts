@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {isCompiled} from '../utils/runtime.ts';
 import {canonicalizeDatasetQuery} from './queryPolicy.ts';
 import {
     type DatasetColumnKind,
@@ -19,7 +20,11 @@ const MAX_CELL_CHARACTERS = 500;
 const MAX_RESULT_BYTES = 96 * 1024;
 const DEFAULT_TIMEOUT_MS = 1_500;
 const MAX_PARAMETERS = 32;
-const workerUrl = new URL('./queryWorker.ts', import.meta.url).href;
+// Bundling flattens this module into the executable's main entrypoint. Use the
+// build entrypoint specifier there, not a sibling of the bundled import.meta.url.
+const workerUrl = isCompiled
+    ? './src/data/queryWorker.ts'
+    : new URL('./queryWorker.ts', import.meta.url).href;
 
 const closeWorker = (worker: Worker): void =>
 {
@@ -30,9 +35,11 @@ const closeWorker = (worker: Worker): void =>
 
 export const runCanonicalDatasetQuery = (
     request: QueryWorkerRequest,
-    timeoutMs = DEFAULT_TIMEOUT_MS
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal?: AbortSignal
 ): Promise<QueryWorkerResponse> => new Promise((resolve, reject) =>
 {
+    if (signal?.aborted) {reject(signal.reason); return;}
     const worker = new Worker(workerUrl, {name: 'nlui-dataset-query'});
     let settled = false;
     const finish = (callback: () => void): void =>
@@ -40,6 +47,7 @@ export const runCanonicalDatasetQuery = (
         if (settled) return;
         settled = true;
         clearTimeout(timeout);
+        signal?.removeEventListener('abort', cancel);
         closeWorker(worker);
         callback();
     };
@@ -47,6 +55,9 @@ export const runCanonicalDatasetQuery = (
         'SQL_TIMEOUT',
         'The query exceeded the execution limit; simplify or narrow it.'
     ))), timeoutMs);
+    const cancel = () => finish(() => reject(signal?.reason));
+    signal?.addEventListener('abort', cancel, {once: true});
+    if (signal?.aborted) {cancel(); return;}
 
     worker.onmessage = (event: MessageEvent<QueryWorkerResponse>) => finish(() => resolve(event.data));
     worker.onerror = () => finish(() => reject(new DatasetQueryError(
@@ -146,13 +157,15 @@ const executeDatasetQuery = async (
     options: DataLayerOptions
 ): Promise<DatasetQueryResult> =>
 {
+    options.signal?.throwIfAborted();
     const {databasePath} = ensureDemoDatabase(options);
     const response = await runCanonicalDatasetQuery({
         databasePath,
         sql: canonicalSql,
         rowLimit: MAX_ROWS,
         ...parameters.length > 0 && {parameters}
-    });
+    }, DEFAULT_TIMEOUT_MS, options.signal);
+    options.signal?.throwIfAborted();
     if (!response.ok)
     {
         throw new DatasetQueryError(response.code, response.message);

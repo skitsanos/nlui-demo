@@ -1,0 +1,17 @@
+{
+  "datasetId": "nlui-retail-operations-v2",
+  "datasetVersion": 2,
+  "seed": 1313625417,
+  "referenceDate": "2026-06-30T12:00:00.000Z",
+  "baselineFingerprint": "271d123d9e803ffe18941ecd189bf6303b816f9d42ad4faba6bb0f093f1c7502",
+  "goldenFixtures": [
+    {
+      "path": "scenarios.jsonl",
+      "sha256": "908f1a718f9837c0a7c4ce0ea586a15ace7b352fede24ead591630f483fa4183"
+    },
+    {
+      "path": "experiments/semantic-query-v1.jsonl",
+      "sha256": "00af499b65bff5681f7566e87c1720c6124e8802e68df5c0c1b64ac67e0f2542"
+    }
+  ]
+}

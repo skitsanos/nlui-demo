@@ -44,13 +44,15 @@ type RequestHandlerOptions = {
     logger: Logger;
     loggerHttp: Logger;
     serverName?: string;
+    publicDirectory?: string;
 };
 
 export const createRequestHandler = ({
     dispatcher,
     logger,
     loggerHttp,
-    serverName
+    serverName,
+    publicDirectory = publicDir
 }: RequestHandlerOptions) => async (
     request: Request,
     server: Bun.Server<SocketData>
@@ -80,7 +82,7 @@ export const createRequestHandler = ({
         {
             const staticResponse = await serveStatic(
                 requestUrl.pathname,
-                publicDir,
+                publicDirectory,
                 request.headers.get('if-none-match')
             );
 

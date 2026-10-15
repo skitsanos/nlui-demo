@@ -1,22 +1,13 @@
 import {datasetQueryHasWhereEquality} from '../data/queryPolicy.ts';
 import type {ChatToolTrace} from '../services/chatTrace.ts';
+import {collectionCheck, valueAtPath} from './assertionValues.ts';
 import {observedBlockNames} from './blockNames.ts';
+import {evaluateEvidenceRule} from './evidenceRules.ts';
 import type {DeterministicAssertion, EvaluationScenario} from './scenario.ts';
 import {evaluateSqlSemantics} from './sqlSemantics.ts';
 import type {DataAssertionResult, EvaluationTrace} from './types.ts';
 
 type DenotationAssertion = Extract<DeterministicAssertion, {source: 'denotation'}>;
-
-const valueAtPath = (source: unknown, path: string): unknown =>
-{
-    let current = source;
-    for (const part of path.split('.'))
-    {
-        if (typeof current !== 'object' || current === null || !Object.hasOwn(current, part)) return undefined;
-        current = (current as Record<string, unknown>)[part];
-    }
-    return current;
-};
 
 const successfulExecution = (trace: EvaluationTrace, tool: string): ChatToolTrace | undefined =>
     trace.toolExecutions?.findLast((execution) => execution.name === tool && !execution.rejected);
@@ -128,6 +119,8 @@ const toolAssertionPassed = (
     observed: unknown
 ): boolean =>
 {
+    const collection = collectionCheck(assertion.operator, observed, assertion.expected);
+    if (collection !== undefined) return collection;
     if (assertion.operator === 'equals') return observed === assertion.expected;
     if (assertion.operator === 'length_equals')
     {
@@ -164,6 +157,11 @@ const toolSequenceFailure = (
 
 const evaluateRule = (rule: DeterministicAssertion, trace: EvaluationTrace): string | undefined =>
 {
+    if (rule.source === 'unsupported') return undefined;
+    if (rule.source === 'state' || rule.source === 'numeric_claim' || rule.source === 'safety' || rule.source === 'block')
+    {
+        return evaluateEvidenceRule(rule, trace);
+    }
     if (rule.source === 'assistant_text')
     {
         const includesExpected = typeof rule.expected === 'string'
@@ -188,9 +186,16 @@ const evaluateRule = (rule: DeterministicAssertion, trace: EvaluationTrace): str
     if (rule.source === 'tool_arguments')
     {
         const sql = valueAtPath(execution.arguments, 'sql');
-        const passed = typeof sql === 'string'
-            && datasetQueryHasWhereEquality(sql, rule.expected.column, rule.expected.value);
-        return passed ? undefined : `Expected SQL WHERE ${rule.expected.column} = ${JSON.stringify(rule.expected.value)}`;
+        try
+        {
+            const passed = typeof sql === 'string'
+                && datasetQueryHasWhereEquality(sql, rule.expected.column, rule.expected.value);
+            return passed ? undefined : `Expected effective SQL WHERE ${rule.expected.column} = ${JSON.stringify(rule.expected.value)}`;
+        }
+        catch
+        {
+            return 'SQL predicate could not be proven from a valid dataset query';
+        }
     }
     if (rule.source === 'sql_semantics')
     {
@@ -225,10 +230,12 @@ export const evaluateDeterministicAssertions = (
         const rules = configured.get(assertion);
         if (!rules) return {assertion, status: 'not_evaluated', detail: 'No deterministic assertion is configured'};
         const failures = rules.map((rule) => evaluateRule(rule, trace)).filter((detail) => detail !== undefined);
+        const unsupported = rules.filter((rule) => rule.source === 'unsupported');
         return {
             assertion,
-            status: failures.length === 0 ? 'passed' : 'failed',
-            ...failures.length > 0 && {detail: failures.join('; ')}
+            status: failures.length ? 'failed' : unsupported.length ? 'not_evaluated' : 'passed',
+            ...failures.length > 0 ? {detail: failures.join('; ')}
+                : unsupported.length ? {detail: unsupported.map((rule) => rule.reason).join('; ')} : {}
         };
     });
 };

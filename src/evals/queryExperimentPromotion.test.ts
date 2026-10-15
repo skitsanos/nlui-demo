@@ -10,6 +10,7 @@ const statistic = (passed: number, total: number) => ({
 
 interface ArmOutcome
 {
+    deterministic: [number, number];
     denotation: [number, number];
     firstAttempt: [number, number];
     pass: [number, number];
@@ -19,12 +20,14 @@ interface ArmOutcome
 const arm = (outcome: ArmOutcome) => ({
     runs: outcome.pass[1],
     pass: statistic(...outcome.pass),
+    deterministic: statistic(...outcome.deterministic),
     denotation: statistic(...outcome.denotation),
     firstAttempt: statistic(...outcome.firstAttempt),
     ui: statistic(...outcome.ui)
 }) as QueryExperimentComparison['arms']['control'];
 
 const full = (pass: [number, number]): ArmOutcome => ({
+    deterministic: [pass[1], pass[1]],
     denotation: [pass[1], pass[1]],
     firstAttempt: [pass[1], pass[1]],
     pass,
@@ -78,6 +81,7 @@ describe('semantic query promotion gate', () =>
     test('retains control for denotation, UI, or first-attempt regressions', () =>
     {
         const failures: ArmOutcome[] = [
+            {...full([4, 4]), deterministic: [3, 4]},
             {...full([4, 4]), denotation: [3, 4]},
             {...full([4, 4]), ui: [3, 4]},
             {...full([4, 4]), firstAttempt: [3, 4]}
@@ -108,5 +112,26 @@ describe('semantic query promotion gate', () =>
         expect(decision.eligible).toBeFalse();
         expect(decision.checks.find(({id}) => id === 'complete_semantic_denotation')?.passed).toBeFalse();
         expect(decision.checks.find(({id}) => id === 'complete_semantic_first_attempt')?.passed).toBeFalse();
+    });
+
+    test('retains control for missing or incomplete deterministic evidence despite a reliability gain', () =>
+    {
+        for (const counts of [[3, 3], [0, 0]] as Array<[number, number]>)
+        {
+            const candidate = comparison(full([2, 4]), {...full([3, 4]), deterministic: counts});
+            const decision = evaluateQueryExperimentPromotion(candidate, requiredScenarioIds);
+            expect(decision.eligible).toBeFalse();
+            expect(decision.checks.find(({id}) => id === 'complete_semantic_deterministic')?.passed).toBeFalse();
+        }
+        const legacy = comparison(full([2, 4]), full([4, 4]));
+        Reflect.deleteProperty(legacy.arms.semantic, 'deterministic');
+        expect(evaluateQueryExperimentPromotion(legacy, requiredScenarioIds).eligible).toBeFalse();
+    });
+    test('never promotes a candidate containing an incomplete/error run even if all recorded assertions pass', () =>
+    {
+        const decision = evaluateQueryExperimentPromotion(comparison(full([1, 4]), full([3, 4])), requiredScenarioIds);
+        expect(decision.checks.find(({id}) => id === 'reliability_improvement')?.passed).toBeTrue();
+        expect(decision.checks.find(({id}) => id === 'complete_semantic_runs')?.passed).toBeFalse();
+        expect(decision.eligible).toBeFalse();
     });
 });

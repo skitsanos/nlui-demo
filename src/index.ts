@@ -40,4 +40,4 @@ const server = Bun.serve({
 });
 
 logger.info(`Server started at ${server.url}`, {url: server.url});
-installShutdownHandlers(server, logger);
+installShutdownHandlers(server, logger, {closeSockets: dispatcher.closeSockets});

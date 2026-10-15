@@ -1,8 +1,10 @@
 import {describe, expect, test} from 'bun:test';
+import {isolatedToolFixture} from '../../tests/helpers/toolFixture.ts';
 import type {DatasetQueryColumn, DatasetQueryResult} from '../data/queryTypes.ts';
 import type {CanonicalSemanticQuery} from '../data/semantic/index.ts';
 import {semanticPresentationFor} from './semanticPresentation.ts';
-import {executeNluiTool} from './tools.ts';
+
+const executeNluiTool = isolatedToolFixture();
 
 const column = (
     key: string,

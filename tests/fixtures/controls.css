@@ -1,0 +1,5 @@
+.control-fixture-forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    gap: 16px;
+}

@@ -12,6 +12,12 @@ export interface ChatTokenUsage
 
 export interface ChatToolTrace
 {
+    outcome?: 'accepted' | 'rejected' | 'error' | 'cancelled' | 'timeout';
+    queryHash?: string;
+    planHash?: string;
+    policyCode?: string;
+    emptyResult?: boolean;
+    attempt?: number;
     round: number;
     callId: string;
     name: string;
@@ -26,6 +32,8 @@ export interface ChatToolTrace
 
 export interface ChatRoundTrace
 {
+    outcome?: 'completed' | 'error' | 'cancelled' | 'timeout' | 'incomplete' | 'truncated';
+    usageKnown?: boolean;
     round: number;
     responseId: string;
     model: string;

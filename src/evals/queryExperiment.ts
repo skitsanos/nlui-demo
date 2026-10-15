@@ -3,6 +3,7 @@ import {
     type ArmRunObservation,
     summarizeArmRuns
 } from './queryExperimentStatistics.ts';
+import {evaluationVersions} from './reportAccounting.ts';
 import {MAX_LIVE_SCENARIOS, MAX_REPEAT_COUNT} from './run.ts';
 import {
     type DeterministicAssertion,
@@ -266,7 +267,8 @@ const observationFor = (
     return {
         passed: result.status === 'passed',
         exactTool: sameSet(result.observed.tools, result.expectations.expectedTools),
-        deterministic: passedFor(deterministicLabels),
+        deterministic: deterministicLabels.size === 0 ? undefined
+            : result.grading === 'deterministic' && result.dataAssertions.every(({status}) => status === 'passed'),
         denotation: passedFor(labelsFor('denotation')),
         firstAttempt: passedFor(labelsFor('tool_sequence')),
         sqlSemantics: passedFor(labelsFor('sql_semantics')),
@@ -285,6 +287,13 @@ export const compareQueryExperiment = (
 ): QueryExperimentComparison =>
 {
     const fixture = inspectFixtures(scenarios);
+    for (const report of [controlReport, semanticReport])
+    {
+        if (JSON.stringify(report.versions) !== JSON.stringify(evaluationVersions()))
+        {
+            throw new Error('Experiment report lacks current evaluator/fixture versions; rerun or regrade it');
+        }
+    }
     if (controlReport.dataset.id !== semanticReport.dataset.id
         || controlReport.dataset.version !== semanticReport.dataset.version)
     {

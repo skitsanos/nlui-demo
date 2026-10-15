@@ -1,5 +1,8 @@
 import {describe, expect, test} from 'bun:test';
-import {executeNluiTool, NLUI_TOOL_BLOCK_TYPES, OPENAI_TOOLS, toolsForQueryArm} from './tools.ts';
+import {isolatedToolFixture} from '../../tests/helpers/toolFixture.ts';
+import {NLUI_TOOL_BLOCK_TYPES, OPENAI_TOOLS, toolsForQueryArm} from './tools.ts';
+
+const executeNluiTool = isolatedToolFixture();
 
 describe('NLUI tool catalog', () =>
 {

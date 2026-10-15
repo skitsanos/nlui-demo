@@ -5,7 +5,7 @@ import {
     semanticPresentationFor
 } from '../semanticPresentation.ts';
 import {semanticQueryArguments} from '../toolArguments.ts';
-import type {ToolExecution} from '../toolTypes.ts';
+import type {ToolContext, ToolExecution} from '../toolTypes.ts';
 import {renderDatasetResult} from './queryDataset.ts';
 
 const record = (value: unknown): Record<string, unknown> =>
@@ -13,7 +13,7 @@ const record = (value: unknown): Record<string, unknown> =>
         ? value as Record<string, unknown>
         : {};
 
-export const semanticQueryHandler = async (raw: unknown): Promise<ToolExecution> =>
+export const semanticQueryHandler = async (raw: unknown, context?: ToolContext): Promise<ToolExecution> =>
 {
     const args = semanticQueryArguments.parse(raw);
     const compiled = compileSemanticQuery({
@@ -24,7 +24,9 @@ export const semanticQueryHandler = async (raw: unknown): Promise<ToolExecution>
         ...args.plan.orderBy && {orderBy: args.plan.orderBy},
         ...args.plan.limit !== null && {limit: args.plan.limit}
     });
-    const result = await queryParameterizedDataset(compiled.sql, compiled.parameters);
+    const result = await queryParameterizedDataset(compiled.sql, compiled.parameters, {
+        signal: context?.signal, databasePath: context?.data?.databasePath
+    });
     const presentation = semanticPresentationFor(compiled.plan, result);
     const rendered = renderDatasetResult(result, args.title, presentation.presentation);
     const renderedOutput = record(rendered.modelOutput);

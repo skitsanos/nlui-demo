@@ -1,11 +1,11 @@
 import {dashboardArguments, ordersArguments} from '../toolArguments.ts';
 import {euros, getRepository, percentTrend} from '../toolRuntime.ts';
-import type {ToolExecution} from '../toolTypes.ts';
+import type {ToolContext, ToolExecution} from '../toolTypes.ts';
 
-export const dashboardHandler = (raw: unknown): ToolExecution =>
+export const dashboardHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = dashboardArguments.parse(raw);
-    const snapshot = getRepository().getDashboard({
+    const snapshot = getRepository(context).getDashboard({
         ...args.from && {from: args.from},
         ...args.to && {to: args.to},
         ...args.region && {region: args.region}
@@ -42,10 +42,10 @@ export const dashboardHandler = (raw: unknown): ToolExecution =>
     };
 };
 
-export const ordersHandler = (raw: unknown): ToolExecution =>
+export const ordersHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = ordersArguments.parse(raw);
-    const page = getRepository().listOrders({
+    const page = getRepository(context).listOrders({
         ...args.search && {search: args.search},
         ...args.statuses.length && {statuses: args.statuses},
         ...args.region && {region: args.region},

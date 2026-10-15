@@ -1,6 +1,6 @@
 import {actionArguments, detailsArguments} from '../toolArguments.ts';
 import {getRepository, normalizeOrderNumber} from '../toolRuntime.ts';
-import type {ToolExecution} from '../toolTypes.ts';
+import type {ToolContext, ToolExecution} from '../toolTypes.ts';
 import type {FormBlock} from '../types.ts';
 
 export const formHandler = (raw: unknown): ToolExecution =>
@@ -69,7 +69,7 @@ export const formHandler = (raw: unknown): ToolExecution =>
     return {modelOutput: {requested: args.kind}, blocks: [block]};
 };
 
-export const prepareActionHandler = (raw: unknown): ToolExecution =>
+export const prepareActionHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = actionArguments.parse(raw);
     if ((args.action_type === 'return_order' || args.action_type === 'cancel_order') && !args.reason)
@@ -85,7 +85,7 @@ export const prepareActionHandler = (raw: unknown): ToolExecution =>
     }
 
     const orderNumber = normalizeOrderNumber(args.order_number);
-    const confirmation = getRepository().prepareAction(args.action_type === 'update_shipping_address' ? {
+    const confirmation = getRepository(context).prepareAction(args.action_type === 'update_shipping_address' ? {
         type: args.action_type,
         orderNumber,
         address: {

@@ -10,8 +10,11 @@ describe('evaluation catalog validation', () =>
         expect(report.scenarios).toBe(35);
         expect(report.executionModes.route).toBe(2);
         expect(report.executionModes['multi-turn']).toBe(1);
-        expect(report.deterministicAssertions).toBe(17);
-        expect(report.deterministicRules).toBe(25);
+        expect(report.deterministicAssertions).toBe(70);
+        expect(report.deterministicRules).toBe(93);
+        expect(report.configuredRules).toBe(100);
+        expect(report.unsupportedAssertions).toBe(7);
+        expect(report.ungradedAssertions).toBe(0);
         expect(report.issues).toEqual([]);
     });
 
@@ -26,7 +29,7 @@ describe('evaluation catalog validation', () =>
             mustNotInvoke: [],
             dataAssertions: ['rows are valid']
         };
-        expect(validateScenarioCatalog([scenario]).issues[0]?.message).toContain('cannot be produced');
+        expect(validateScenarioCatalog([scenario]).issues.some(({message}) => message.includes('cannot be produced'))).toBeTrue();
     });
 
     test('detects a model-driven block response without an annotation expectation', () =>

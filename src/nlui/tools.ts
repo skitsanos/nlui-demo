@@ -6,7 +6,7 @@ import {orderHandler, policiesHandler, productsHandler} from './toolHandlers/cat
 import {queryDatasetHandler} from './toolHandlers/queryDataset.ts';
 import {semanticQueryHandler} from './toolHandlers/semanticQuery.ts';
 import {getRepository} from './toolRuntime.ts';
-import type {ToolExecution, ToolHandler} from './toolTypes.ts';
+import type {ToolDataSource, ToolExecution, ToolHandler} from './toolTypes.ts';
 import type {NluiBlock} from './types.ts';
 
 export type {ToolExecution} from './toolTypes.ts';
@@ -36,8 +36,11 @@ export const NLUI_TOOL_BLOCK_TYPES = {
     prepare_action: ['form', 'confirmation']
 } as const satisfies Record<keyof typeof handlers, readonly NluiBlock['type'][]>;
 
-export const executeNluiTool = async (name: string, encodedArguments: string): Promise<ToolExecution> =>
+export const executeNluiTool = async (
+    name: string, encodedArguments: string, signal?: AbortSignal, data?: ToolDataSource
+): Promise<ToolExecution> =>
 {
+    signal?.throwIfAborted();
     const handler = (handlers as Record<string, ToolHandler>)[name];
     if (!handler)
     {
@@ -46,7 +49,8 @@ export const executeNluiTool = async (name: string, encodedArguments: string): P
 
     try
     {
-        const execution = await handler(JSON.parse(encodedArguments) as unknown);
+        const execution = await handler(JSON.parse(encodedArguments) as unknown, {signal, data});
+        signal?.throwIfAborted();
         return {
             modelOutput: execution.modelOutput,
             ...execution.traceOutput !== undefined && {traceOutput: execution.traceOutput},
@@ -55,6 +59,7 @@ export const executeNluiTool = async (name: string, encodedArguments: string): P
     }
     catch (error)
     {
+        signal?.throwIfAborted();
         return {
             modelOutput: {ok: false, error: error instanceof Error ? error.message : 'Tool execution failed'},
             blocks: []

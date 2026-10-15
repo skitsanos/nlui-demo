@@ -17,11 +17,13 @@ export interface ChatStreamOptions
     previousResponseId?: string;
     signal: AbortSignal;
     onEvent: (event: ChatStreamEvent) => void;
+    fetchChat?: (url: string, options: RequestInit) => Promise<Response>;
 }
 
-export const streamChat = async ({conversationId, input, previousResponseId, signal, onEvent}: ChatStreamOptions): Promise<void> =>
+export const streamChat = async ({conversationId, input, previousResponseId, signal, onEvent, fetchChat = fetch}: ChatStreamOptions): Promise<void> =>
 {
-    const response = await fetch('/api/chat', {
+    signal.throwIfAborted();
+    const response = await fetchChat('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({conversationId, input, previousResponseId}),
@@ -42,7 +44,7 @@ export const streamChat = async ({conversationId, input, previousResponseId, sig
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let pending = '';
-    let terminalEventSeen = false;
+    let completedEventSeen = false;
     let terminalError: string | undefined;
 
     const consumeLines = (flush = false): void =>
@@ -55,7 +57,8 @@ export const streamChat = async ({conversationId, input, previousResponseId, sig
             if (line.trim())
             {
                 const event = JSON.parse(line) as ChatStreamEvent;
-                terminalEventSeen ||= event.type === 'message.completed' || event.type === 'error';
+                signal.throwIfAborted();
+                completedEventSeen ||= event.type === 'message.completed';
                 if (event.type === 'error') terminalError = event.message;
                 onEvent(event);
             }
@@ -64,32 +67,41 @@ export const streamChat = async ({conversationId, input, previousResponseId, sig
         if (flush && pending.trim())
         {
             const event = JSON.parse(pending) as ChatStreamEvent;
-            terminalEventSeen ||= event.type === 'message.completed' || event.type === 'error';
+            signal.throwIfAborted();
+            completedEventSeen ||= event.type === 'message.completed';
             if (event.type === 'error') terminalError = event.message;
             onEvent(event);
         }
     };
 
-    while (true)
+    let ended = false;
+    try
     {
-        const {done, value} = await reader.read();
-        if (done)
+        while (true)
         {
-            pending += decoder.decode();
-            consumeLines(true);
-            break;
+            signal.throwIfAborted();
+            const {done, value} = await reader.read();
+            signal.throwIfAborted();
+            if (done)
+            {
+                ended = true;
+                pending += decoder.decode();
+                consumeLines(true);
+                break;
+            }
+
+            pending += decoder.decode(value, {stream: true});
+            consumeLines();
         }
-
-        pending += decoder.decode(value, {stream: true});
-        consumeLines();
     }
-
-    if (!terminalEventSeen && !signal.aborted)
+    finally
     {
-        throw new Error('The chat stream ended before a terminal event');
+        if (!ended) void reader.cancel().catch(() => undefined);
+        reader.releaseLock();
     }
-    if (terminalError)
+    if (terminalError !== undefined)
     {
         throw new Error(terminalError);
     }
+    if (!completedEventSeen) throw new Error('The chat stream ended before a terminal event');
 };

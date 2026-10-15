@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite";
+import { ActionDomainError } from "./actionErrors.ts";
 import { DATASET_REFERENCE_DATE } from "./constants.ts";
 import { normalizedOrderNumber } from "./queries/helpers.ts";
 import type {
@@ -29,10 +30,10 @@ interface PendingActionRow {
     completedAt: string | null;
 }
 
-function cleanText(value: string, label: string, maximum: number): string {
+function cleanText(value: string, _label: string, maximum: number): string {
     const cleaned = value.trim();
     if (cleaned.length < 3 || cleaned.length > maximum) {
-        throw new Error(`${label} must contain between 3 and ${maximum} characters`);
+        throw new ActionDomainError("invalid_input");
     }
     return cleaned;
 }
@@ -56,17 +57,17 @@ function orderForAction(database: Database, orderNumber: string): ActionOrderRow
              LEFT JOIN returns r ON r.order_id = o.id WHERE o.order_number = ? GROUP BY o.id`,
         )
         .get(orderNumber);
-    if (!order) throw new Error(`Order ${orderNumber} was not found`);
+    if (!order) throw new ActionDomainError("order_not_found");
     return order;
 }
 
 function validateReturn(order: ActionOrderRow, reason: string): DemoActionInput {
-    if (order.status !== "delivered") throw new Error(`Order ${order.orderNumber} is not eligible for a return`);
-    if (order.returnCount > 0) throw new Error(`Order ${order.orderNumber} already has a return`);
-    if (!order.deliveredAt) throw new Error(`Order ${order.orderNumber} has no recorded delivery date`);
+    if (order.status !== "delivered") throw new ActionDomainError("return_ineligible");
+    if (order.returnCount > 0) throw new ActionDomainError("return_exists");
+    if (!order.deliveredAt) throw new ActionDomainError("delivery_missing");
     const elapsedDays =
         (new Date(DATASET_REFERENCE_DATE).getTime() - new Date(order.deliveredAt).getTime()) / (24 * 60 * 60 * 1_000);
-    if (elapsedDays < 0 || elapsedDays > 30) throw new Error(`Order ${order.orderNumber} is outside the 30-day return window`);
+    if (elapsedDays < 0 || elapsedDays > 30) throw new ActionDomainError("return_window");
     return { type: "return_order", orderNumber: order.orderNumber, reason: cleanText(reason, "Return reason", 300) };
 }
 
@@ -76,11 +77,11 @@ function validateAction(order: ActionOrderRow, input: DemoActionInput): DemoActi
             return validateReturn(order, input.reason);
         case "update_shipping_address":
             if (order.status !== "processing") {
-                throw new Error(`The shipping address for ${order.orderNumber} can no longer be changed`);
+                throw new ActionDomainError("shipping_locked");
             }
             return { type: input.type, orderNumber: order.orderNumber, address: cleanAddress(input.address) };
         case "cancel_order":
-            if (order.status !== "processing") throw new Error(`Order ${order.orderNumber} can no longer be cancelled`);
+            if (order.status !== "processing") throw new ActionDomainError("cancellation_locked");
             return { type: input.type, orderNumber: order.orderNumber, reason: cleanText(input.reason, "Cancellation reason", 300) };
         default:
             throw new Error("Unsupported demo action");
@@ -139,12 +140,12 @@ function pendingAction(database: Database, actionId: string): PendingActionRow {
              FROM pending_actions pa JOIN orders o ON o.id = pa.order_id WHERE pa.action_id = ?`,
         )
         .get(actionId);
-    if (!row) throw new Error("The requested action was not found");
+    if (!row) throw new ActionDomainError("action_not_found");
     if (row.status !== "pending" && row.status !== "completed") {
-        throw new Error("The requested action is no longer pending");
+        throw new ActionDomainError("action_not_pending");
     }
     if (row.status === "pending" && new Date(row.expiresAt).getTime() < Date.now()) {
-        throw new Error("The requested action has expired");
+        throw new ActionDomainError("action_expired");
     }
     return row;
 }
@@ -212,7 +213,7 @@ function cancelOrder(database: Database, row: PendingActionRow, input: Extract<D
 
 export function confirmDemoAction(database: Database, actionId: string): DemoActionResult {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(actionId)) {
-        throw new Error("Invalid action identifier");
+        throw new ActionDomainError("invalid_action_id");
     }
     return database.transaction(() => {
         const row = pendingAction(database, actionId);

@@ -184,5 +184,5 @@ out
 # Uploaded files (see src/routes/api/upload.ts)
 /uploads/
 
-# Temporary upload fixture created by Taskfile.tests.yaml
+# Legacy upload fixture (current tests use isolated temporary directories)
 /random_file

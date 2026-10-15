@@ -13,6 +13,7 @@ import {
 import { generateCustomers, generateProducts } from "./generator/catalog.ts";
 import { generateOrders } from "./generator/orders.ts";
 import { SeededRandom } from "./generator/random.ts";
+import { validateDatasetSnapshot } from "./generator/snapshot.ts";
 import type { GeneratedDataset } from "./generator/types.ts";
 import { loadPolicyDocuments, type PolicyDocumentSeed } from "./policy-loader.ts";
 import { configureDatabase, recreateSchema } from "./schema.ts";
@@ -22,7 +23,9 @@ function generateDataset(): GeneratedDataset {
     const random = new SeededRandom(DATASET_SEED);
     const customers = generateCustomers(random);
     const products = generateProducts(random);
-    return { customers, products, ...generateOrders(customers, products, random) };
+    const dataset = { customers, products, ...generateOrders(customers, products, random) };
+    validateDatasetSnapshot(dataset);
+    return dataset;
 }
 
 function insertDataset(database: Database, dataset: GeneratedDataset, policies: PolicyDocumentSeed[]): void {
@@ -188,12 +191,14 @@ function validateSummary(summary: SeedSummary): void {
 function seedDatabase(options: DataLayerOptions): SeedSummary {
     const databasePath = options.databasePath ?? DEFAULT_DATABASE_PATH;
     const knowledgePath = options.knowledgePath ?? DEFAULT_KNOWLEDGE_PATH;
+    const dataset = generateDataset();
+    const policies = loadPolicyDocuments(knowledgePath);
     mkdirSync(dirname(databasePath), { recursive: true });
     const database = new Database(databasePath, { create: true, readwrite: true, strict: true });
     try {
         configureDatabase(database);
         recreateSchema(database);
-        insertDataset(database, generateDataset(), loadPolicyDocuments(knowledgePath));
+        insertDataset(database, dataset, policies);
         const summary = readSummary(database);
         validateSummary(summary);
         database.run(`PRAGMA user_version = ${DATASET_VERSION}`);

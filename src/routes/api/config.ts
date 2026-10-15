@@ -16,6 +16,8 @@ export const GET: RouteHandler = () =>
         server: {
             port: config.server.port,
             maxRequestBodySize: config.server.maxRequestBodySize,
+            chatRequestTimeoutMs: config.server.chatRequestTimeoutMs,
+            shutdownGracePeriodMs: config.server.shutdownGracePeriodMs,
             trustProxy: config.server.trustProxy,
             cors: config.server.cors,
             ssl: {enabled: Boolean(config.server.ssl)}

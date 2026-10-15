@@ -8,6 +8,12 @@ server:
   port: 3000
   # Reject request bodies larger than this (bytes). Default 50MB.
   maxRequestBodySize: 52428800
+  # Total chat budget, including body parsing, provider rounds and tools (1..600000ms).
+  # CHAT_REQUEST_TIMEOUT_MS overrides this value. Zero never disables the deadline.
+  chatRequestTimeoutMs: 120000
+  # Drain healthy requests, then force-close remaining connections (1..60000ms).
+  # SHUTDOWN_GRACE_PERIOD_MS overrides this value; orchestrator grace must exceed it.
+  shutdownGracePeriodMs: 5000
   # Only enable behind a proxy that rewrites x-forwarded-for; it is client-spoofable.
   trustProxy: false
   cors:

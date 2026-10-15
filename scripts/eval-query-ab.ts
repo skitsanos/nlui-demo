@@ -1,26 +1,28 @@
 import {mkdir} from 'node:fs/promises';
 import {dirname, join, relative, resolve} from 'node:path';
+import manifest from '../data/fixture-manifest.json';
 import {SEMANTIC_CATALOG_ID, SEMANTIC_CATALOG_VERSION} from '../src/data/semantic/index.ts';
 import {
     adaptScenarioForArm,
     compareQueryExperiment,
+    createIsolatedExecutor,
     createOpenAIExecutor,
+    type EvaluationReport,
+    type EvaluationScenario,
     evaluateQueryExperimentPromotion,
     evaluationExitCode,
-    inspectEvaluationDataset,
     loadEvaluationScenarios,
     MAX_REPEAT_COUNT,
     projectBillableRuns,
     QUERY_EXPERIMENT_ARMS,
-    redactConfiguredText,
-    redactConfiguredValues,
-    runEvaluationSuite,
-    type EvaluationReport,
-    type EvaluationScenario,
     type QueryExperimentArm,
     type QueryExperimentComparison,
-    type QueryExperimentPromotionDecision
+    type QueryExperimentPromotionDecision,
+    redactConfiguredText,
+    redactConfiguredValues,
+    runEvaluationSuite
 } from '../src/evals/index.ts';
+import {InteractionCapabilityRegistry} from '../src/nlui/interactionCapabilities.ts';
 import {createConfiguredOpenAIChatRunner} from '../src/services/openaiChat.ts';
 
 const EXPERIMENT_PATH = join(process.cwd(), 'data', 'experiments', 'semantic-query-v1.jsonl');
@@ -145,13 +147,15 @@ const runArm = async (
 {
     const report = await runEvaluationSuite({
         scenarios: scenarios.map((scenario) => adaptScenarioForArm(scenario, arm)),
-        executor: createOpenAIExecutor({chatRunner: createConfiguredOpenAIChatRunner(arm)}),
+        executor: createIsolatedExecutor((data) => createOpenAIExecutor({
+            chatRunner: createConfiguredOpenAIChatRunner(arm, data, new InteractionCapabilityRegistry())})),
         repeat: options.repeat,
         timeoutMs: options.timeoutMs
     });
-    const final = inspectEvaluationDataset();
-    attachDatasetState(report, initialFingerprint, final.fingerprint, final.isBaseline);
-    if (!final.isBaseline) throw new Error(`${arm} arm changed the read-only evaluation dataset`);
+    const valid = report.results.every(({trace}) => trace.fixture?.initialFingerprint === initialFingerprint
+        && trace.fixture.finalFingerprint === initialFingerprint && !trace.fixture.unexpectedMutation);
+    attachDatasetState(report, initialFingerprint, initialFingerprint, valid);
+    if (!valid) throw new Error(`${arm} arm did not preserve its isolated read-only fixture`);
     return report;
 };
 
@@ -247,11 +251,6 @@ const main = async (): Promise<void> =>
     const catalog = await loadEvaluationScenarios(EXPERIMENT_PATH);
     const scenarios = selectExperimentScenarios(catalog, options);
     const projection = projectBillableRuns(scenarios, options.repeat);
-    const initial = inspectEvaluationDataset();
-    if (!initial.isBaseline)
-    {
-        throw new Error('The demo database differs from the deterministic baseline. Run bun run reset:data first.');
-    }
     console.error(
         `Projected provider calls: ${projection.totalRuns} `
         + `(${projection.runsPerArm} per arm; maximum ${projection.maximumRuns}).`
@@ -260,7 +259,7 @@ const main = async (): Promise<void> =>
     for (const arm of QUERY_EXPERIMENT_ARMS)
     {
         console.error(`Running ${arm} arm...`);
-        reports[arm] = await runArm(scenarios, arm, options, initial.fingerprint);
+        reports[arm] = await runArm(scenarios, arm, options, manifest.baselineFingerprint);
     }
     const comparison = compareQueryExperiment(scenarios, reports.control, reports.semantic);
     const promotion = evaluateQueryExperimentPromotion(comparison, catalog.map(({id}) => id));

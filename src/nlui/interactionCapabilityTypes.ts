@@ -7,6 +7,7 @@ export type InteractionCapabilityErrorCode =
     | 'expired'
     | 'conversation_mismatch'
     | 'action_not_completed'
+    | 'in_progress'
     | 'invalid_payload';
 
 export class InteractionCapabilityError extends Error

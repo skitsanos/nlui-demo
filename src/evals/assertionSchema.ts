@@ -27,7 +27,7 @@ export const EVALUATION_BLOCK_NAMES = [
 ] as const;
 
 const label = z.string().trim().min(1);
-const path = z.string().regex(/^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*$/);
+const path = z.string().regex(/^[A-Za-z0-9_-]+(?:\.(?:[A-Za-z0-9_-]+|\*))*$/);
 const unqualifiedIdentifier = z.string().regex(/^[a-z][a-z0-9_]*$/);
 const identifier = z.string().regex(/^(?:[a-z][a-z0-9_]*\.)?[a-z][a-z0-9_]*$/);
 const scalar = z.union([z.string(), z.number().finite(), z.boolean(), z.null()]);
@@ -44,7 +44,8 @@ const toolAssertionSchema = z.object({
     label,
     tool: z.enum(EVALUATION_TOOL_NAMES),
     path,
-    operator: z.enum(['equals', 'contains', 'contains_value', 'length_equals']),
+    operator: z.enum(['equals', 'contains', 'contains_value', 'length_equals', 'exists', 'every_equals',
+        'every_gte', 'every_lte', 'every_present', 'length_lte', 'descending', 'some_equals', 'some_matches', 'matches']),
     expected: z.union([z.string(), z.number(), z.boolean()])
 }).strict().superRefine((assertion, context) =>
 {
@@ -150,6 +151,19 @@ const toolSequenceAssertionSchema = z.object({
     expected: z.number().int().min(1).max(2)
 }).strict();
 
+const unsupportedAssertionSchema = z.object({source: z.literal('unsupported'), label,
+    reason: z.string().trim().min(10)}).strict();
+const stateAssertionSchema = z.object({source: z.literal('state'), label, path,
+    operator: z.enum(['unchanged', 'delta_equals', 'equals']), expected: scalar.optional()}).strict();
+const numericClaimSchema = z.object({source: z.literal('numeric_claim'), label,
+    tool: z.enum(EVALUATION_TOOL_NAMES), path, pattern: z.string().min(1).max(300),
+    scale: z.number().finite().default(1), tolerance: z.number().nonnegative().finite().default(0)}).strict();
+const safetyAssertionSchema = z.object({source: z.literal('safety'), label,
+    operator: z.literal('forbidden_columns'), expected: z.array(unqualifiedIdentifier).min(1)}).strict();
+const blockAssertionSchema = z.object({source: z.literal('block'), label,
+    blockType: z.enum(['form', 'confirmation', 'choices', 'table', 'stats', 'sources']), path,
+    operator: z.enum(['exists', 'contains', 'matches', 'every_present']), expected: scalar}).strict();
+
 export const deterministicAssertionSchema = z.union([
     toolAssertionSchema,
     assistantTextAssertionSchema,
@@ -157,7 +171,12 @@ export const deterministicAssertionSchema = z.union([
     uiAssertionSchema,
     denotationAssertionSchema,
     sqlSemanticAssertionSchema,
-    toolSequenceAssertionSchema
+    toolSequenceAssertionSchema,
+    unsupportedAssertionSchema,
+    stateAssertionSchema,
+    numericClaimSchema,
+    safetyAssertionSchema,
+    blockAssertionSchema
 ]);
 
 export type DeterministicAssertion = z.infer<typeof deterministicAssertionSchema>;

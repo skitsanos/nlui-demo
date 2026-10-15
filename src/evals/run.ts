@@ -1,5 +1,9 @@
 import {DATASET_ID, DATASET_VERSION} from '../data/constants.ts';
+import {traceFailureOutcome} from '../services/traceAccounting.ts';
+import {abortable} from '../utils/abort.ts';
+import {estimateEvaluationCost} from './cost.ts';
 import {evaluateTrace} from './evaluate.ts';
+import {evaluationVersions, repeatStability, traceAccounting} from './reportAccounting.ts';
 import type {EvaluationCategory, EvaluationScenario} from './scenario.ts';
 import type {
     CostEstimate,
@@ -149,6 +153,8 @@ const summarize = (results: EvaluationResult[]): EvaluationReportSummary =>
 
     return {
         total: results.length,
+        accountingCoverage: {usageRuns: results.filter(({usage}) => usage !== undefined).length,
+            pricedRuns: results.filter(({cost}) => cost !== undefined).length, totalRuns: results.length},
         passed: results.filter(({status}) => status === 'passed').length,
         failed: results.filter(({status}) => status === 'failed').length,
         incomplete: results.filter(({status}) => status === 'incomplete').length,
@@ -162,6 +168,8 @@ const summarize = (results: EvaluationResult[]): EvaluationReportSummary =>
 
 export const runEvaluationSuite = async (options: EvaluationRunOptions): Promise<EvaluationReport> =>
 {
+    const timeoutMs = options.timeoutMs ?? 120_000;
+    if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 300_000) throw new Error('Invalid evaluation timeout');
     const repeat = options.repeat ?? 1;
     if (!Number.isInteger(repeat) || repeat < 1 || repeat > MAX_REPEAT_COUNT)
     {
@@ -181,28 +189,62 @@ export const runEvaluationSuite = async (options: EvaluationRunOptions): Promise
         {
             const runId = `${scenario.id}:${iteration}:${crypto.randomUUID()}`;
             const runStartedAt = new Date().toISOString();
-            const signal = options.timeoutMs
-                ? AbortSignal.timeout(options.timeoutMs)
-                : new AbortController().signal;
+            const signal = AbortSignal.timeout(timeoutMs);
             let trace: EvaluationTrace;
+            let partial: EvaluationTrace | undefined;
             try
             {
-                trace = await options.executor({scenario, runId, signal});
+                trace = await abortable(() => options.executor({scenario, runId, signal,
+                    retain: (checkpoint) => {if (!signal.aborted) partial = structuredClone(checkpoint);}}), signal);
                 if (options.usageResolver)
                 {
-                    const resolved = await options.usageResolver(scenario, trace);
-                    trace = {...trace, ...resolved};
+                    try
+                    {
+                        const resolved = await abortable(() => options.usageResolver!(scenario, trace), signal);
+                        if (resolved.usage && Object.values(resolved.usage).some((value) =>
+                            value !== undefined && (!Number.isSafeInteger(value) || value < 0)))
+                        {
+                            throw new Error('Invalid token accounting');
+                        }
+                        if (resolved.cost && (!Number.isFinite(resolved.cost.amount) || resolved.cost.amount < 0
+                            || resolved.cost.currency !== 'USD' || !['provider', 'estimated'].includes(resolved.cost.source)))
+                        {
+                            throw new Error('Invalid cost accounting');
+                        }
+                        if (resolved.cost?.source === 'estimated')
+                        {
+                            if (!resolved.cost.basis || !trace.model || !resolved.usage
+                                || traceAccounting(trace).usageCoverage !== 'complete'
+                                || [...trace.trajectory ?? [], trace].some((turn) =>
+                                    turn.providerRounds?.some((round) => round.model !== trace.model)))
+                            {
+                                throw new Error('Unattributed or incomplete estimated cost');
+                            }
+                            const estimated = estimateEvaluationCost(resolved.cost.basis, trace.model, resolved.usage);
+                            if (estimated.amount !== resolved.cost.amount) throw new Error('Inconsistent estimated cost');
+                        }
+                        trace = {...trace, ...resolved};
+                    }
+                    catch (error)
+                    {
+                        trace = {...trace, ...signal.aborted && {outcome: traceFailureOutcome(error, signal)},
+                            error: 'Usage/cost accounting failed; execution evidence was retained'};
+                    }
                 }
             }
             catch (error)
             {
-                trace = failedTrace(scenario, runId, runStartedAt, error);
+                trace = partial ? {...partial, error: error instanceof Error ? error.message : 'Scenario execution failed',
+                    outcome: traceFailureOutcome(error, signal), completedAt: new Date().toISOString()}
+                    : {...failedTrace(scenario, runId, runStartedAt, error), traceVersion: 2, outcome: traceFailureOutcome(error, signal)};
             }
             results.push(await evaluateTrace(scenario, trace, options.dataAssertionEvaluator));
         }
     }
 
     return {
+        versions: evaluationVersions(),
+        stability: repeatStability(results),
         startedAt,
         completedAt: new Date().toISOString(),
         dataset: {id: DATASET_ID, version: DATASET_VERSION},

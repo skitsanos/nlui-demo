@@ -170,7 +170,10 @@ body { overflow: hidden; }
 .nlui-table-card .ant-table-content { overflow-x: auto; overscroll-behavior-inline: contain; }
 .nlui-table-card .ant-table-cell { white-space: nowrap; }
 .nlui-table-card .ant-pagination { margin: 12px 16px 16px; }
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; width: 100%; }
+.nlui-stats { width: 100%; min-width: 0; }
+.stat-block-title.ant-typography { margin: 0 0 4px; font-size: 15px; line-height: 1.4; overflow-wrap: anywhere; }
+.stat-block-description.ant-typography { margin: 0 0 10px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 10px; width: 100%; }
 .stat-card { position: relative; overflow: hidden; border-color: #e1e3eb; background: linear-gradient(145deg, #fff, #fafaff); }
 .stat-card .ant-statistic-title { font-size: 12px; }
 .stat-card .ant-statistic-content { color: #25283f; font-size: 22px; }
@@ -200,6 +203,8 @@ body { overflow: hidden; }
 .choice-card span { color: #737b8f; font-size: 12px; }
 .choice-card .ant-tag { justify-self: start; margin-top: 3px; }
 .choice-submit { margin-top: 14px; }
+.form-submit-error { margin-bottom: 16px; }
+.nlui-form .ant-card-head-title { white-space: normal; overflow-wrap: anywhere; padding-block: 12px; }
 .confirm-actions { margin-top: 18px; }
 .inline-result { padding: 18px !important; background: white; border: 1px solid #e1e3eb; border-radius: 14px; }
 .inline-result .ant-result-icon { margin-bottom: 10px; }

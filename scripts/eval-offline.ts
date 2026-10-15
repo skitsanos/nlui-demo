@@ -17,6 +17,8 @@ else
     console.log(
         `deterministic_assertions=${report.deterministicAssertions} `
         + `deterministic_rules=${report.deterministicRules} `
+        + `configured_rules=${report.configuredRules} `
+        + `unsupported_assertions=${report.unsupportedAssertions} `
         + `ungraded_assertions=${report.ungradedAssertions} issues=${report.issues.length}`
     );
     for (const issue of report.issues)

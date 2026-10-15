@@ -1,8 +1,9 @@
 import {Parser} from 'node-sql-parser/umd/sqlite.umd';
+import {validateSelectSources} from './queryJoins.ts';
+import {selectProvesEquality} from './queryPredicateProof.ts';
 import {
     HIDDEN_QUERY_COLUMNS,
     QUERY_FUNCTIONS,
-    QUERY_RELATIONSHIPS,
     QUERY_TABLES,
     type QueryTableName
 } from './querySchema.ts';
@@ -14,7 +15,6 @@ const parser = new Parser();
 const TABLES = new Set<string>(Object.keys(QUERY_TABLES));
 const FUNCTIONS = new Set<string>(QUERY_FUNCTIONS);
 const HIDDEN_COLUMNS = new Set<string>(HIDDEN_QUERY_COLUMNS);
-const RELATIONSHIPS = new Set<string>(QUERY_RELATIONSHIPS.map(([left, right]) => [left, right].sort().join('=')));
 const MAX_SQL_LENGTH = 6_000;
 const MAX_AST_NODES = 800;
 const MAX_SELECTS = 5;
@@ -82,100 +82,6 @@ const collectCtes = (ast: AstNode): Set<string> =>
     });
     if (names.size > MAX_CTES) policyError(`At most ${MAX_CTES} CTEs are allowed.`);
     return names;
-};
-
-const columnReference = (node: AstNode): {table: string; column: string} | null =>
-{
-    if (node.type !== 'column_ref' || typeof node.column !== 'string') return null;
-    return {table: lower(node.table), column: lower(node.column)};
-};
-
-const containsOperator = (value: unknown, operator: string): boolean =>
-{
-    let found = false;
-    walkAst(value, (node) =>
-    {
-        if (node.type === 'binary_expr' && lower(node.operator) === operator.toLowerCase()) found = true;
-    });
-    return found;
-};
-
-const hasApprovedJoin = (on: AstNode, aliases: Map<string, string>, joinedTable: string): boolean =>
-{
-    let approved = false;
-    walkAst(on, (node) =>
-    {
-        if (node.type !== 'binary_expr' || node.operator !== '=') return;
-        const left = columnReference(node.left);
-        const right = columnReference(node.right);
-        if (!left?.table || !right?.table) return;
-        const leftTable = aliases.get(left.table);
-        const rightTable = aliases.get(right.table);
-        if (!leftTable || !rightTable) return;
-        const relationship = [`${leftTable}.${left.column}`, `${rightTable}.${right.column}`].sort().join('=');
-        if (RELATIONSHIPS.has(relationship) && (leftTable === joinedTable || rightTable === joinedTable))
-        {
-            approved = true;
-        }
-    });
-    return approved;
-};
-
-const validateSelectSources = (select: AstNode, ctes: Set<string>): number =>
-{
-    const sources = select.from;
-    if (sources === null || sources === undefined) return 0;
-    if (!Array.isArray(sources) || sources.length === 0) policyError('Malformed query sources are not allowed.');
-
-    const aliases = new Map<string, string>();
-    for (const source of sources)
-    {
-        if (!isNode(source) || source.expr || typeof source.table !== 'string')
-        {
-            policyError('Derived and table-valued FROM sources are not allowed.');
-        }
-        if (source.db || source.schema)
-        {
-            policyError('Schema-qualified table names are not allowed.');
-        }
-        const table = lower(source.table);
-        if (!TABLES.has(table) && !ctes.has(table))
-        {
-            policyError('The query referenced a table outside the published dataset schema.');
-        }
-        const alias = lower(source.as) || table;
-        if (!/^[a-z][a-z0-9_]{0,62}$/.test(alias) || aliases.has(alias))
-        {
-            policyError('Table aliases must be short and unique within a SELECT.');
-        }
-        aliases.set(alias, table);
-        if (!aliases.has(table)) aliases.set(table, table);
-    }
-
-    let joins = 0;
-    for (const [index, source] of sources.entries())
-    {
-        if (index === 0)
-        {
-            if (source.join) policyError('The first FROM source cannot be a join.');
-            continue;
-        }
-        joins += 1;
-        const table = lower(source.table);
-        if (!source.join || !source.on || source.using || ctes.has(table))
-        {
-            policyError('Every additional table must use an explicit relationship JOIN.');
-        }
-        if (!['inner join', 'left join'].includes(lower(source.join)))
-        {
-            policyError('Only INNER JOIN and LEFT JOIN are allowed.');
-        }
-        if (containsOperator(source.on, 'or') || !hasApprovedJoin(source.on, aliases, table))
-        {
-            policyError('JOIN conditions must use a published foreign-key relationship without OR.');
-        }
-    }
-    return joins;
 };
 
 const validateSelectColumns = (select: AstNode, allowCanonicalQuotes: boolean): void =>
@@ -296,35 +202,11 @@ export const canonicalizeDatasetQuery = (sql: string, options: {allowParameters?
     return canonical;
 };
 
-const stringLiteral = (node: AstNode): string | undefined =>
-    lower(node.type) === 'single_quote_string'
-        ? String(node.value)
-        : undefined;
+export const inspectDatasetQuery = (sql: string): AstNode => parseOne(canonicalizeDatasetQuery(sql));
 
 export const datasetQueryHasWhereEquality = (sql: string, column: string, expected: string): boolean =>
 {
-    canonicalizeDatasetQuery(sql);
-    const ast = parseOne(sql);
-    const normalizedColumn = lower(column);
-    let matched = false;
-    walkAst(ast, (node) =>
-    {
-        if (node.type !== 'select' || !node.where) return;
-        walkAst(node.where, (candidate) =>
-        {
-            if (candidate.type !== 'binary_expr' || candidate.operator !== '=') return;
-            const leftColumn = columnReference(candidate.left)?.column;
-            const rightColumn = columnReference(candidate.right)?.column;
-            const leftLiteral = stringLiteral(candidate.left);
-            const rightLiteral = stringLiteral(candidate.right);
-            if ((leftColumn === normalizedColumn && rightLiteral === expected)
-                || (rightColumn === normalizedColumn && leftLiteral === expected))
-            {
-                matched = true;
-            }
-        });
-    });
-    return matched;
+    return selectProvesEquality(inspectDatasetQuery(sql), column, expected);
 };
 
 export const isPublishedQueryTable = (value: string): value is QueryTableName => TABLES.has(value);

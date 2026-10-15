@@ -1,5 +1,6 @@
 - Use Bun as a package manager and run time
 - Regularly use "bun update && bun install --force" to make sure all dependencies are up to date
 - Keep all code modular and within 300-400 LOC
+- Track defects, verification gaps and research milestones in `docs/issues/NLUI-NNN.md`. Check for duplicates, keep IDs permanent, and update `docs/issues/README.md` counts/status when work changes. Close issues only with recorded resolution and verification. The ignored `TODO.md` is only a pointer to the registry.
 - Bump the project version before each git push
 - Reuse the existing ignored `.env` values for `OPENAI_API_KEY` and `CHAT_MODEL` during local development and live verification; never print, log, commit, or replace their values unless explicitly asked

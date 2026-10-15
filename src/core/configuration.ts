@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import loadConfig from '../utils/loadConfig.ts';
 import Logger from '../utils/logger.ts';
+import {resolveServerLimits, serverLimitsSchema} from './serverLimits.ts';
 
 const logger = new Logger('Config');
 
@@ -28,6 +29,7 @@ const appConfigSchema = z.object({
         port: z.number().int().min(0).max(65535).default(3000),
         // 50MB
         maxRequestBodySize: z.number().int().positive().default(50 * 1024 * 1024),
+        ...serverLimitsSchema.shape,
         // `x-forwarded-for` is trivially spoofable, so only believe it when the
         // deployment actually sits behind a proxy that rewrites it.
         trustProxy: z.boolean().default(false),
@@ -49,5 +51,14 @@ if (!parsed.success)
 }
 
 const config: AppConfig = parsed.data;
+try
+{
+    Object.assign(config.server, resolveServerLimits(config.server, process.env));
+}
+catch
+{
+    logger.fatal('Invalid CHAT_REQUEST_TIMEOUT_MS or SHUTDOWN_GRACE_PERIOD_MS; use positive decimal milliseconds within the documented limits.');
+    process.exit(1);
+}
 
 export default config;

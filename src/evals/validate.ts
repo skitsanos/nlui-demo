@@ -40,7 +40,9 @@ export interface CatalogValidationReport
     executionModes: Record<'single-turn' | 'multi-turn' | 'route' | 'skip', number>;
     deterministicAssertions: number;
     deterministicRules: number;
+    configuredRules: number;
     ungradedAssertions: number;
+    unsupportedAssertions: number;
     issues: CatalogIssue[];
 }
 
@@ -94,16 +96,27 @@ export const validateScenarioCatalog = (scenarios: EvaluationScenario[]): Catalo
     const executionModes = {'single-turn': 0, 'multi-turn': 0, route: 0, skip: 0};
     let deterministicAssertions = 0;
     let deterministicRules = 0;
+    let configuredRules = 0;
     let ungradedAssertions = 0;
+    let unsupportedAssertions = 0;
     const issues: CatalogIssue[] = [];
 
     for (const scenario of scenarios)
     {
         executionModes[executionFor(scenario).mode] += 1;
-        const graded = new Set(scenario.deterministicAssertions?.map(({label}) => label) ?? []);
+        const allRules = scenario.deterministicAssertions ?? [];
+        const unsupported = new Set(allRules.filter(({source}) => source === 'unsupported').map(({label}) => label));
+        const configured = new Set(allRules.map(({label}) => label));
+        const graded = new Set(allRules.filter(({label}) => !unsupported.has(label)).map(({label}) => label));
         deterministicAssertions += graded.size;
-        deterministicRules += scenario.deterministicAssertions?.length ?? 0;
-        ungradedAssertions += scenario.dataAssertions.length - graded.size;
+        deterministicRules += allRules.filter(({source}) => source !== 'unsupported').length;
+        configuredRules += allRules.length;
+        unsupportedAssertions += unsupported.size;
+        ungradedAssertions += scenario.dataAssertions.length - configured.size;
+        for (const label of scenario.dataAssertions.filter((label) => !configured.has(label)))
+        {
+            issues.push({scenarioId: scenario.id, message: `Assertion lacks grading or explicit unsupported reason: ${label}`});
+        }
         issues.push(...executionIssues(scenario), ...expectedBlockIssues(scenario), ...annotationIssues(scenario));
     }
 
@@ -113,7 +126,9 @@ export const validateScenarioCatalog = (scenarios: EvaluationScenario[]): Catalo
         executionModes,
         deterministicAssertions,
         deterministicRules,
+        configuredRules,
         ungradedAssertions,
+        unsupportedAssertions,
         issues
     };
 };

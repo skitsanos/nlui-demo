@@ -1,18 +1,19 @@
 import {
+    createIsolatedExecutor,
     createOpenAIExecutor,
     EVALUATION_CATEGORIES,
+    type EvaluationCategory,
     evaluationExitCode,
-    executionFor,
-    inspectEvaluationDataset,
     loadEvaluationScenarios,
     MAX_LIVE_SCENARIOS,
     MAX_REPEAT_COUNT,
     redactConfiguredText,
     redactConfiguredValues,
     runEvaluationSuite,
-    selectScenarios,
-    type EvaluationCategory
+    selectScenarios
 } from '../src/evals/index.ts';
+import {InteractionCapabilityRegistry} from '../src/nlui/interactionCapabilities.ts';
+import {createConfiguredOpenAIChatRunner} from '../src/services/openaiChat.ts';
 
 interface CliOptions
 {
@@ -134,46 +135,26 @@ const main = async (): Promise<void> =>
         throw new Error('Live evaluation requires --confirm-billable.');
     }
     const selectionLimit = options.limit ?? (options.ids.length > 0 ? options.ids.length : 1);
-    const scenarios = selectScenarios(await loadEvaluationScenarios(), {
+    const catalog = await loadEvaluationScenarios();
+    const scenarios = selectScenarios(catalog, {
         ids: options.ids,
         categories: options.categories,
         limit: selectionLimit
     });
-    const unsupported = scenarios.filter((scenario) => executionFor(scenario).mode !== 'single-turn');
-    if (unsupported.length > 0)
-    {
-        throw new Error(
-            `Live OpenAI runner supports single-turn scenarios only: ${unsupported.map(({id}) => id).join(', ')}`
-        );
-    }
     const includesSafeActions = scenarios.some(({category}) => category === 'safe-action');
     if (!options.allowSafeActions && includesSafeActions)
     {
-        throw new Error('Safe-action scenarios require --allow-safe-actions and a reset demo database');
-    }
-    if (includesSafeActions && options.repeat > 1)
-    {
-        throw new Error('Safe-action scenarios require --repeat 1 until isolated mutation runners are available');
-    }
-
-    const datasetState = inspectEvaluationDataset();
-    if (!datasetState.isBaseline)
-    {
-        throw new Error('The demo database differs from the deterministic baseline. Run bun run reset:data first.');
+        throw new Error('Safe-action scenarios require --allow-safe-actions');
     }
 
     const report = await runEvaluationSuite({
         scenarios,
-        executor: createOpenAIExecutor(),
+        executor: createIsolatedExecutor((data) => createOpenAIExecutor({scenarios: catalog,
+            chatRunner: createConfiguredOpenAIChatRunner('control', data, new InteractionCapabilityRegistry())})),
         repeat: options.repeat,
         timeoutMs: options.timeoutMs
     });
-    const finalDatasetState = inspectEvaluationDataset();
-    report.dataset.initialFingerprint = datasetState.fingerprint;
-    report.dataset.finalFingerprint = finalDatasetState.fingerprint;
-    report.dataset.baselineBeforeRun = true;
-    report.dataset.baselineAfterRun = finalDatasetState.isBaseline;
-    const unexpectedMutation = !includesSafeActions && !finalDatasetState.isBaseline;
+    const unexpectedMutation = report.results.some(({trace}) => !trace.fixture || trace.fixture.unexpectedMutation);
     report.dataset.unexpectedMutation = unexpectedMutation;
     const exitCode = evaluationExitCode(report.summary, options.allowIncomplete, unexpectedMutation);
 

@@ -1,5 +1,6 @@
 import {observedBlockNames} from './blockNames.ts';
 import {evaluateDeterministicAssertions} from './deterministicAssertions.ts';
+import {traceAccounting} from './reportAccounting.ts';
 import type {EvaluationScenario} from './scenario.ts';
 import type {
     CheckResult,
@@ -78,13 +79,23 @@ export const evaluateTrace = async (
         throw new Error(`Trace scenario ${trace.scenarioId} does not match ${scenario.id}`);
     }
 
-    const tools = unique(trace.toolCalls);
+    const eventTools = [trace, ...trace.trajectory ?? []].flatMap((turn) => turn.events.flatMap(({event}) =>
+        event.type === 'tool.started' || event.type === 'tool.completed' ? [event.name] : []));
+    const tools = unique([...eventTools, ...trace.toolCalls, ...(trace.toolExecutions ?? []).map(({name}) => name),
+        ...(trace.trajectory ?? []).flatMap((turn) => [...turn.toolCalls, ...(turn.toolExecutions ?? []).map(({name}) => name)])]);
     const blocks = observedBlockNames(trace);
     const checks = [
         coverageCheck('expected_tools', scenario.expectedTools, tools),
         coverageCheck('expected_blocks', scenario.expectedBlocks, blocks),
         forbiddenToolCheck(scenario.mustNotInvoke, tools)
     ];
+    if (trace.fixture) checks.push({name: 'fixture_integrity',
+        status: trace.fixture.unexpectedMutation ? 'failed' : 'passed'});
+    if (trace.traceVersion === 2) checks.push({name: 'terminal_outcome',
+        status: trace.outcome === 'completed' ? 'passed' : 'failed', detail: trace.outcome});
+    if (trace.traceVersion === 2) checks.push({name: 'tool_receipts', status: trace.toolCalls.every((name) =>
+        (trace.toolExecutions ?? []).filter((tool) => tool.name === name).length
+            >= trace.toolCalls.filter((tool) => tool === name).length) ? 'passed' : 'failed'});
     const dataAssertions = dataAssertionEvaluator
         ? await dataAssertionEvaluator(scenario, trace)
         : scenario.deterministicAssertions?.length
@@ -98,6 +109,8 @@ export const evaluateTrace = async (
     }
 
     return {
+        accounting: traceAccounting(trace),
+        grading: dataAssertionEvaluator ? 'external_unverified' : 'deterministic',
         scenarioId: scenario.id,
         category: scenario.category,
         runId: trace.runId,

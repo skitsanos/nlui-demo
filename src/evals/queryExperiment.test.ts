@@ -8,6 +8,7 @@ import {
     projectBillableRuns,
     type QueryExperimentArm
 } from './queryExperiment.ts';
+import {evaluationVersions} from './reportAccounting.ts';
 import {type EvaluationScenario, loadEvaluationScenarios} from './scenario.ts';
 import type {EvaluationReport, EvaluationResult} from './types.ts';
 
@@ -106,6 +107,7 @@ const resultFor = (
     const deterministic = options.deterministic ?? true;
     const totalTokens = options.tokens ?? 20;
     return {
+        grading: 'deterministic',
         scenarioId: fixture.id,
         category: fixture.category,
         runId: `${fixture.id}:${iteration}:${arm}-run`,
@@ -157,6 +159,7 @@ const reportFor = (
     const passed = results.filter(({status}) => status === 'passed').length;
     const totalLatencyMs = results.reduce((sum, {latency}) => sum + latency.totalMs, 0);
     return {
+        versions: evaluationVersions(),
         startedAt: '2026-07-31T10:00:00.000Z',
         completedAt: '2026-07-31T10:00:01.000Z',
         dataset: {id: 'dataset', version: 1},
@@ -304,5 +307,37 @@ describe('query experiment support', () =>
         const misalignedTrace = reportFor('semantic', 2);
         misalignedTrace.results[0]!.trace.runId = 'different-run';
         expect(() => compareQueryExperiment(fixtures, control, misalignedTrace)).toThrow('misaligned result or trace');
+    });
+
+    test('does not count ungraded required evidence as complete deterministic coverage', () =>
+    {
+        const extended = fixtures.map((fixture) => ({...fixture,
+            dataAssertions: [...fixture.dataAssertions, 'unproven predicate']
+        }));
+        const control = reportFor('control', 2);
+        const candidate = reportFor('semantic', 2);
+        for (const report of [control, candidate])
+        {
+            for (const result of report.results)
+            {
+                result.expectations.dataAssertions.push('unproven predicate');
+                result.dataAssertions.push({assertion: 'unproven predicate', status: 'not_evaluated'});
+                result.status = 'incomplete';
+            }
+        }
+        const comparison = compareQueryExperiment(extended, control, candidate);
+        expect(comparison.arms.semantic.denotation.rate).toBe(1);
+        expect(comparison.arms.semantic.firstAttempt.rate).toBe(1);
+        expect(comparison.arms.semantic.deterministic).toEqual({passed: 0, total: 4, rate: 0});
+    });
+    test('rejects stale evaluator versions and never qualifies unverified external assertion hooks', () =>
+    {
+        const control = reportFor('control', 2);
+        const candidate = reportFor('semantic', 2);
+        candidate.versions = undefined;
+        expect(() => compareQueryExperiment(fixtures, control, candidate)).toThrow('rerun or regrade');
+        candidate.versions = evaluationVersions();
+        for (const result of candidate.results) result.grading = 'external_unverified';
+        expect(compareQueryExperiment(fixtures, control, candidate).arms.semantic.deterministic.passed).toBe(0);
     });
 });

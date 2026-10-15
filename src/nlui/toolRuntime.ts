@@ -1,9 +1,11 @@
 import {createDemoRepository, type DemoRepository, ensureDemoDatabase} from '../data/index.ts';
+import type {ToolContext} from './toolTypes.ts';
 
 let repository: DemoRepository | undefined;
 
-export const getRepository = (): DemoRepository =>
+export const getRepository = (context?: ToolContext): DemoRepository =>
 {
+    if (context?.data) return context.data.repository;
     if (!repository)
     {
         ensureDemoDatabase();

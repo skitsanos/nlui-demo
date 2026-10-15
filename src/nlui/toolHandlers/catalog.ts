@@ -1,8 +1,8 @@
 import {orderArguments, policyArguments, productsArguments} from '../toolArguments.ts';
 import {euros, getRepository, normalizeOrderNumber} from '../toolRuntime.ts';
-import type {ToolExecution} from '../toolTypes.ts';
+import type {ToolContext, ToolExecution} from '../toolTypes.ts';
 
-export const productsHandler = (raw: unknown): ToolExecution =>
+export const productsHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = productsArguments.parse(raw);
     const hardFilters = {
@@ -20,13 +20,13 @@ export const productsHandler = (raw: unknown): ToolExecution =>
         ...args.attribute_filters.length && {attributes: Object.fromEntries(args.attribute_filters.map(({key, value}) => [key, value]))},
         limit: args.limit
     };
-    let matches = getRepository().searchProducts(hardFilters);
+    let matches = getRepository(context).searchProducts(hardFilters);
     let broadened = false;
     if (matches.length === 0 && (args.query || args.attribute_filters.length > 0))
     {
         broadened = true;
         const {query: _query, attributes: _attributes, preferences, ...boundedFilters} = hardFilters;
-        matches = getRepository().searchProducts({
+        matches = getRepository(context).searchProducts({
             ...boundedFilters,
             preferences: [...preferences, ...args.query ? [args.query] : [], ...args.attribute_filters.map(({value}) => String(value))]
         });
@@ -72,11 +72,11 @@ export const productsHandler = (raw: unknown): ToolExecution =>
     };
 };
 
-export const orderHandler = (raw: unknown): ToolExecution =>
+export const orderHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = orderArguments.parse(raw);
     const normalizedOrderNumber = normalizeOrderNumber(args.order_number);
-    const details = getRepository().getOrder(normalizedOrderNumber);
+    const details = getRepository(context).getOrder(normalizedOrderNumber);
     if (!details)
     {
         return {modelOutput: {found: false, orderNumber: normalizedOrderNumber}, blocks: []};
@@ -119,10 +119,10 @@ export const orderHandler = (raw: unknown): ToolExecution =>
     };
 };
 
-export const policiesHandler = (raw: unknown): ToolExecution =>
+export const policiesHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = policyArguments.parse(raw);
-    const matches = getRepository().searchPolicies(args.query, args.limit);
+    const matches = getRepository(context).searchPolicies(args.query, args.limit);
     return {
         modelOutput: {matches},
         blocks: matches.length === 0 ? [] : [{

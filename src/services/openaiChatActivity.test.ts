@@ -180,18 +180,19 @@ describe('OpenAI chat activity lifecycle', () =>
         expect(JSON.stringify(activitiesFrom(toolEvents))).not.toContain('private_table');
 
         const controller = new AbortController();
+        const cancellation = new DOMException('The response was cancelled', 'AbortError');
         const abortEvents: ChatStreamEvent[] = [];
         const abortDependencies = dependenciesFor([]);
         abortDependencies.createResponse = async () =>
         {
-            controller.abort();
+            controller.abort(cancellation);
             throw new DOMException('private cancellation diagnostic', 'AbortError');
         };
         const abortRunner = createOpenAIChatRunner(abortDependencies);
         await expect(abortRunner({
             conversationId: 'conversation-aborted',
             input: {type: 'user_text', text: 'Help me'}
-        }, (next) => abortEvents.push(next), controller.signal)).rejects.toThrow('private cancellation diagnostic');
+        }, (next) => abortEvents.push(next), controller.signal)).rejects.toBe(cancellation);
         expect(activitiesFrom(abortEvents).map(({status}) => status)).toEqual(['loading', 'abort']);
     });
 

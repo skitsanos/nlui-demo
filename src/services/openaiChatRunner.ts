@@ -9,6 +9,7 @@ import type {
 import type {ToolExecution} from '../nlui/tools.ts';
 import {OPENAI_TOOLS} from '../nlui/tools.ts';
 import type {ChatActivity, ChatRequest, ChatStreamEvent, NluiBlock} from '../nlui/types.ts';
+import {abortable, abortableEvents} from '../utils/abort.ts';
 import {
     composeActivity,
     requestActivity,
@@ -25,6 +26,7 @@ import {
     type ChatTraceProgressEvent,
     emptyTokenUsage
 } from './chatTrace.ts';
+import {cancellationStatus, ProviderRoundGuard} from './providerRoundGuard.ts';
 import {
     MAX_RESPONSE_BLOCKS,
     modelToolOutput,
@@ -32,6 +34,7 @@ import {
     resolveStructuredResponse,
     responseTextConfigFor
 } from './structuredResponse.ts';
+import {toolReceipt, traceFailureOutcome} from './traceAccounting.ts';
 
 const MAX_TOOL_ROUNDS = 6;
 const MAX_TOOL_CALLS = 12;
@@ -49,7 +52,7 @@ export interface OpenAIChatDependencies
         params: ResponseCreateParamsStreaming,
         signal: AbortSignal
     ) => Promise<ResponseEventStream>;
-    executeTool: (name: string, encodedArguments: string) => Promise<ToolExecution>;
+    executeTool: (name: string, encodedArguments: string, signal?: AbortSignal) => Promise<ToolExecution>;
     issueCapabilities: (conversationId: string, blocks: NluiBlock[]) => void;
 }
 
@@ -128,7 +131,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
         const tools: ChatToolTrace[] = [];
         const rounds: ChatRoundTrace[] = [];
         const usage = emptyTokenUsage();
-        const toolResultCache = new Map<string, ToolExecution>();
+        const toolResultCache = new Map<string, {name: string; arguments: string; execution: ToolExecution}>();
         const loadingActivities = new Map<string, ChatActivity>();
         const requestActivityId = `${messageId}:request`;
         const publishActivity = (activity: ChatActivity): void =>
@@ -163,20 +166,9 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
         {
             for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1)
             {
+                signal.throwIfAborted();
                 const roundStarted = performance.now();
-                const stream = await dependencies.createResponse({
-                    model: dependencies.model,
-                    instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
-                    input,
-                    previous_response_id: previousResponseId,
-                    tools: dependencies.tools ?? OPENAI_TOOLS,
-                    parallel_tool_calls: false,
-                    max_output_tokens: MAX_OUTPUT_TOKENS,
-                    store: true,
-                    stream: true,
-                    text: responseTextConfigFor(candidates)
-                }, signal);
-
+                const completion = new ProviderRoundGuard();
                 const calls: ResponseFunctionToolCall[] = [];
                 let responseId = '';
                 let responseModel = dependencies.model;
@@ -184,9 +176,10 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                 let refusal = '';
                 let roundUsage = emptyTokenUsage();
                 let roundRecorded = false;
-                const recordRound = (): void =>
+                let usageKnown = false;
+                const recordRound = (outcome: ChatRoundTrace['outcome'] = 'completed'): void =>
                 {
-                    if (roundRecorded || !responseId) return;
+                    if (roundRecorded) return;
                     roundRecorded = true;
                     addTokenUsage(usage, roundUsage);
                     const trace = {
@@ -194,48 +187,71 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         responseId,
                         model: responseModel,
                         durationMs: performance.now() - roundStarted,
-                        usage: roundUsage
+                        usage: roundUsage, outcome, usageKnown
                     };
                     rounds.push(trace);
                     observe?.({type: 'round.completed', round: trace});
                 };
 
-                for await (const event of stream)
+                try
                 {
-                    if (event.type === 'response.created' || event.type === 'response.completed'
-                        || event.type === 'response.failed' || event.type === 'response.incomplete')
+                    const stream = await abortable(() => dependencies.createResponse({
+                        model: dependencies.model, instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
+                        input, previous_response_id: previousResponseId, tools: dependencies.tools ?? OPENAI_TOOLS,
+                        parallel_tool_calls: false, max_output_tokens: MAX_OUTPUT_TOKENS, store: true, stream: true,
+                        text: responseTextConfigFor(candidates)
+                    }, signal), signal);
+                    for await (const event of abortableEvents(stream, signal))
                     {
-                        responseId = event.response.id;
-                        responseModel = event.response.model;
-                        if (event.type !== 'response.created') roundUsage = tokenUsage(event.response.usage);
+                        signal.throwIfAborted();
+                        completion.accept(event);
+                        if (event.type === 'response.created' || event.type === 'response.completed'
+                            || event.type === 'response.failed' || event.type === 'response.incomplete')
+                        {
+                            responseId = event.response.id;
+                            responseModel = event.response.model;
+                            if (event.type !== 'response.created')
+                            {
+                                usageKnown = event.response.usage != null;
+                                roundUsage = tokenUsage(event.response.usage);
+                            }
+                        }
+                        const eventError = errorFromEvent(event);
+                        if (eventError) throw eventError;
+                        if (event.type === 'response.output_text.delta') encodedResponse += event.delta;
+                        else if (event.type === 'response.refusal.delta') refusal += event.delta;
+                        else if (event.type === 'response.output_item.done' && isFunctionCall(event.item)) calls.push(event.item);
                     }
-                    const eventError = errorFromEvent(event);
-                    if (eventError)
-                    {
-                        recordRound();
-                        throw eventError;
-                    }
-                    if (event.type === 'response.output_text.delta') encodedResponse += event.delta;
-                    else if (event.type === 'response.refusal.delta') refusal += event.delta;
-                    else if (event.type === 'response.output_item.done' && isFunctionCall(event.item)) calls.push(event.item);
-                }
 
-                if (!responseId) throw new Error('The model stream ended without a response identifier');
-                finalResponseId = responseId;
-                recordRound();
+                    completion.finish();
+                    signal.throwIfAborted();
+                    finalResponseId = responseId;
+                    recordRound();
+                }
+                catch (error) {recordRound(traceFailureOutcome(error, signal)); throw error;}
+                signal.throwIfAborted();
 
                 if (calls.length === 0)
                 {
                     finishActivity(requestActivityId, 'success');
                     if (!activeComposeActivityId) beginComposeActivity();
+                    signal.throwIfAborted();
                     const resolved = refusal.trim()
                         ? refusalResponse(refusal)
                         : resolveStructuredResponse(encodedResponse, candidates);
+                    signal.throwIfAborted();
                     dependencies.issueCapabilities(request.conversationId, resolved.blocks);
                     finishComposeActivity('success');
+                    signal.throwIfAborted();
                     if (resolved.text) emit({type: 'text.delta', delta: resolved.text});
-                    for (const block of resolved.blocks) emit({type: 'ui.block', block});
+                    for (const block of resolved.blocks)
+                    {
+                        signal.throwIfAborted();
+                        emit({type: 'ui.block', block});
+                    }
+                    signal.throwIfAborted();
                     emit({type: 'message.completed', messageId, responseId});
+                    signal.throwIfAborted();
                     return {
                         messageId,
                         responseId,
@@ -255,6 +271,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                 const outputs: ResponseInputItem[] = [];
                 for (const call of calls)
                 {
+                    signal.throwIfAborted();
                     toolActivitySequence += 1;
                     const activity = toolActivity(call.name, messageId, toolActivitySequence);
                     publishActivity(activity);
@@ -262,14 +279,22 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                     const toolStarted = performance.now();
                     try
                     {
+                        signal.throwIfAborted();
                         toolCallCount += 1;
                         if (toolCallCount > MAX_TOOL_CALLS)
                         {
                             throw new Error(`The assistant exceeded ${MAX_TOOL_CALLS} tool calls`);
                         }
                         const cached = toolResultCache.get(call.call_id);
-                        const execution = cached ?? await dependencies.executeTool(call.name, call.arguments);
-                        toolResultCache.set(call.call_id, execution);
+                        if (cached && (cached.name !== call.name || cached.arguments !== call.arguments))
+                        {
+                            throw new Error('A repeated tool call changed its name or arguments');
+                        }
+                        const execution = cached?.execution ?? await abortable(
+                            () => dependencies.executeTool(call.name, call.arguments, signal), signal
+                        );
+                        signal.throwIfAborted();
+                        toolResultCache.set(call.call_id, {name: call.name, arguments: call.arguments, execution});
                         if (!cached)
                         {
                             if (candidates.length + execution.blocks.length > MAX_RESPONSE_BLOCKS)
@@ -285,6 +310,9 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         }
                         const rejected = toolExecutionRejected(execution);
                         const toolTrace = {
+                            ...toolReceipt(execution),
+                            attempt: cached ? tools.find((tool) => tool.callId === call.call_id && !tool.cached)?.attempt
+                                : tools.filter((tool) => tool.name === call.name && !tool.cached).length + 1,
                             round: round + 1,
                             callId: call.call_id,
                             name: call.name,
@@ -308,7 +336,18 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                     }
                     catch (error)
                     {
-                        finishActivity(activity.id, signal.aborted ? 'abort' : 'error');
+                        if (!tools.some((tool) => tool.round === round + 1 && tool.callId === call.call_id))
+                        {
+                            const outcome = traceFailureOutcome(error, signal);
+                            const failed: ChatToolTrace = {round: round + 1, callId: call.call_id, name: call.name,
+                                arguments: parseTraceArguments(call.arguments), modelOutput: {ok: false, error: 'Tool attempt failed'},
+                                candidateBlockIds: [], candidateBlockTypes: [], durationMs: performance.now() - toolStarted,
+                                cached: false, rejected: true, outcome: outcome === 'incomplete' || outcome === 'truncated' ? 'error' : outcome,
+                                attempt: tools.filter((tool) => tool.name === call.name && !tool.cached).length + 1};
+                            tools.push(failed);
+                            observe?.({type: 'tool.completed', tool: failed});
+                        }
+                        finishActivity(activity.id, cancellationStatus(signal, error));
                         throw error;
                     }
                 }
@@ -322,7 +361,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
         }
         catch (error)
         {
-            const status = signal.aborted ? 'abort' : 'error';
+            const status = cancellationStatus(signal, error);
             for (const activity of [...loadingActivities.values()])
             {
                 publishActivity(updateActivityStatus(activity, status));

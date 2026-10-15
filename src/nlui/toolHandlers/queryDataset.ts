@@ -3,7 +3,7 @@ import {queryDataset} from '../../data/queryDataset.ts';
 import type {DatasetQueryColumn, DatasetQueryResult} from '../../data/queryTypes.ts';
 import {isSupportedTemporalValue} from '../temporal.ts';
 import {queryDatasetArguments} from '../toolArguments.ts';
-import type {ToolExecution} from '../toolTypes.ts';
+import type {ToolContext, ToolExecution} from '../toolTypes.ts';
 import type {ChartBlock, NluiBlock, TableBlock} from '../types.ts';
 
 type Presentation = 'bar' | 'line' | 'metric' | 'table' | 'text';
@@ -216,8 +216,10 @@ export const renderDatasetResult = (
     };
 };
 
-export const queryDatasetHandler = async (raw: unknown): Promise<ToolExecution> =>
+export const queryDatasetHandler = async (raw: unknown, context?: ToolContext): Promise<ToolExecution> =>
 {
     const args = queryDatasetArguments.parse(raw);
-    return renderDatasetResult(await queryDataset(args.sql), args.title, args.presentation);
+    return renderDatasetResult(await queryDataset(args.sql, {
+        signal: context?.signal, databasePath: context?.data?.databasePath
+    }), args.title, args.presentation);
 };

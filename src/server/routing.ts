@@ -8,6 +8,7 @@ import type {
 import {ALLOWED_METHODS} from '@/core/types.ts';
 import type Logger from '@/utils/logger.ts';
 import {isDevelopment, routesDir} from '@/utils/runtime.ts';
+import {trackWebSockets} from './socketLifecycle.ts';
 
 const createResponse = (body = '', status = 200, headers: HeadersInit = {}): Response =>
     new Response(body, {status, headers});
@@ -84,6 +85,7 @@ export type RouteDispatcher = {
     ) => Promise<RouteDispatchResult | null>;
     preload: () => Promise<void>;
     websocket: RouteWebSocketHandler;
+    closeSockets?: () => void;
 };
 
 const selectHandler = (route: RouteModule, method: string) =>
@@ -157,6 +159,7 @@ const resolveRoute = async (
 
 export const createRouteDispatcher = (logger: Logger): RouteDispatcher =>
 {
+    const sockets = trackWebSockets(websocketHandlers);
     const fileRouter = new Bun.FileSystemRouter({
         style: 'nextjs',
         dir: routesDir,
@@ -220,5 +223,5 @@ export const createRouteDispatcher = (logger: Logger): RouteDispatcher =>
         };
     };
 
-    return {dispatch, preload, websocket: websocketHandlers};
+    return {dispatch, preload, websocket: sockets.handlers, closeSockets: sockets.close};
 };

@@ -1,20 +1,24 @@
 import type {RouteHandler} from '../../core/types.ts';
+import {actionSuccessSchema} from '../../nlui/actionResponse.ts';
 import {
-    InteractionCapabilityError,
     type InteractionCapabilityRegistry,
     interactionCapabilities
 } from '../../nlui/interactionCapabilities.ts';
 import {actionRequestSchema} from '../../nlui/schemas.ts';
 import {confirmNluiAction} from '../../nlui/tools.ts';
 import type {ToolExecution} from '../../nlui/toolTypes.ts';
+import {publicActionError, reportUnexpectedActionError} from '../../services/publicActionError.ts';
 
 interface ActionRouteDependencies
 {
     registry: InteractionCapabilityRegistry;
     confirmAction: (actionId: string) => ToolExecution;
+    reportError?: (error: unknown) => void;
 }
 
-export const createActionPostHandler = ({registry, confirmAction}: ActionRouteDependencies): RouteHandler => async ({req}) =>
+export const createActionPostHandler = ({
+    registry, confirmAction, reportError = reportUnexpectedActionError
+}: ActionRouteDependencies): RouteHandler => async ({req}) =>
 {
     let body: unknown;
     try
@@ -23,13 +27,13 @@ export const createActionPostHandler = ({registry, confirmAction}: ActionRouteDe
     }
     catch
     {
-        return Response.json({message: 'Expected a JSON request body'}, {status: 400});
+        return Response.json({message: 'Expected a JSON request body', outcome: 'unavailable', retryable: false}, {status: 400});
     }
 
     const parsed = actionRequestSchema.safeParse(body);
     if (!parsed.success)
     {
-        return Response.json({message: 'Invalid action request'}, {status: 400});
+        return Response.json({message: 'Invalid action request', outcome: 'unavailable', retryable: false}, {status: 400});
     }
 
     let reserved = false;
@@ -47,7 +51,7 @@ export const createActionPostHandler = ({registry, confirmAction}: ActionRouteDe
         reserved = true;
         const execution = confirmAction(parsed.data.actionId);
         const block = execution.blocks[0];
-        if (block?.type !== 'result')
+        if (block?.type !== 'result' || !actionSuccessSchema.safeParse({block}).success)
         {
             throw new Error('The completed action did not return a result block');
         }
@@ -65,11 +69,14 @@ export const createActionPostHandler = ({registry, confirmAction}: ActionRouteDe
         {
             registry.releaseConfirmation(parsed.data.interactionId);
         }
-        return Response.json({
-            message: error instanceof InteractionCapabilityError
-                ? error.message
-                : error instanceof Error ? error.message : 'The action failed'
-        }, {status: error instanceof InteractionCapabilityError ? 400 : 409});
+        const failure = publicActionError(error);
+        if (failure.status === 500)
+        {
+            // A diagnostic sink must not break the public error boundary.
+            try {reportError(error);} catch { /* Preserve the generic response. */ }
+        }
+        const {status, ...payload} = failure;
+        return Response.json(payload, {status});
     }
 };
 

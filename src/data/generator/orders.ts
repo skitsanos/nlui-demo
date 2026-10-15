@@ -1,7 +1,7 @@
-import { DATASET_REFERENCE_DATE } from "../constants.ts";
 import type { OrderStatus } from "../types.ts";
 import { customerLocation } from "./catalog.ts";
 import { addDays, addHours, type SeededRandom } from "./random.ts";
+import { alignOrderTimeline } from "./snapshot.ts";
 import type {
     CustomerSeed,
     GeneratedDataset,
@@ -209,17 +209,17 @@ export function generateOrders(
             createdAt,
             updatedAt: status === "processing" ? createdAt : addDays(createdAt, 1),
         };
+        const payment = createPayment(order, random);
+        const shipment = createShipment(order, random);
+        const returned = status === "returned" ? createReturn(order, random, returns.length + 1) : null;
+        const supportCase = id % 9 === 0 || id === 2088 ? createSupportCase(order, supportCases.length + 1) : null;
+        alignOrderTimeline({ order, payment, shipment, returned, supportCase });
         orders.push(order);
         orderItems.push(...items);
-        payments.push(createPayment(order, random));
-        const shipment = createShipment(order, random);
+        payments.push(payment);
         if (shipment) shipments.push(shipment);
-        if (status === "returned") returns.push(createReturn(order, random, returns.length + 1));
-        if (id % 9 === 0 || id === 2088) supportCases.push(createSupportCase(order, supportCases.length + 1));
-    }
-
-    if (new Date(DATASET_REFERENCE_DATE) < new Date(orders.at(-1)!.createdAt)) {
-        throw new Error("Generated order date exceeds the dataset reference date");
+        if (returned) returns.push(returned);
+        if (supportCase) supportCases.push(supportCase);
     }
 
     return { orders, orderItems, payments, shipments, returns, supportCases };

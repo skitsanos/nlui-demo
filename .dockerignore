@@ -36,6 +36,8 @@ eval-results
 README.md
 AGENTS.md
 TODO.md
+docs/issues
+tests
 design-qa.md
 Taskfile.yaml
 Taskfile.tests.yaml

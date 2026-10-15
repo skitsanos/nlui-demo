@@ -1,4 +1,5 @@
-import {extname, join, sep} from 'node:path';
+import {extname} from 'node:path';
+import {containedFile, decodeFilePath} from './files.ts';
 
 const MIME_TYPES: Record<string, string> = {
     '.html': 'text/html',
@@ -36,41 +37,12 @@ export const serveStatic = async (
     ifNoneMatch?: string | null
 ): Promise<Response | null> =>
 {
-    // URL pathnames arrive percent-encoded, so decode before touching the filesystem -
-    // otherwise a file such as `my style.css` is unreachable via `/my%20style.css`.
-    let decodedPath: string;
-    try
-    {
-        decodedPath = decodeURIComponent(pathname);
-    }
-    catch
-    {
-        // Malformed percent-encoding
-        return null;
-    }
-
-    // Block path traversal. Checked after decoding so `%2e%2e` cannot slip through.
-    if (decodedPath.includes('..') || decodedPath.includes('\0'))
-    {
-        return null;
-    }
-
-    const filePath = join(publicDir, decodedPath);
-
-    // Ensure resolved path stays within public dir. The separator matters: a bare
-    // prefix check would also accept a sibling such as `<publicDir>-private`.
-    if (filePath !== publicDir && !filePath.startsWith(`${publicDir}${sep}`))
-    {
-        return null;
-    }
-
+    const name = decodeFilePath(pathname);
+    if (!name) return null;
+    const filePath = await containedFile(publicDir, name);
+    if (!filePath) return null;
     const file = Bun.file(filePath);
-    if (!await file.exists())
-    {
-        return null;
-    }
-
-    const ext = extname(filePath).toLowerCase();
+    const ext = extname(name).toLowerCase();
     const contentType = MIME_TYPES[ext] ?? 'application/octet-stream';
 
     // HTML is the entrypoint that references fingerprinted assets, so it must be

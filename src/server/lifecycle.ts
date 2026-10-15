@@ -19,39 +19,86 @@ export const resolvePort = (value: string | undefined, logger: Logger): number =
     return parsed;
 };
 
-/** Installs an idempotent graceful shutdown for process termination signals. */
+interface ShutdownOptions
+{
+    gracePeriodMs?: number;
+    closeSockets?: () => void;
+    exit?: (code: number) => void;
+}
+
+/** Stop admissions, drain healthy work, then force-close at an absolute deadline. */
+export const createShutdownHandler = (
+    server: Pick<Bun.Server<SocketData>, 'stop'>,
+    logger: Logger,
+    {gracePeriodMs = config.server.shutdownGracePeriodMs, closeSockets, exit = (code) => process.exit(code)}: ShutdownOptions = {}
+): ((signal: string) => Promise<void>) =>
+{
+    if (!Number.isSafeInteger(gracePeriodMs) || gracePeriodMs <= 0) throw new RangeError('A finite positive shutdown grace period is required');
+    let stopping: Promise<void> | undefined;
+    return (signal) =>
+    {
+        stopping ??= new Promise<void>((resolve) =>
+        {
+            let finished = false;
+            const finish = (code: number): void =>
+            {
+                if (finished) return;
+                finished = true;
+                clearTimeout(deadline);
+                try {exit(code);} finally {resolve();}
+            };
+            const force = (code: number): void =>
+            {
+                if (finished) return;
+                try {void Promise.resolve(server.stop(true)).catch(() => undefined);}
+                catch { /* Process termination remains bounded if force-stop fails. */ }
+                finish(code);
+            };
+            const deadline = setTimeout(() =>
+            {
+                logger.warn('Shutdown grace period elapsed; closing remaining connections');
+                force(0);
+            }, gracePeriodMs);
+            logger.info(`Received ${signal}, shutting down...`);
+            try
+            {
+                const stopped = server.stop();
+                closeSockets?.();
+                void Promise.resolve(stopped).then(() =>
+                {
+                    if (!finished) logger.info('Server stopped');
+                    finish(0);
+                }, () =>
+                {
+                    logger.error('Error during shutdown');
+                    force(1);
+                });
+            }
+            catch
+            {
+                logger.error('Error during shutdown');
+                force(1);
+            }
+        });
+        return stopping;
+    };
+};
+
+/** Repeated signals share one drain/deadline and cannot reset the grace period. */
 export const installShutdownHandlers = (
     server: Bun.Server<SocketData>,
-    logger: Logger
-): void =>
+    logger: Logger,
+    options: ShutdownOptions = {}
+): (() => void) =>
 {
-    let shuttingDown = false;
-
-    const shutdown = async (signal: string): Promise<void> =>
+    const shutdown = createShutdownHandler(server, logger, options);
+    const interrupt = () => {void shutdown('SIGINT');};
+    const terminate = () => {void shutdown('SIGTERM');};
+    process.on('SIGINT', interrupt);
+    process.on('SIGTERM', terminate);
+    return () =>
     {
-        if (shuttingDown)
-        {
-            return;
-        }
-        shuttingDown = true;
-
-        logger.info(`Received ${signal}, shutting down...`);
-
-        try
-        {
-            await server.stop();
-            logger.info('Server stopped');
-            process.exit(0);
-        }
-        catch (error)
-        {
-            logger.error('Error during shutdown', {error});
-            process.exit(1);
-        }
+        process.off('SIGINT', interrupt);
+        process.off('SIGTERM', terminate);
     };
-
-    for (const signal of ['SIGINT', 'SIGTERM'] as const)
-    {
-        process.on(signal, () => void shutdown(signal));
-    }
 };

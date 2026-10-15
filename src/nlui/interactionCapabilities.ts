@@ -1,3 +1,4 @@
+import {normalizeFormValues} from './formValues.ts';
 import {
     type Capability,
     type ConfirmationReservation,
@@ -88,6 +89,7 @@ export class InteractionCapabilityRegistry
         {
             return {status: 'completed', block: capability.result};
         }
+        if (capability.state === 'executing') throw new InteractionCapabilityError('in_progress');
         if (entry.consumedAt !== undefined || capability.state !== 'issued')
         {
             throw new InteractionCapabilityError('consumed');
@@ -131,7 +133,8 @@ export class InteractionCapabilityRegistry
     consume(conversationId: string, interactionId: string, values: InteractionValues): InteractionValues
     {
         const entry = this.usableEntry(conversationId, interactionId);
-        validateCapability(entry.capability, values);
+        const normalized = entry.capability.kind === 'form' ? normalizeFormValues(entry.capability.fields, values) : {...values};
+        validateCapability(entry.capability, normalized);
         entry.consumedAt = this.now();
         if (entry.capability.kind === 'confirmation' && values.outcome === 'confirmed')
         {
@@ -144,7 +147,7 @@ export class InteractionCapabilityRegistry
                 message: result.message
             };
         }
-        return {...values};
+        return normalized;
     }
 
     releaseSubmission(conversationId: string, interactionId: string): void

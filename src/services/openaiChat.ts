@@ -1,7 +1,9 @@
 import OpenAI from 'openai';
+import type {InteractionCapabilityRegistry} from '../nlui/interactionCapabilities.ts';
 import {interactionCapabilities} from '../nlui/interactionCapabilities.ts';
 import {type QueryArm, toolsForQueryArm} from '../nlui/toolDefinitions.ts';
 import {executeNluiTool} from '../nlui/tools.ts';
+import type {ToolDataSource} from '../nlui/toolTypes.ts';
 import {CHAT_PROMPT_VERSION, chatInstructionsFor, promptVersionFor} from './chatPrompt.ts';
 import {createOpenAIChatRunner} from './openaiChatRunner.ts';
 
@@ -19,7 +21,9 @@ export class ChatConfigurationError extends Error
 
 let client: OpenAI | undefined;
 
-export const createConfiguredOpenAIChatRunner = (arm: QueryArm) =>
+export const createConfiguredOpenAIChatRunner = (
+    arm: QueryArm, data?: ToolDataSource, registry: InteractionCapabilityRegistry = interactionCapabilities
+) =>
 {
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     const model = process.env.CHAT_MODEL?.trim();
@@ -34,8 +38,8 @@ export const createConfiguredOpenAIChatRunner = (arm: QueryArm) =>
         instructions: chatInstructionsFor(arm),
         promptVersion: promptVersionFor(arm),
         createResponse: async (params, signal) => await openai.responses.create(params, {signal}),
-        executeTool: executeNluiTool,
-        issueCapabilities: (conversationId, blocks) => interactionCapabilities.issueMany(conversationId, blocks)
+        executeTool: (name, args, signal) => executeNluiTool(name, args, signal, data),
+        issueCapabilities: (conversationId, blocks) => registry.issueMany(conversationId, blocks)
     });
 };
 

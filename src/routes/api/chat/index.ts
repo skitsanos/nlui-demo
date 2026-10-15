@@ -1,28 +1,51 @@
+import config from '../../../core/configuration.ts';
 import type {RouteHandler} from '../../../core/types.ts';
-import {ConversationStateError, conversationStates} from '../../../nlui/conversationState.ts';
-import {InteractionCapabilityError, interactionCapabilities} from '../../../nlui/interactionCapabilities.ts';
+import {ConversationStateError, type ConversationStateRegistry, conversationStates} from '../../../nlui/conversationState.ts';
+import {InteractionCapabilityError, type InteractionCapabilityRegistry, interactionCapabilities} from '../../../nlui/interactionCapabilities.ts';
 import {chatRequestSchema} from '../../../nlui/schemas.ts';
 import type {ChatStreamEvent} from '../../../nlui/types.ts';
-import {runOpenAIChat} from '../../../services/openaiChat.ts';
+import {abortable, createRequestDeadline, RequestBodyTooLargeError, RequestDeadlineError, readRequestJson} from '../../../server/requestDeadline.ts';
+import {type OpenAIChatRunner, runOpenAIChat} from '../../../services/openaiChat.ts';
 import {publicChatErrorMessage, publicChatStreamEvent} from '../../../services/publicChatStream.ts';
 
 const encoder = new TextEncoder();
 
-export const POST: RouteHandler = async ({req, server}) =>
+export const createChatHandler = ({
+    runChat = runOpenAIChat,
+    states = conversationStates,
+    capabilities = interactionCapabilities,
+    timeoutMs = config.server.chatRequestTimeoutMs
+}: {
+    runChat?: OpenAIChatRunner;
+    states?: ConversationStateRegistry;
+    capabilities?: InteractionCapabilityRegistry;
+    timeoutMs?: number;
+} = {}): RouteHandler => async ({req, server}) =>
 {
+    const deadline = createRequestDeadline(req.signal, timeoutMs);
+    const earlyResponse = (message: string, status: number): Response =>
+    {
+        deadline.dispose();
+        return Response.json({message}, {status});
+    };
     let body: unknown;
     try
     {
-        body = await req.json();
+        body = await abortable(() => readRequestJson(req, deadline.signal, config.server.maxRequestBodySize), deadline.signal);
+        deadline.check();
     }
-    catch
+    catch (error)
     {
-        return Response.json({message: 'Expected a JSON request body'}, {status: 400});
+        if (error instanceof RequestBodyTooLargeError) return earlyResponse('Request body too large', 413);
+        return earlyResponse(deadline.signal.aborted
+            ? publicChatErrorMessage(deadline.signal.reason)
+            : 'Expected a JSON request body', deadline.signal.aborted ? 408 : 400);
     }
 
     const parsed = chatRequestSchema.safeParse(body);
     if (!parsed.success)
     {
+        deadline.dispose();
         return Response.json({
             message: 'Invalid chat request',
             issues: parsed.error.issues.map(({path, message}) => ({path, message}))
@@ -33,33 +56,27 @@ export const POST: RouteHandler = async ({req, server}) =>
     let claimedInteraction: {conversationId: string; interactionId: string} | undefined;
     try
     {
-        conversationStates.begin(request.conversationId, request.previousResponseId);
+        deadline.check();
+        states.begin(request.conversationId, request.previousResponseId);
     }
     catch (error)
     {
-        return Response.json({
-            message: error instanceof ConversationStateError ? error.message : 'The conversation could not be started'
-        }, {status: 409});
+        return earlyResponse(error instanceof ConversationStateError ? error.message : publicChatErrorMessage(error),
+            error instanceof RequestDeadlineError ? 408 : 409);
     }
     if (request.input.type === 'ui_result')
     {
         const interactionId = request.input.interactionId;
         try
         {
-            const values = interactionCapabilities.consume(
-                request.conversationId,
-                interactionId,
-                request.input.values
-            );
+            const values = capabilities.consume(request.conversationId, interactionId, request.input.values);
             request = {...request, input: {...request.input, values}};
-            claimedInteraction = {
-                conversationId: request.conversationId,
-                interactionId
-            };
+            claimedInteraction = {conversationId: request.conversationId, interactionId};
         }
         catch (error)
         {
-            conversationStates.release(request.conversationId);
+            states.release(request.conversationId);
+            deadline.dispose();
             if (error instanceof InteractionCapabilityError)
             {
                 return Response.json({message: error.message}, {status: 400});
@@ -68,51 +85,62 @@ export const POST: RouteHandler = async ({req, server}) =>
         }
     }
 
-    // LLM calls may pause while tools execute; keep only this streaming request alive.
-    server.timeout(req, 0);
-    const controller = new AbortController();
-    req.signal.addEventListener('abort', () => controller.abort(), {once: true});
-
+    // Keep a finite transport idle bound too, including while a slow client drains output.
+    server.timeout(req, Math.min(255, Math.max(1, Math.ceil(timeoutMs / 1_000))));
+    let closed = false;
     const stream = new ReadableStream<Uint8Array>({
         start(output)
         {
+            const publish = (event: ChatStreamEvent): void =>
+            {
+                if (closed) return;
+                const publicEvent = publicChatStreamEvent(event);
+                if (!publicEvent) return;
+                try {output.enqueue(encoder.encode(`${JSON.stringify(publicEvent)}\n`));}
+                catch {closed = true; deadline.abort();}
+            };
             const emit = (event: ChatStreamEvent): void =>
             {
-                const publicEvent = publicChatStreamEvent(event);
-                if (publicEvent && !controller.signal.aborted)
-                {
-                    output.enqueue(encoder.encode(`${JSON.stringify(publicEvent)}\n`));
-                }
+                if (closed) return;
+                deadline.check();
+                publish(event);
             };
 
-            void runOpenAIChat(request, emit, controller.signal)
-                .then((result) => conversationStates.complete(request.conversationId, result.responseId))
+            void abortable(() => runChat(request, emit, deadline.signal), deadline.signal)
+                .then((result) =>
+                {
+                    deadline.check();
+                    states.complete(request.conversationId, result.responseId);
+                })
                 .catch((error: unknown) =>
                 {
-                    conversationStates.release(request.conversationId);
+                    states.release(request.conversationId);
                     if (claimedInteraction)
                     {
-                        interactionCapabilities.releaseSubmission(
-                            claimedInteraction.conversationId,
-                            claimedInteraction.interactionId
-                        );
+                        capabilities.releaseSubmission(claimedInteraction.conversationId, claimedInteraction.interactionId);
                     }
-                    if (!controller.signal.aborted)
+                    if (!deadline.signal.aborted || deadline.signal.reason instanceof RequestDeadlineError)
                     {
-                        emit({type: 'error', message: publicChatErrorMessage(error)});
+                        publish({type: 'error', message: publicChatErrorMessage(
+                            deadline.signal.aborted ? deadline.signal.reason : error
+                        )});
                     }
                 })
                 .finally(() =>
                 {
-                    if (!controller.signal.aborted)
+                    deadline.dispose();
+                    if (!closed)
                     {
-                        output.close();
+                        closed = true;
+                        try {output.close();} catch { /* A disconnected reader already owns closure. */ }
                     }
                 });
         },
         cancel()
         {
-            controller.abort();
+            closed = true;
+            deadline.abort();
+            deadline.dispose();
         }
     });
 
@@ -124,3 +152,5 @@ export const POST: RouteHandler = async ({req, server}) =>
         }
     });
 };
+
+export const POST = createChatHandler();

@@ -38,7 +38,7 @@ const redactValues = (value: unknown, config: EvaluationRedactionConfig): unknow
         {
             return ['modelConfigurationCount', uniqueStrings(entry).length];
         }
-        return [key, redactValues(entry, config)];
+        return [redactText(key, config), redactValues(entry, config)];
     }));
 };
 

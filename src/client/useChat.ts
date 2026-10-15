@@ -55,6 +55,7 @@ export const useChat = () =>
                 signal: controller.signal,
                 onEvent: (event) =>
                 {
+                    if (controller.signal.aborted || activeRequestId.current !== requestId) return;
                     updateAssistant(assistantId, event);
                     if (event.type === 'message.completed')
                     {
@@ -62,7 +63,7 @@ export const useChat = () =>
                     }
                 }
             });
-            completed = true;
+            completed = !controller.signal.aborted && activeRequestId.current === requestId;
         }
         catch (error)
         {

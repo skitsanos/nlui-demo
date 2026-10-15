@@ -1,4 +1,5 @@
 import type {ChatStreamEvent} from '../nlui/types.ts';
+import {REQUEST_TIMEOUT_MESSAGE, RequestDeadlineError} from '../server/requestDeadline.ts';
 
 export type PublicChatStreamEvent = Exclude<
     ChatStreamEvent,
@@ -15,12 +16,14 @@ const CONFIGURATION_MESSAGES = new Set([
 const PUBLIC_ERROR_MESSAGES = new Set([
     ...CONFIGURATION_MESSAGES,
     'The response was cancelled',
+    REQUEST_TIMEOUT_MESSAGE,
     GENERIC_PUBLIC_CHAT_ERROR
 ]);
 
 export const publicChatErrorMessage = (error: unknown): string =>
 {
     if (!(error instanceof Error)) return GENERIC_PUBLIC_CHAT_ERROR;
+    if (error instanceof RequestDeadlineError) return REQUEST_TIMEOUT_MESSAGE;
     if (error.name === 'AbortError') return 'The response was cancelled';
     if (error.name === 'ChatConfigurationError' && CONFIGURATION_MESSAGES.has(error.message))
     {
