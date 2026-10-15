@@ -1,6 +1,6 @@
 # NLUI-018: Resolve the transitive KaTeX advisory through a compatible upgrade
 
-- Status: In progress
+- Status: Closed
 - Priority: P3
 - Kind: Improvement
 - Created: 2026-10-14
@@ -25,7 +25,7 @@ Recheck current upstream metadata/advisory and select a compatible maintained Ma
 ## Acceptance criteria
 
 - [x] Fresh audit confirms the vulnerable path is removed.
-- [ ] Math/Markdown rendering, sanitization and exact published plugin imports pass on hosted Linux and macOS.
+- [x] Math/Markdown rendering, sanitization and exact published plugin imports pass on hosted Linux and macOS.
 - [x] Dependency changes preserve the user's supplied upgrades and remain separately qualified.
 
 ## Resolution
@@ -39,3 +39,5 @@ The regular bun update/install preserves existing constraints while refreshing O
 ### Hosted portability follow-up
 
 Reopened after release 1.6.0 [run 38748113060](https://github.com/skitsanos/nlui-demo/actions/runs/38748113060/job/116467019520) failed Linux typechecking: `markdown-probe.tsx` and `markdown-ui.tsx` imported `plugins/latex`, but the installed package publishes `plugins/Latex`. A case-insensitive macOS filesystem masked the fixture defect. Both imports now use the exact package spelling. `markdownSafety.test.ts` compares fixture plugin specifiers against real directory entries, so a case-insensitive host also catches a recurrence. Reclosure requires the corrected hosted matrix/container gates; the vulnerable dependency is not restored and no check is waived.
+
+Reclosed after release 1.6.2 at `90716316c13e7b02037920562c36adf4037ccdb6`: [run 38749702794](https://github.com/skitsanos/nlui-demo/actions/runs/38749702794) passed all three jobs, including 810 tests and the exact plugin-casing/actual-renderer regressions on both hosted Linux and macOS, plus the production container. The failed original run remains evidence; no check was waived or hidden by a rerun of unchanged code.

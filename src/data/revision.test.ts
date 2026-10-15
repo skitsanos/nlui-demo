@@ -5,6 +5,21 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {QUERY_TABLES} from './querySchema.ts';
 import {datasetRevision} from './revision.ts';
+import {resetDemoDatabase} from './seed.ts';
+
+test('seeding releases native prepared statements and WAL locks immediately without relying on GC', () =>
+{
+    const root = mkdtempSync(join(tmpdir(), 'nlui-seed-close-')); const path = join(root, 'demo.sqlite');
+    let database: Database | undefined;
+    try
+    {
+        resetDemoDatabase({databasePath: path});
+        database = new Database(path);
+        expect(database.query('PRAGMA journal_mode=DELETE').get()).toEqual({journal_mode: 'delete'});
+        expect(datasetRevision(path)).toMatch(/^[a-f0-9]{64}$/);
+    }
+    finally {database?.close(true); rmSync(root, {recursive: true, force: true});}
+});
 
 test.each([50, 2000])('revision reading handles a %i ms exclusive lock with a finite read-only wait', async (milliseconds) =>
 {

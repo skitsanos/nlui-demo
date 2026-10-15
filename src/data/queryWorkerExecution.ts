@@ -29,5 +29,5 @@ export const executeWorkerQuery = ({databasePath, sql, rowLimit, parameters = []
         return {ok: true, columnNames: [...statement.columnNames], values: statement.values(...parameters) as unknown[][]};
     }
     catch (error) {return sanitizedMessage(error);}
-    finally {database.close();}
+    finally {database.close(true);}
 };

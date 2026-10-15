@@ -1,4 +1,4 @@
-import type {Database} from 'bun:sqlite';
+import {Database, type Statement} from 'bun:sqlite';
 import {expect, test} from 'bun:test';
 import {executeWorkerQuery} from './queryWorkerExecution.ts';
 
@@ -12,7 +12,7 @@ test.each(['success', 'parameters', 'busy', 'close-failure'])('worker closes bef
             if (outcome === 'busy') throw new Error('database is locked');
             return [[200]];
         }}),
-        close: () => {order.push('closed'); if (outcome === 'close-failure') throw new Error('Close failed');}
+        close: (strict?: boolean) => {expect(strict).toBeTrue(); order.push('closed'); if (outcome === 'close-failure') throw new Error('Close failed');}
     } as unknown as Pick<Database, 'run' | 'prepare' | 'close'>;
     const publish = () =>
     {
@@ -24,4 +24,19 @@ test.each(['success', 'parameters', 'busy', 'close-failure'])('worker closes bef
     expect(order).toEqual(['closed', 'published']);
     expect(result).toMatchObject(outcome === 'success' ? {ok: true, values: [[200]]}
         : {ok: false, code: outcome === 'busy' ? 'SQL_BUSY' : 'SQL_INVALID'});
+});
+
+test('worker finalizes a retained native prepare statement before returning', () =>
+{
+    const database = new Database(':memory:'); let retained: Statement | undefined;
+    try
+    {
+        const response = executeWorkerQuery({databasePath: 'unused', sql: 'SELECT 200 AS count', rowLimit: 100}, () => ({
+            run: database.run.bind(database), close: database.close.bind(database),
+            prepare: ((sql: string) => {retained = database.prepare(sql); return retained;}) as Database['prepare']
+        }));
+        expect(response).toMatchObject({ok: true, values: [[200]]});
+        expect(() => retained!.get()).toThrow('Database has closed');
+    }
+    finally {retained?.finalize(); database.close(true);}
 });

@@ -8,11 +8,13 @@ Priorities: **P0** critical immediate failure; **P1** high-impact correctness, d
 
 ## Current ledger
 
-32 issues: **0 Open**, **2 In progress**, **0 Blocked**, **0 Deferred**, **30 Closed**. Open priorities: **0 P2**, **0 P3**. Next ID: **NLUI-033**; existing IDs remain permanent.
+32 issues: **0 Open**, **1 In progress**, **0 Blocked**, **0 Deferred**, **31 Closed**. Open priorities: **0 P2**, **0 P3**. Next ID: **NLUI-033**; existing IDs remain permanent.
 
 Publication follow-up: release 1.6.0 at `771e1627b2108abafa54af6d9447f3e7337862c3` is pushed. [Hosted run 38748113060](https://github.com/skitsanos/nlui-demo/actions/runs/38748113060) exposed Linux TS2307 failures from two test-fixture imports spelling the published `plugins/Latex` as `plugins/latex`. NLUI-018 is reopened for this compatibility-verification gap; no hosted success is claimed. Correct exact-case imports and a host-independent directory-entry regression are being qualified before the next version-bumped push.
 
 The corrected-import release 1.6.1 at `b6d6933bdc8db90a0e1e67477ab5102db20da587` passed Linux source/compiled checks in [run 38748715543](https://github.com/skitsanos/nlui-demo/actions/runs/38748715543), but macOS exposed an analytical-revision SQLite lock race; the container job was therefore skipped. NLUI-021 is reopened for bounded lock handling and worker-close-before-publish regressions. Both failure records are preserved; full hosted qualification remains pending.
+
+Release 1.6.2 at `90716316c13e7b02037920562c36adf4037ccdb6` subsequently passed **all three hosted jobs** in [run 38749702794](https://github.com/skitsanos/nlui-demo/actions/runs/38749702794), with 810 tests on each platform and all source/compiled/container gates. NLUI-018 is reclosed. NLUI-021 remains In progress while the explicit `close(true)` finalization strengthening for worker/seeder prepared statements and two additional native resource regressions receive their own qualification; no current working delta is silently covered by that earlier run.
 
 Latest local milestone: [Owned workflows](reviews/2026-10-15-owned-workflows.md) and [bounded research](reviews/2026-10-15-remaining-research.md) close NLUI-019 through NLUI-024 in the user-approved isolated anonymous local-demo scope. Durable owner-scoped replay/capabilities, exact SQL fields and fresh action intent, immutable analytical refinement/receipts, quarantined CSV inspection and keyboard/mobile interaction are verified. **803 tests**, **60 source/60 compiled Hurl requests plus eight separate-session probes per mode**, all **35 provider-free references** in source/compiled/container modes, lint/typecheck and clean dependency audit pass. Browser evidence includes mobile tables, mutation-once refresh, exact refinement scope and opt-in X Card rendering. These working changes are **not committed, pushed or hosted-qualified**.
 
@@ -41,7 +43,7 @@ Last published baseline: release 1.5.1 at `6f162dc3bc5b1dfff64b2b35e0b6fc52f389e
 | [NLUI-015](NLUI-015.md) | P2 | Closed | Automate source, compiled and container qualification in CI |
 | [NLUI-016](NLUI-016.md) | P2 | Closed | Complete deterministic evaluation coverage and trace accounting |
 | [NLUI-017](NLUI-017.md) | P3 | Closed | Document the sanitized public activity protocol |
-| [NLUI-018](NLUI-018.md) | P3 | In progress | Resolve the transitive KaTeX advisory through a compatible upgrade |
+| [NLUI-018](NLUI-018.md) | P3 | Closed | Resolve the transitive KaTeX advisory through a compatible upgrade |
 | [NLUI-019](NLUI-019.md) | P2 | Closed | Expand the versioned semantic catalog and paired query experiments |
 | [NLUI-020](NLUI-020.md) | P2 | Closed | Run a controlled A2UI and Ant Design X Card experiment |
 | [NLUI-021](NLUI-021.md) | P2 | In progress | Add artifact-aware analytical refinements and provenance |

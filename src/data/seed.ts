@@ -204,7 +204,9 @@ function seedDatabase(options: DataLayerOptions): SeedSummary {
         database.run(`PRAGMA user_version = ${DATASET_VERSION}`);
         return summary;
     } finally {
-        database.close();
+        // prepare() statements otherwise defer native connection/WAL release
+        // until GC; seeding must release all locks before the first reader.
+        database.close(true);
     }
 }
 
