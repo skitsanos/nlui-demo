@@ -1,6 +1,6 @@
 # Source, compiled and container CI qualification — 2026-10-15
 
-Scope: NLUI-015. Existing pending milestones and user dependency changes are preserved. No commit, push, package-version bump, repository-policy change, live provider request, retained-data reset or remote workflow dispatch was performed.
+Scope: NLUI-015. Existing pending milestones and user dependency changes are preserved. The implementation/local verification phase below did not publish or change the project version. The subsequent user-authorized release and successful hosted run are recorded under Hosted qualification. No repository-policy change, live provider request, retained-data reset or manual remote workflow dispatch was performed.
 
 ## Implementation
 
@@ -40,7 +40,21 @@ The profile validator pins 35 unique case results and the identities of the seve
 | Image identity | Pulled Bun base manifest `sha256:ec06c3b6cea04192ae6770c434f668ca41d343ad19fa6472216c7b48be39c598`; runtime version recorded, not enforced as an exact release |
 | Owned cleanup | After successful/failing real runs, no `io.nlui.qualification` labelled containers or tagged test images remain; temporary binaries/install fixtures are removed |
 
-Registry validation confirms 32 permanent issues: 21 Closed, ten Open (eight P2/two P3) and NLUI-015 In progress, with synchronized index/status rows and 114 valid relative registry/verification links. Configured-value scanning across 222 changed/untracked files finds no key/model matches; `.env`, TODO.md, retained SQLite, compiled output and evaluation reports remain ignored. New qualification modules and tests are at most 79 lines; `git diff --check` passes. Read-only inspection confirms the retained default database still has `user_version=1`. No owned labelled container or test image remains after the full run.
+At the local-only boundary, registry validation confirmed 32 permanent issues: 21 Closed, ten Open (eight P2/two P3) and NLUI-015 In progress, with synchronized index/status rows and 114 valid relative registry/verification links. Configured-value scanning across 222 changed/untracked files found no key/model matches; `.env`, TODO.md, retained SQLite, compiled output and evaluation reports remain ignored. New qualification modules and tests are at most 79 lines; `git diff --check` passes. Read-only inspection confirms the retained default database still has `user_version=1`. No owned labelled container or test image remains after the full run.
+
+## Hosted qualification and authorized publication
+
+All 222 pending changed/new files were committed on `main` as release 1.4.0, commit `6a41630318af59630045789ed4f7b46dc8dd511c`, after the user explicitly authorized committing/pushing everything and bumping the version. Pre-publication scanning checked all 320 indexed files against the configured key/model values and credential/private-file patterns with no findings; generated databases, credentials, reports and compiled artifacts remained excluded. All five committed screenshots were visually checked and contain disposable synthetic fixtures only. Frozen install, actionlint and the complete local `verify:all` gate passed again before publication.
+
+[Qualification run 38721607962](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962), run number 1, was triggered by that push and completed successfully on 2026-10-15 at 10:40:31 UTC. The workflow and all three commit check-runs report success:
+
+| Hosted job | Observed environment | Result |
+| --- | --- | --- |
+| [Source and compiled (ubuntu-latest)](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962/job/116377260568) | Ubuntu 24.04, Linux x64, Bun 1.4.3, native Hurl 8.0.1 | 628 tests across 78 files, lint/typecheck, offline/reference, 38 source plus 38 compiled HTTP requests and source-free embedded-worker reference all pass |
+| [Source and compiled (macos-latest)](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962/job/116377260754) | macOS 26 arm64, Bun 1.4.3, native Hurl 8.0.1 | The same full source/compiled gates and 628 tests pass |
+| [Production container (Linux)](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962/job/116377983661) | Ubuntu 24.04 host, Linux x64 production image, Bun 1.4.3, UID 1000 | Frozen production-only build, actual HTTP/upload/data/SQL, overridden port 3180, Docker healthcheck, exact reference profile and successful SIGTERM exit pass |
+
+No failures required a fix or retry and no check was waived. GitHub emitted only informational notices about upcoming Ubuntu-label migration and macOS arm64 capacity; those are not failed checks. The seven unsupported reference cases remain explicitly incomplete, not evidence of full linguistic/model correctness. The follow-up closure/evidence commit bumps the project to 1.4.1 before its push, as required by AGENTS.md; its current-commit checks must also be verified rather than assuming this earlier run covers it.
 
 ## Retained diagnostics
 
@@ -50,8 +64,8 @@ The first real container probe expected `/api/config.server.port` to reflect the
 
 ## Disposition and verification limits
 
-Implementation and local qualification are complete. **NLUI-015 remains In progress** for the first hosted GitHub run, because no authorized push/dispatch was performed. After publication, record both hosted source/compiled matrix jobs and the Linux container job before checking its remaining CI acceptance box and closing it. Required-check/branch-protection settings are separate remote policy; none was modified or claimed.
+**NLUI-015 is Closed** after the implementation, local gates and all three first hosted jobs passed. The registry now contains 32 permanent issues: 22 Closed, ten Open (eight P2/two P3), none In progress; next ID remains NLUI-033. Required-check/branch-protection settings are separate remote policy; none was modified or claimed.
 
-Local macOS arm64 and Docker Linux arm64 evidence is not hosted Linux x64/macOS runner provisioning, Windows qualification, deployment or a new live-model evaluation. No UI change/browser acceptance, retained-volume migration or image-vulnerability remediation is claimed; the existing dependency advisory remains NLUI-018. The seven unsupported semantic checks remain NLUI-031. The retained default database remains v1 and is not automatically upgraded; normal data-backed development still requires the explicit backup/reset or separate-path process documented in the earlier fixture milestone.
+Evidence covers local macOS/Linux arm64 and the hosted environments listed above, not Windows qualification, deployment or a new live-model evaluation. No new UI change/browser acceptance, retained-volume migration or image-vulnerability remediation is claimed; the existing dependency advisory remains NLUI-018. The seven unsupported semantic checks remain NLUI-031. The retained default database remains v1 and is not automatically upgraded; normal data-backed development still requires the explicit backup/reset or separate-path process documented in the earlier fixture milestone.
 
 References: [Bun setup action](https://github.com/oven-sh/setup-bun), [Bun package-script trust](https://bun.com/docs/pm/cli/add), [Hurl installation](https://hurl.dev/docs/installation.html), [GitHub workflow security](https://docs.github.com/en/actions/reference/security/secure-use).

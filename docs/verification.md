@@ -22,7 +22,7 @@ The provider-free reference contract is 35 unique cases: 28 passed and exactly t
 
 The workflow uses `bun-version: latest`; the Dockerfile uses `oven/bun:latest` resolved with `--pull` during qualification. Frozen application dependencies remain controlled by `bun.lock`. These choices detect current-runtime behavior; recorded local versions are evidence, not permanent compatibility guarantees. See [Bun setup](https://github.com/oven-sh/setup-bun), [Hurl installation](https://hurl.dev/docs/installation.html) and [GitHub workflow security guidance](https://docs.github.com/en/actions/reference/security/secure-use).
 
-After an authorized push, verify the first hosted Linux/macOS/container run before treating this as hosted qualification. Repository required-check or branch-protection settings are not changed by this implementation and must be reviewed separately. Local checks do not prove remote runner provisioning, fork settings or repository policy. NLUI-015 remains in progress until that hosted evidence is recorded.
+The first hosted [Qualification run 38721607962](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962) passed all three jobs on 2026-10-15 for release 1.4.0, commit `6a41630318af59630045789ed4f7b46dc8dd511c`. It qualifies the observed Ubuntu 24.04 x64/macOS 26 arm64 source-and-compiled jobs and Linux x64 production container; NLUI-015 is closed. Repository required-check and branch-protection settings were not changed and remain separate policy. Local or hosted success does not qualify untested platforms, fork settings or deployment.
 
 ## Non-billable and retained-data boundaries
 
@@ -36,4 +36,4 @@ Cleanup removes only the owned temporary directory, exact container name and exa
 
 ## Evidence
 
-The [NLUI-015 review](issues/reviews/2026-10-15-ci-qualification.md) records fresh commands/results, initial diagnostics, cleanup/hygiene and the pending hosted run. Historical milestone reports remain dated evidence, not current CI state.
+The [NLUI-015 review](issues/reviews/2026-10-15-ci-qualification.md) records fresh commands/results, initial diagnostics, cleanup/hygiene and the successful first hosted run. Historical milestone reports remain dated evidence, not current CI state; verify the run for the current commit before making a new qualification claim.

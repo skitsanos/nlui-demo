@@ -196,6 +196,8 @@ The [qualification workflow](.github/workflows/qualification.yml) runs source an
 
 Qualification subprocesses disable dotenv loading, withhold inherited provider settings and force live evaluation off; the ignored development `.env` is not modified. Compiled output goes into owned temporary directories, not over an existing `dist/demo`. Container qualification uses a unique image/container with no external network, published ports, retained mounts or provider credentials, and removes only those exact resources. See [verification details](docs/verification.md). Local qualification is not evidence of a hosted GitHub run or branch-protection settings.
 
+The first hosted [Qualification run](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962) passes all three jobs for release 1.4.0, including 628 tests on both matrix platforms. [NLUI-015](docs/issues/NLUI-015.md) records that dated evidence; check the current commit's run for fresh qualification. Branch-protection settings and deployment were not changed.
+
 The unit, tool, and malformed-request smoke tests do not call OpenAI. A valid `POST /api/chat` is intentionally not part of the default suite because it is billable and model-dependent.
 
 For manual confirmation recovery checks without a provider or retained database, run `bun run tests/fixtures/confirmation-server.ts` and open the printed loopback port. This disposable fixture renders the real confirmation component, simulates an unreadable response after a synthetic SQLite commit and a failed chat continuation, and exposes mutation/request counters. SIGINT/SIGTERM remove its owned temporary database. The fixture is excluded from production routing and Docker packaging.

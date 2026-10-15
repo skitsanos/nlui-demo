@@ -1,6 +1,6 @@
 # NLUI-015: Automate source, compiled and container qualification in CI
 
-- Status: In progress
+- Status: Closed
 - Priority: P2
 - Kind: Verification gap
 - Created: 2026-10-14
@@ -24,14 +24,16 @@ Build on the new isolated runner; add deterministic server integration regressio
 
 ## Acceptance criteria
 
-- [ ] Record the first hosted Linux/macOS source/compiled jobs and Linux container job passing static checks, regressions, offline evaluation and probes after an authorized push.
+- [x] Record the first hosted Linux/macOS source/compiled jobs and Linux container job passing static checks, regressions, offline evaluation and probes after an authorized push.
 - [x] Scripts receive lint coverage without generated artifacts.
 - [x] Non-billable tests never execute valid provider requests or touch retained state.
 
 ## Resolution
 
-Implementation and local qualification complete; hosted-run acceptance remains pending. See [the recorded verification and initial diagnostics](reviews/2026-10-15-ci-qualification.md) and [command/security contract](../verification.md).
+Closed after [Qualification run 38721607962](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962) passed all three hosted jobs on 2026-10-15 for `6a41630318af59630045789ed4f7b46dc8dd511c` (release 1.4.0). See [the recorded local/hosted evidence and initial diagnostics](reviews/2026-10-15-ci-qualification.md) and [command/security contract](../verification.md).
 
 The new workflow defines read-only, SHA-pinned push/PR/manual Linux/macOS source-and-compiled jobs, then a Linux production-container job. Current Bun, frozen application dependencies and mandatory Hurl are explicit. The shared Bun commands withhold provider configuration, disable dotenv loading, bound subprocess execution and clean only owned binaries/container/tag. Container probes use the production image without external networking or retained mounts and cover non-root permissions, uploads, lazy seed/SQL, overridden-port health, all 35 reference cases and successful shutdown. The seven unsupported reference cases remain incomplete, not passing model evaluations.
 
-31 new regressions pass; `bun run verify:all` exits zero with Biome 235 files, TypeScript, 628 tests / 2032 expectations across 78 files, 38 source plus 38 compiled HTTP requests, source-free compiled worker evaluation and actual Docker/Linux arm64 production qualification. actionlint and the exact Hurl installation also pass. No provider calls, retained-data reset, commit, push, hosted dispatch or branch-policy change was performed. Keep this issue In progress until the first hosted result is recorded rather than presenting local execution as remote CI evidence.
+31 new regressions pass; local `bun run verify:all` exits zero with Biome 235 files, TypeScript, 628 tests / 2032 expectations across 78 files, 38 source plus 38 compiled HTTP requests, source-free compiled worker evaluation and Docker/Linux arm64 production qualification. Hosted Ubuntu 24.04 x64 and macOS 26 arm64 each pass the same 628 tests, offline/reference gates and both HTTP modes. The separate hosted Linux x64 production-image job passes its non-root HTTP, lazy seed/SQL, health, reference and shutdown probes. All three commit check-runs conclude success; no failure was waived or repaired. Bun 1.4.3 and native Hurl 8.0.1 were observed, not imposed as exact requirements.
+
+The user authorized publication of all pending work; release 1.4.0 was committed/pushed, and this closure/evidence follow-up bumps to 1.4.1 before its own push. No provider calls, retained-data reset, manual hosted dispatch or branch-policy change was performed. Windows, deployment and branch protection are not qualified by these results.
