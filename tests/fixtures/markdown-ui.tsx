@@ -1,7 +1,7 @@
 import 'antd/dist/reset.css';
 import '../../src/client/styles.css';
 import XMarkdown from '@ant-design/x-markdown';
-import Latex from '@ant-design/x-markdown/plugins/latex';
+import Latex from '@ant-design/x-markdown/plugins/Latex';
 import {Card, Space, Typography} from 'antd';
 import {createRoot} from 'react-dom/client';
 import {AssistantMarkdown} from '../../src/client/components/AssistantMarkdown.tsx';

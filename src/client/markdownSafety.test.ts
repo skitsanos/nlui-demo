@@ -1,5 +1,18 @@
 import {expect, test} from 'bun:test';
+import {readdirSync} from 'node:fs';
 import {within} from '../../tests/helpers/childServer.ts';
+
+test('Markdown fixtures use exact published plugin casing even on case-insensitive hosts', async () =>
+{
+    const published = readdirSync(new URL('./plugins/', import.meta.resolve('@ant-design/x-markdown/package.json')));
+    for (const fixture of ['markdown-probe.tsx', 'markdown-ui.tsx'])
+    {
+        const source = await Bun.file(new URL(`../../tests/fixtures/${fixture}`, import.meta.url)).text();
+        const imports = [...source.matchAll(/@ant-design\/x-markdown\/plugins\/([^'"\s]+)/g)].map((match) => match[1]);
+        expect(imports).toHaveLength(1);
+        for (const name of imports) expect(published).toContain(name);
+    }
+});
 
 test('patched KaTeX and the actual Markdown renderer preserve math, formatting and sanitization', async () =>
 {

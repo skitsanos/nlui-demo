@@ -14,7 +14,7 @@ const {createRoot} = await import('react-dom/client');
 const {flushSync} = await import('react-dom');
 const {AssistantMarkdown} = await import('../../src/client/components/AssistantMarkdown.tsx');
 const {default: XMarkdown} = await import('@ant-design/x-markdown');
-const {default: Latex} = await import('@ant-design/x-markdown/plugins/latex');
+const {default: Latex} = await import('@ant-design/x-markdown/plugins/Latex');
 const {default: Parser} = await import('@ant-design/x-markdown/es/XMarkdown/core/Parser');
 const root = createRoot(document.getElementById('root')!);
 const render = async (node: React.ReactNode) =>
