@@ -1,6 +1,6 @@
 # Owned workflow qualification — 2026-10-15
 
-Closes NLUI-022, NLUI-023 and NLUI-024 in the explicitly approved **isolated anonymous-session local-demo** scope, and records integration verification for NLUI-019/020/021. This is not authenticated production tenancy, human usability certification, deployment or hosted-CI evidence. The retained incompatible v1 business database and existing ignored provider settings were not replaced/reset.
+Closes NLUI-022, NLUI-023 and NLUI-024 in the explicitly approved **isolated anonymous-session local-demo** scope, and records integration verification for NLUI-019/020/021. The initial local sections below and subsequent hosted-publication section are distinct evidence. Neither establishes authenticated production tenancy, human usability certification or deployment. The retained incompatible v1 database and ignored provider settings were not replaced/reset.
 
 ## Durable ownership and replay (NLUI-022)
 
@@ -31,7 +31,7 @@ Pending-action supersession and confirmation bind owner + conversation + action 
 
 ## Fresh executable gates
 
-Final `bun --no-env-file run verify:all` **exit 0** on local Bun 1.4.3:
+Initial local-boundary `bun --no-env-file run verify:all` **exit 0** on Bun 1.4.3, before the later CI fixes and 812-test qualification recorded below:
 
 | Gate | Result |
 | --- | --- |
@@ -45,7 +45,7 @@ Final `bun --no-env-file run verify:all` **exit 0** on local Bun 1.4.3:
 | Dependency audit | `bun audit --json`: `{}`, exit 0 |
 | Diff hygiene / module size | `git diff --check` clean; largest code/test module 388 LOC, runner 382 |
 
-Private full-gate logs: `/tmp/nlui-remaining-qualified-final.log` and the repeated final documentation/registry pass `/tmp/nlui-remaining-delivery-final.log`, both exit 0 with the same counts. Test subprocesses withhold provider settings and disable dotenv/live evaluation. Images, containers and temporary databases have exact owned cleanup; no Docker prune or retained-data reset is used. `.env`, TODO, generated SQLite/WAL/SHM and `eval-results` remain ignored; container probes reject packaged state/credentials. A final value-comparison scan of tracked/unignored text found neither existing configured provider value; it printed counts/paths only, never the values. No publication/version bump was performed because no push was requested.
+Private initial full-gate logs: `/tmp/nlui-remaining-qualified-final.log` and `/tmp/nlui-remaining-delivery-final.log`, both exit 0 with those counts. Test subprocesses withhold provider settings and disable dotenv/live evaluation. Images, containers and temporary databases have exact owned cleanup; no prune or retained-data reset is used. `.env`, TODO, SQLite/WAL/SHM and `eval-results` remain ignored; container probes reject packaged state/credentials. Value-comparison scans found neither configured provider value in tracked/unignored text, printing counts/paths only. No push was authorized at that initial boundary; subsequent authorized publication is recorded below.
 
 ## Browser evidence
 
@@ -73,4 +73,31 @@ No current application console exceptions or Ant Design deprecation warnings rem
 
 ## Scope limits
 
-Anonymous cookies are not authenticated users, the synthetic dataset is not tenant-partitioned, local storage is not encrypted, and multi-process recovery/retention/identity integration need a separate production design. A2UI remains off by default; SQL remains the chat control. The [research record](2026-10-15-remaining-research.md) reports bounded results, unknown usage and lack of measured promotion benefit. Current changes are local only: last published release 1.5.1/hosted checks remain historical until an authorized version-bumped push and new CI run.
+Anonymous cookies are not authenticated users, the dataset is not tenant-partitioned, local storage is not encrypted, and multi-process recovery/retention/identity integration need separate production design. A2UI stays off by default; SQL remains the control. The [research record](2026-10-15-remaining-research.md) reports bounded results, unknown usage and no measured promotion benefit. The initial local-only qualification is superseded for delivery by the publication evidence below, not for those research/security limits.
+
+## Hosted publication and CI reconciliation
+
+The user explicitly authorized committing/pushing all changes, version bumps, repairing failures and updating the registry after hosted success. Every push increased the project version; no provider call, budget reset, retained-data migration, branch-policy change, workflow weakening or deployment accompanied publication.
+
+| Release / commit | Hosted run | Outcome |
+| --- | --- | --- |
+| 1.6.0 / `771e1627b2108abafa54af6d9447f3e7337862c3` | [38748113060](https://github.com/skitsanos/nlui-demo/actions/runs/38748113060) | Linux typecheck failed: two fixtures imported `plugins/latex` instead of published `plugins/Latex`; macOS passed, container skipped. |
+| 1.6.1 / `b6d6933bdc8db90a0e1e67477ab5102db20da587` | [38748715543](https://github.com/skitsanos/nlui-demo/actions/runs/38748715543) | Exact-case imports and host-independent directory-entry regression fixed Linux. macOS then exposed `SQLITE_BUSY` during analytical revision reading; container skipped. |
+| 1.6.2 / `90716316c13e7b02037920562c36adf4037ccdb6` | [38749702794](https://github.com/skitsanos/nlui-demo/actions/runs/38749702794) | All three jobs passed, 810 tests/platform, after close-before-publication ordering and a finite 250 ms read-only revision lock wait. |
+| 1.6.3 / `3b1150ca3fd6edbf1970d598eb4bc50b2ead476e` | [38750393451](https://github.com/skitsanos/nlui-demo/actions/runs/38750393451) | All three jobs passed with explicit native finalization and **812 tests/platform**. |
+
+The installed Bun API/docs specify that default `close(false)` leaves uncached `prepare()` statements alive until finalization/GC. Both the query worker and seeder now use **`close(true)`**. Worker output is published only after strict cleanup returns. Native regressions prove a retained statement cannot execute after a response, a seeded database immediately releases WAL locks without GC, transient contention can complete and persistent contention fails within the finite read budget. The ten affected tests passed twenty local repetitions: **200 passes, 920 expectations, zero failures**. A separate network-disabled Linux probe passes the same ten tests. These probes mount source read-only; the normal production qualification remains isolated from retained mounts and provider configuration.
+
+The initial contention-test setup itself attempted to switch a seeded WAL database before strict seeder cleanup and reproduced a lock error. The dedicated transient/persistent-lock fixture was changed to start directly in rollback-journal mode, separating setup from the behavior under test; the later strict-seeder regression explicitly retains the original WAL-release check. Two identified failed-setup temporary directories were removed; no retained data was removed. Failed diagnostics were preserved, not converted into passing runs by retrying unchanged code.
+
+The final implementation run completed **2026-10-15 14:23:21 UTC**. GitHub run metadata and all three commit check-runs report success:
+
+| Hosted job | Observed environment | Verified result |
+| --- | --- | --- |
+| [Source/compiled Linux](https://github.com/skitsanos/nlui-demo/actions/runs/38750393451/job/116474969892) | Ubuntu 24.04.5 x64, Bun 1.4.3, Hurl 8.0.1 | Biome/typecheck; **812 tests, 2,624 expectations, 98 files**; 35-scenario offline catalog; 60 source + 60 compiled Hurl requests and eight separate-session probes per mode; 35/35 exact reference cases in both modes, zero incomplete. |
+| [Source/compiled macOS](https://github.com/skitsanos/nlui-demo/actions/runs/38750393451/job/116474969386) | macOS 26.6.2 arm64, Bun 1.4.3, Hurl 8.0.1 | The same full matrix of checks, counts and references passes, including exact plugin casing, native cleanup and contention regressions. |
+| [Production container](https://github.com/skitsanos/nlui-demo/actions/runs/38750393451/job/116476289923) | Linux x64, Bun 1.4.3, UID 1000, loopback port 3180 | Frozen production image, safe exclusions, actual HTTP/data/permissions/health/shutdown and separate-session probes; 35/35 exact reference cases, zero incomplete; provider unconfigured. |
+
+The final local implementation gate `/tmp/nlui-release-1.6.3-qualification.log` also exits zero: **303 files** linted, typecheck, **812 tests / 2,624 expectations**, both 60-request Hurl modes, all references and production-container qualification. Earlier versioned logs retain the 803/804/810-test boundaries. No check was disabled, skipped by policy, waived or allowed to fail; the two initial container skips were the workflow's expected dependency behavior on failed platform jobs. Runner-label notices are informational, not check failures.
+
+NLUI-018 and NLUI-021 were reopened when their hosted gaps appeared and are now Closed with this evidence; the synchronized ledger returns to **32 Closed, zero Open/In progress**, next permanent ID NLUI-033. The evidence-only follow-up uses **1.6.4**, triggers the same full workflow and must be verified as its own current head rather than borrowing the implementation run. Branch protection, Windows, production identity, deployment, arbitrary-language reliability and further paid research remain outside this qualification.
