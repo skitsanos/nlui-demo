@@ -9,6 +9,9 @@ export const datasetRevision = (path = DEFAULT_DATABASE_PATH): string =>
     const database = new Database(path, {readonly: true, strict: true});
     try
     {
+        // Match the isolated query reader's finite wait for transient locks.
+        database.run('PRAGMA busy_timeout = 250');
+        database.run('PRAGMA query_only = ON');
         return database.transaction(() =>
         {
             const hash = createHash('sha256');

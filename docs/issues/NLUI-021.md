@@ -1,6 +1,6 @@
 # NLUI-021: Add artifact-aware analytical refinements and provenance
 
-- Status: Closed
+- Status: In progress
 - Priority: P2
 - Kind: Improvement
 - Created: 2026-10-14
@@ -35,3 +35,7 @@ Implemented immutable artifacts and typed metric/group/filter/date/top-N/order r
 The four-case × five-repeat machine benchmark passed 20/20 exact receipt checks and detected 20/20 mismatched-filter canaries, with one typed submission, zero model turns and zero correction requests per refinement. The live guarded-SQL control passed 4/4 with eight provider requests and zero rejected-tool repairs. Backend-only typed timing excludes human selection/network; **no causal human time/reformulation improvement or participant study is claimed**. See [measurements and limits](reviews/2026-10-15-remaining-research.md#nlui-021-analytical-artifacts-exact-scope-and-machine-benchmark).
 
 `src/analysis/artifacts.test.ts`, source/compiled owner/debug/refinement/replay probes and browser West-only scope verification cover the behavior. [Full qualification](reviews/2026-10-15-owned-workflows.md) passes 803 tests and source/compiled/container gates. This closes the implemented artifact contract and bounded protocol study, not a future human usability experiment.
+
+### Hosted contention follow-up
+
+Reopened after release 1.6.1 [run 38748715543](https://github.com/skitsanos/nlui-demo/actions/runs/38748715543/job/116469110313) exposed `SQLITE_BUSY` while reading a refinement's data revision on macOS; Linux passed. Query workers published results before closing their connection, while the revision reader had no busy wait. Worker responses now return only after connection cleanup, and read-only revision hashing uses the same finite 250 ms lock wait as query execution. Regression tests cover close-before-publish success/rejection/error outcomes and real separate-worker transient/persistent lock contention. Reclosure requires corrected hosted qualification; no blind retry or disabled assertion substitutes for the fix.
