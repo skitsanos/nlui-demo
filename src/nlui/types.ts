@@ -1,3 +1,4 @@
+import type {ArtifactReceipt} from '../analysis/artifacts.ts';
 import type {ProductFact} from './productFacts.ts';
 
 export type CellValue = string | number | boolean | null;
@@ -19,6 +20,8 @@ export interface BlockBase
     id: string;
     title?: string;
     description?: string;
+    analysis?: ArtifactReceipt;
+    controlExpiresAt?: string;
 }
 
 export interface StatsBlock extends BlockBase
@@ -150,6 +153,7 @@ export interface ChatRequest
     conversationId: string;
     input: ChatInput;
     previousResponseId?: string;
+    requestId?: string;
 }
 
 export interface ChatActivity

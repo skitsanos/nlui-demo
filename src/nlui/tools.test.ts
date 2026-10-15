@@ -55,7 +55,7 @@ describe('NLUI tool catalog', () =>
             type: 'stats', title: 'Registered customers', items: [{value: 200}]
         });
         expect(semantic.traceOutput).toMatchObject({
-            semanticPlan: {catalogId: 'retail-operations', catalogVersion: 2, metric: 'registered_customer_count'},
+            semanticPlan: {catalogId: 'retail-operations', catalogVersion: 3, metric: 'registered_customer_count'},
             relationships: [],
             metric: {id: 'registered_customer_count', unit: 'count', grain: 'customer'}
         });

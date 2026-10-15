@@ -57,14 +57,14 @@ class SqliteDemoRepository implements DemoRepository {
         return queryPolicies(this.database, query, limit);
     }
 
-    prepareAction(input: DemoActionInput): ActionConfirmation {
+    prepareAction(input: DemoActionInput, ownerScope?: string): ActionConfirmation {
         this.assertOpen();
-        return prepareDemoAction(this.database, input);
+        return prepareDemoAction(this.database, input, ownerScope);
     }
 
-    confirmAction(actionId: string): DemoActionResult {
+    confirmAction(actionId: string, ownerScope?: string): DemoActionResult {
         this.assertOpen();
-        return confirmDemoAction(this.database, actionId);
+        return confirmDemoAction(this.database, actionId, ownerScope);
     }
 
     close(): void {

@@ -233,7 +233,7 @@ export interface DemoRepository {
     searchProducts(filters?: ProductSearchFilters): ProductSummary[];
     getOrder(orderNumber: string | number): OrderDetails | null;
     searchPolicies(query: string, limit?: number): PolicyMatch[];
-    prepareAction(input: DemoActionInput): ActionConfirmation;
-    confirmAction(actionId: string): DemoActionResult;
+    prepareAction(input: DemoActionInput, ownerScope?: string): ActionConfirmation;
+    confirmAction(actionId: string, ownerScope?: string): DemoActionResult;
     close(): void;
 }

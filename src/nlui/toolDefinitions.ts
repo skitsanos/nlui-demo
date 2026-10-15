@@ -5,10 +5,11 @@ import {
     CUSTOMER_REGIONS,
     CUSTOMER_TIERS,
     SEMANTIC_DIMENSION_IDS,
+    SEMANTIC_DIMENSIONS,
     SEMANTIC_METRIC_IDS,
-    SEMANTIC_METRICS,
     ORDER_STATUSES as SEMANTIC_ORDER_STATUSES
 } from '../data/semantic/catalog.ts';
+import {semanticCatalogGuide} from '../data/semantic/metadata.ts';
 import {ORDER_STATUSES, PRODUCT_CATEGORIES, REGIONS} from './toolArguments.ts';
 
 const objectSchema = (properties: Record<string, unknown>, required = Object.keys(properties)) => ({
@@ -160,9 +161,7 @@ const semanticFilter = (dimension: string, values: Record<string, unknown>) => o
     values: {type: 'array', minItems: 1, ...values}
 });
 
-const semanticMetricGuide = SEMANTIC_METRIC_IDS
-    .map((id) => `${id}: ${SEMANTIC_METRICS[id].description}`)
-    .join(' ');
+const semanticMetricGuide = semanticCatalogGuide();
 
 const semanticPlanGuide = `Use registered_customer_count only for the current lifetime customer population: its timeRange must be null and it cannot use the month dimension or filter. Use customer_registrations for customers registered during a period; it requires an explicit timeRange. active_customer_count also requires an explicit timeRange. Eligible order, revenue, and average-order-value metrics already exclude cancelled and returned orders, so never add those exclusions as filters. Use timeRange for period bounds and do not repeat the same constraint with a month filter. Add the month dimension only for a requested monthly grouping or trend. Leave orderBy and limit null unless the user asks for ranking or a bounded number of grouped rows. The server chooses the renderer from the verified result shape.`;
 
@@ -198,6 +197,7 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
                             items: {type: 'string', enum: CUSTOMER_TIERS},
                             maxItems: CUSTOMER_TIERS.length
                         }),
+                        semanticFilter('product_category', {items: {type: 'string', enum: SEMANTIC_DIMENSIONS.product_category.filterValues}, maxItems: 10}),
                         semanticFilter('order_status', {
                             items: {type: 'string', enum: SEMANTIC_ORDER_STATUSES},
                             maxItems: SEMANTIC_ORDER_STATUSES.length

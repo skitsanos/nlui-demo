@@ -1,3 +1,4 @@
+import {toResponseInputItems} from 'openai/lib/responses/ResponseInputItems';
 import type {
     FunctionTool,
     ResponseCreateParamsStreaming,
@@ -44,6 +45,8 @@ type ResponseEventStream = AsyncIterable<ResponseStreamEvent>;
 
 export interface OpenAIChatDependencies
 {
+    // Presence (including []) selects owned, stateless history. Never accepted from HTTP input.
+    history?: Array<{role: 'user' | 'assistant'; content: string}>;
     model: string;
     tools?: FunctionTool[];
     instructions?: string;
@@ -119,8 +122,10 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
     {
         const started = performance.now();
         const messageId = crypto.randomUUID();
-        let previousResponseId = request.previousResponseId;
-        let input: string | ResponseInputItem[] = toModelInput(request);
+        const ownedHistory = dependencies.history !== undefined;
+        let previousResponseId = ownedHistory ? undefined : request.previousResponseId;
+        let input: string | ResponseInputItem[] = ownedHistory
+            ? [...dependencies.history!, {role: 'user', content: toModelInput(request)}] : toModelInput(request);
         let toolCallCount = 0;
         let toolActivitySequence = 0;
         let composeActivitySequence = 0;
@@ -178,6 +183,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                 let roundUsage = emptyTokenUsage();
                 let roundRecorded = false;
                 let usageKnown = false;
+                let responseItems: ResponseInputItem[] = [];
                 const recordRound = (outcome: ChatRoundTrace['outcome'] = 'completed'): void =>
                 {
                     if (roundRecorded) return;
@@ -199,7 +205,8 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                     const stream = await abortable(() => dependencies.createResponse({
                         model: dependencies.model, instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
                         input, previous_response_id: previousResponseId, tools: dependencies.tools ?? OPENAI_TOOLS,
-                        parallel_tool_calls: false, max_output_tokens: MAX_OUTPUT_TOKENS, store: true, stream: true,
+                        parallel_tool_calls: false, max_output_tokens: MAX_OUTPUT_TOKENS, store: !ownedHistory, stream: true,
+                        ...ownedHistory && {include: ['reasoning.encrypted_content']},
                         text: responseTextConfigFor(candidates, responsePolicies)
                     }, signal), signal);
                     for await (const event of abortableEvents(stream, signal))
@@ -215,6 +222,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                             {
                                 usageKnown = event.response.usage != null;
                                 roundUsage = tokenUsage(event.response.usage);
+                                responseItems = toResponseInputItems(event.response.output ?? []);
                             }
                         }
                         const eventError = errorFromEvent(event);
@@ -356,8 +364,8 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                 }
 
                 beginComposeActivity();
-                previousResponseId = responseId;
-                input = outputs;
+                if (ownedHistory) input = [...input as ResponseInputItem[], ...responseItems, ...outputs];
+                else {previousResponseId = responseId; input = outputs;}
             }
 
             throw new Error(`The assistant exceeded ${MAX_TOOL_ROUNDS} tool rounds after ${finalResponseId}`);

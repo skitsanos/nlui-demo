@@ -1,10 +1,10 @@
 # NLUI-023: Evaluate adversarial data, exact query scope and principal authorization
 
-- Status: Open
+- Status: Closed
 - Priority: P2
 - Kind: Improvement
 - Created: 2026-10-14
-- Updated: 2026-10-14
+- Updated: 2026-10-15
 - Scope: src/data/queryPolicy.ts; src/nlui; src/services; evaluation fixtures
 - Evidence: Research roadmap migration
 
@@ -24,11 +24,13 @@ Seed prompt injection in descriptions/policies/support subjects/return reasons, 
 
 ## Acceptance criteria
 
-- [ ] Adversarial data cannot grant action authority or leak tenant canaries/restricted fields.
-- [ ] Fuzz comments/quoting/shadowing/nesting/CTEs/joins/offsets/Unicode with fail-closed scope resolution.
-- [ ] Action ownership, query budgets and redacted observability are executable regressions.
-- [ ] No claim of production authorization is made before authenticated principal tests pass.
+- [x] Adversarial data cannot grant controller action authority or expose unpublished canaries; foreign anonymous-session artifacts/actions are denied. Shared business rows are not claimed tenant-isolated.
+- [x] Bounded fuzz corpus covers comments/quoting/shadowing/nesting/CTEs/joins/offsets/Unicode with fail-closed resolution.
+- [x] Scoped action ownership, finite budgets and redacted public observability have executable regressions.
+- [x] No production authorization claim is made; authenticated principals remain outside the approved local-demo scope.
 
 ## Resolution
 
-Pending. Record the implemented change and the checks that satisfy each acceptance criterion before closing.
+Exact AST column/alias/CTE scope resolution now enforces only published in-scope fields before/after canonicalization. Fresh explicit user action type/target, durable owner/conversation capability checks and scoped supersession prevent retrieved instructions or another session from granting mutation authority. Restricted-column canaries, seeded malicious free text, bounded SQL fuzzing, mutation-once retries, budgets and separate cookie-jar history/debug/preview probes are regression-tested.
+
+See [adversarial qualification](reviews/2026-10-15-owned-workflows.md#adversarial-scope-and-capabilities-nlui-023), `src/data/queryFields.test.ts`, `src/nlui/adversarialScope.test.ts`, ownership/HTTP suites and public-stream projection tests. All 803 regressions plus source/compiled/container gates pass. This proves specified deterministic boundaries over the synthetic demo, not LLM prompt-injection immunity, authenticated tenancy, tenant-filtered business rows or a production security certification. The user explicitly approved anonymous local ownership instead of production identity integration.

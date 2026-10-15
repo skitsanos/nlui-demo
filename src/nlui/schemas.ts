@@ -20,7 +20,8 @@ export const chatInputSchema = z.discriminatedUnion('type', [
 export const chatRequestSchema = z.object({
     conversationId: z.string().min(12).max(120),
     input: chatInputSchema,
-    previousResponseId: z.string().min(1).max(200).optional()
+    previousResponseId: z.string().min(1).max(200).optional(),
+    requestId: z.string().min(12).max(120).regex(/^[a-zA-Z0-9_-]+$/).optional()
 });
 
 export const actionRequestSchema = z.object({
@@ -32,7 +33,8 @@ export const actionRequestSchema = z.object({
 const blockBaseSchema = z.object({
     id: z.string().min(1),
     title: z.string().optional(),
-    description: z.string().optional()
+    description: z.string().optional(),
+    controlExpiresAt: z.iso.datetime().optional()
 });
 
 const statsBlockSchema = blockBaseSchema.extend({

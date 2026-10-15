@@ -1,4 +1,5 @@
 import {Empty, Tooltip, Typography} from 'antd';
+import {useState} from 'react';
 import type {ChartBlock} from '../../nlui/types.ts';
 import {formatTemporalValue} from '../dateFormat.ts';
 
@@ -49,6 +50,7 @@ const toPoints = (block: ChartBlock): ChartPoint[] =>
 export const MiniChart = ({block}: {block: ChartBlock}) =>
 {
     const points = toPoints(block);
+    const [showData, setShowData] = useState(false);
     if (points.length === 0)
     {
         return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No chart data"/>;
@@ -129,6 +131,12 @@ export const MiniChart = ({block}: {block: ChartBlock}) =>
                 )}
             </svg>
             {block.valueLabel && <Typography.Text type="secondary" className="chart-caption">{block.valueLabel}</Typography.Text>}
+            <button type="button" className="chart-data-toggle" aria-expanded={showData} onClick={() => setShowData(!showData)}>View chart data</button>
+            {/* biome-ignore lint/a11y/noNoninteractiveTabindex: The named chart-data region may scroll and needs keyboard access. */}
+            {showData && <section className="nlui-table-region" tabIndex={0} aria-label="Chart data alternative">
+                <table><caption>{block.title ?? 'Chart data'}</caption><thead><tr><th scope="col">Category</th><th scope="col">{block.valueLabel ?? 'Value'}</th></tr></thead>
+                    <tbody>{points.map((point) => <tr key={point.id}><th scope="row">{point.label}</th><td>{point.value.toLocaleString('en-GB')}</td></tr>)}</tbody></table>
+            </section>}
         </div>
     );
 };

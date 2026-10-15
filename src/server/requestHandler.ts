@@ -1,6 +1,6 @@
 import config from '@/core/configuration.ts';
 import type {SocketData} from '@/core/types.ts';
-import {applyCorsHeaders, handleCors} from '@/utils/cors.ts';
+import {applyCorsHeaders, handleCors, isCorsPreflight} from '@/utils/cors.ts';
 import type Logger from '@/utils/logger.ts';
 import {publicDir} from '@/utils/runtime.ts';
 import {serveStatic} from '@/utils/staticFiles.ts';
@@ -62,12 +62,6 @@ export const createRequestHandler = ({
     const requestUrl = new URL(request.url);
     const clientIp = getClientIp(request, server);
 
-    const preflightResponse = handleCors(request, config.server.cors);
-    if (preflightResponse)
-    {
-        return preflightResponse;
-    }
-
     let matchedRoute: string | null = null;
     let response: Response | undefined;
     let upgraded = false;
@@ -78,7 +72,7 @@ export const createRequestHandler = ({
         {
             response = createResponse('Bad Request', 400, {'Content-Type': 'text/plain'});
         }
-        else if (request.method === 'GET' || request.method === 'HEAD')
+        else if (request.method === 'GET' || request.method === 'HEAD' || isCorsPreflight(request) || request.method === 'OPTIONS')
         {
             const staticResponse = await serveStatic(
                 requestUrl.pathname,
@@ -89,7 +83,8 @@ export const createRequestHandler = ({
             if (staticResponse)
             {
                 matchedRoute = 'static';
-                response = staticResponse;
+                response = handleCors(request, config.server.cors, ['GET', 'HEAD', 'OPTIONS'])
+                    ?? (request.method === 'OPTIONS' ? new Response(null, {status: 204, headers: {Allow: 'GET, HEAD, OPTIONS'}}) : staticResponse);
             }
         }
 

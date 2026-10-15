@@ -9,6 +9,7 @@ The user can ask a question in prose and receive concise text plus application-r
 - [`/`](/) — React and Ant Design X conversation interface
 - [`/docs/getting-started`](/docs/getting-started) — local setup, data reset, validation, and Docker
 - [`/docs/architecture`](/docs/architecture) — transport, tool, rendering, and action boundaries
+- [`/docs/activity-protocol`](/docs/activity-protocol) — sanitized public NDJSON activity events and internal-trace boundary
 
 ## Primary API
 
@@ -16,6 +17,11 @@ The user can ask a question in prose and receive concise text plus application-r
 | --- | --- |
 | `POST /api/chat` | Accepts a typed user message or UI result and streams NDJSON events |
 | `POST /api/actions` | Confirms one opaque, server-prepared demo action |
+| `GET /api/conversations` | Replays owner-scoped versioned conversation events and control state |
+| `POST /api/analysis` | Creates an owned immutable analysis or typed parent-bound refinement |
+| `GET /api/analysis` | Reads a receipt; SQL requires explicit owner-scoped debug access |
+| `GET /api/catalog` | Generated versioned semantic definitions and display metadata |
+| `POST /api/datasets/preview` | Validates the approved CSV template into a quarantined, non-executable preview |
 | `GET /api/health` | Process and Bun runtime health |
 | `GET /api/version` | Application and Bun versions |
 | `GET /api/config` | Allowlisted, non-secret server configuration |
@@ -55,4 +61,8 @@ Generated SQLite, WAL, and shared-memory files are local runtime artifacts and a
 - Mutations are prepare-then-confirm and use opaque, expiring capabilities.
 - The OpenAI key stays on the Bun server.
 
-This is a single-process demo without authentication, multi-tenancy, or durable conversation storage. Valid chat turns may incur OpenAI usage. The supplied automated validation uses local data and deliberately malformed HTTP requests, so it is non-billable.
+This single-process local demo has durable application-owned conversation state and anonymous session isolation, not production authentication or multi-tenancy. `NLUI_STATE_DB_PATH` defaults to a separate private `data/conversations.sqlite`; it never migrates/resets the business dataset. The browser restores its current conversation across refresh. Expired sessions cannot reclaim previous conversations. Protect local state storage: it contains private messages/artifacts and is not encrypted.
+
+**Explore dataset** performs typed analytics/refinement without provider calls. **Inspect a dataset** validates only a fixed aggregate CSV template and never activates uploads. The default controlled renderer is unchanged; `?renderer=a2ui` opts into the pinned X Card/A2UI experiment and safely falls back for unsupported surfaces.
+
+Valid chat turns may incur OpenAI usage. Automated qualification is provider-free. Research scripts require explicit billable opt-in and a persistent request budget; the approved 2026-10-15 forty-request run is exhausted, and new provider work requires a new user-approved budget. The small study did not justify replacing guarded SQL or the controlled renderer.

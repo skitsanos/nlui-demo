@@ -3,19 +3,19 @@ import {
     Button,
     Card,
     Checkbox,
-    List,
     Radio,
     Result,
     Space,
-    Table,
     Tag,
     Typography
 } from 'antd';
-import {useState} from 'react';
-import type {ChatInput, ChoicesBlock, NluiBlock, TableBlock} from '../../nlui/types.ts';
+import {useRef, useState} from 'react';
+import type {ChatInput, ChoicesBlock, NluiBlock} from '../../nlui/types.ts';
+import type {ControlState} from '../conversationReplay.ts';
+import {AnalysisControls, type AnalysisSubmission} from './AnalysisControls.tsx';
 import {Confirmation} from './Confirmation.tsx';
+import {DataTable} from './DataTable.tsx';
 import {DynamicForm} from './DynamicForm.tsx';
-import {FormattedValue} from './FormattedValue.tsx';
 import {MiniChart} from './MiniChart.tsx';
 import {ProductFacts} from './ProductFacts.tsx';
 import {StatisticsBlock} from './StatisticsBlock.tsx';
@@ -25,42 +25,31 @@ interface Props
     blocks: NluiBlock[];
     conversationId: string;
     disabled?: boolean;
+    states?: Record<string, ControlState>;
+    now?: number;
+    onAnalyze?: (input: AnalysisSubmission) => Promise<boolean>;
     onInteraction: (input: ChatInput, displayText: string) => Promise<boolean>;
 }
-
-const tableColumnMinWidth = (format: TableBlock['columns'][number]['format']): number =>
-{
-    switch (format)
-    {
-        case 'number':
-            return 96;
-        case 'currency':
-            return 128;
-        case 'status':
-            return 120;
-        case 'date':
-            return 176;
-        default:
-            return 160;
-    }
-};
 
 const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 'onInteraction'> & {block: ChoicesBlock}) =>
 {
     const [selection, setSelection] = useState<string | string[]>(block.multiple ? [] : '');
     const [submitted, setSubmitted] = useState(false);
-    const locked = disabled || submitted;
+    const [submitting, setSubmitting] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const pending = useRef(false);
+    const locked = disabled || submitted || submitting;
     const values = Array.isArray(selection) ? selection : selection ? [selection] : [];
 
     const submit = async (): Promise<void> =>
     {
-        if (values.length === 0)
+        if (values.length === 0 || locked || pending.current)
         {
             return;
         }
-        setSubmitted(true);
+        pending.current = true; setSubmitting(true); setFailed(false);
         const selectedLabels = block.options.filter(({value}) => values.includes(value)).map(({label}) => label);
-        const completed = await onInteraction(
+        try {const completed = await onInteraction(
             {
                 type: 'ui_result',
                 interactionId: block.interactionId,
@@ -68,7 +57,9 @@ const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
             },
             `Selected: ${selectedLabels.join(', ')}`
         );
-        if (!completed) setSubmitted(false);
+        setSubmitted(completed); setFailed(!completed);}
+        catch {setFailed(true);}
+        finally {pending.current = false; setSubmitting(false);}
     };
 
     const cards = block.options.map((option) =>
@@ -86,8 +77,9 @@ const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
     );
 
     return (
-        <Card className="nlui-card" title={block.title} extra={submitted ? <Tag color="success">Submitted</Tag> : undefined}>
+        <Card className="nlui-card" title={block.title} aria-busy={submitting} extra={submitted ? <Tag color="success">Submitted</Tag> : submitting ? <Tag>Submitting</Tag> : undefined}>
             {block.description && <Typography.Paragraph type="secondary">{block.description}</Typography.Paragraph>}
+            {failed && <Typography.Paragraph role="alert" type="danger">The response did not finish. Your selection is kept; you can try again.</Typography.Paragraph>}
             {block.multiple ? <Checkbox.Group
                 disabled={locked}
                 className="choice-grid"
@@ -99,18 +91,22 @@ const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
                 value={selection}
                 onChange={(event) => setSelection(String(event.target.value))}
             >{cards}</Radio.Group>}
-            <Button type="primary" className="choice-submit" onClick={submit} disabled={locked || values.length === 0}>
+            <Button type="primary" className="choice-submit" onClick={submit} loading={submitting} disabled={locked || values.length === 0}>
                 Continue
             </Button>
         </Card>
     );
 };
 
-export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: Props) => (
+export const NluiRenderer = ({blocks, conversationId, disabled: globallyDisabled, onInteraction, states = {}, onAnalyze, now = Date.now()}: Props) => (
     <Space orientation="vertical" size={12} className="nlui-stack">
         {blocks.map((block) =>
         {
-            switch (block.type)
+            const interactionId = 'interactionId' in block ? block.interactionId : block.id;
+            const recorded = states[interactionId];
+            const state = (!recorded || recorded === 'available') && block.controlExpiresAt && Date.parse(block.controlExpiresAt) <= now ? 'expired' : recorded;
+            const disabled = globallyDisabled || !!state && state !== 'available';
+            const render = () => {switch (block.type)
             {
                 case 'stats':
                     return <StatisticsBlock key={block.id} block={block}/>;
@@ -120,29 +116,7 @@ export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: 
                     </Card>;
                 case 'table':
                     return <Card key={block.id} className="nlui-card nlui-table-card" title={block.title}>
-                        <section
-                            className="nlui-table-region"
-                            aria-label={block.title ?? 'Data table'}
-                        >
-                            <Table
-                                className="nlui-table"
-                                rowKey={(row) => String(row[block.rowKey])}
-                                dataSource={block.rows}
-                                columns={block.columns.map((column) => ({
-                                    title: column.label,
-                                    dataIndex: column.key,
-                                    key: column.key,
-                                    minWidth: tableColumnMinWidth(column.format),
-                                    align: column.format === 'number' || column.format === 'currency' ? 'right' : 'left',
-                                    render: (value: TableBlock['rows'][number][string]) => (
-                                        <FormattedValue value={value} format={column.format}/>
-                                    )
-                                }))}
-                                size="small"
-                                scroll={{x: 'max-content'}}
-                                pagination={block.rows.length > 8 ? {pageSize: 8, size: 'small'} : false}
-                            />
-                        </section>
+                        <DataTable block={block} onAnalyze={onAnalyze} disabled={globallyDisabled}/>
                     </Card>;
                 case 'choices':
                     return <ChoiceInput key={block.id} block={block} disabled={disabled} onInteraction={onInteraction}/>;
@@ -152,9 +126,9 @@ export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: 
                     return <Confirmation key={block.id} block={block} conversationId={conversationId} disabled={disabled} onInteraction={onInteraction}/>;
                 case 'sources':
                     return <Card key={block.id} className="nlui-card" title={block.title ?? 'Sources'}>
-                        <List dataSource={block.items} renderItem={(item) => <List.Item>
-                            <List.Item.Meta avatar={<FileText size={20}/>} title={item.title} description={<>{item.excerpt}<br/><Typography.Text type="secondary">{item.source}</Typography.Text></>}/>
-                        </List.Item>}/>
+                        <ul className="source-list">{block.items.map((item) => <li key={item.source + item.title}>
+                            <FileText size={20} aria-hidden="true"/><div><strong>{item.title}</strong><Typography.Paragraph>{item.excerpt}</Typography.Paragraph><Typography.Text type="secondary">{item.source}</Typography.Text></div>
+                        </li>)}</ul>
                     </Card>;
                 case 'result':
                     return <Result
@@ -166,7 +140,14 @@ export const NluiRenderer = ({blocks, conversationId, disabled, onInteraction}: 
                         subTitle={block.message}
                     />;
             }
-            return null;
+            return null;};
+            return <section key={block.id} className="nlui-block">
+                {state && state !== 'available' && <Typography.Paragraph role="status" className="control-status"><Tag>{state[0]!.toUpperCase() + state.slice(1)}</Tag>
+                    {state === 'completed' ? 'The action is already completed; it will not run again.' : state === 'expired' || state === 'superseded' ? 'Ask for a fresh proposal after checking the current record.' : 'This control is no longer awaiting input.'}
+                </Typography.Paragraph>}
+                {render()}
+                {block.analysis && onAnalyze && <AnalysisControls receipt={block.analysis} onAnalyze={onAnalyze} disabled={globallyDisabled}/>}
+            </section>;
         })}
     </Space>
 );

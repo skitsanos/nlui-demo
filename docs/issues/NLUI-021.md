@@ -1,10 +1,10 @@
 # NLUI-021: Add artifact-aware analytical refinements and provenance
 
-- Status: Open
+- Status: Closed
 - Priority: P2
 - Kind: Improvement
 - Created: 2026-10-14
-- Updated: 2026-10-14
+- Updated: 2026-10-15
 - Scope: src/data/semantic; src/nlui; src/client
 - Evidence: Research roadmap migration
 
@@ -24,10 +24,14 @@ Assign immutable planId/resultId, retain dataset/metric/dimension/filter/time/so
 
 ## Acceptance criteria
 
-- [ ] Refinements produce deterministic plan deltas and unambiguous referent resolution.
-- [ ] Measure completion time/turns, reformulation/correction and detection of mismatched filters versus chat-only.
-- [ ] Receipts match exact applied semantics without exposing unrestricted data.
+- [x] Refinements produce deterministic deltas bound to exact owned parent result IDs.
+- [x] Bounded machine/protocol completion, turns, correction and mismatch detection compared with the live chat control; measurement boundaries and lack of human reformulation evidence explicitly recorded.
+- [x] Receipts match exact applied semantics without exposing unrestricted data.
 
 ## Resolution
 
-Pending. Record the implemented change and the checks that satisfy each acceptance criterion before closing.
+Implemented immutable artifacts and typed metric/group/filter/date/top-N/order refinements through explicit provider-free Explore/refine controls. Context is retained, ambiguous/foreign/stale parents fail closed, actual data revisions differ from declared seed identity, and analytical sorting creates a new receipt. Full bounded results/SQL stay private; explicit owner-scoped debug is separate from readable public scope/provenance.
+
+The four-case × five-repeat machine benchmark passed 20/20 exact receipt checks and detected 20/20 mismatched-filter canaries, with one typed submission, zero model turns and zero correction requests per refinement. The live guarded-SQL control passed 4/4 with eight provider requests and zero rejected-tool repairs. Backend-only typed timing excludes human selection/network; **no causal human time/reformulation improvement or participant study is claimed**. See [measurements and limits](reviews/2026-10-15-remaining-research.md#nlui-021-analytical-artifacts-exact-scope-and-machine-benchmark).
+
+`src/analysis/artifacts.test.ts`, source/compiled owner/debug/refinement/replay probes and browser West-only scope verification cover the behavior. [Full qualification](reviews/2026-10-15-owned-workflows.md) passes 803 tests and source/compiled/container gates. This closes the implemented artifact contract and bounded protocol study, not a future human usability experiment.

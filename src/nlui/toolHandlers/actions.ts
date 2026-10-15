@@ -80,7 +80,17 @@ export const formHandler = (raw: unknown): ToolExecution =>
 
 export const prepareActionHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
+    if (context?.actionIntent === false) throw new Error('A fresh explicit user action request is required.');
     const args = actionArguments.parse(raw);
+    if (context?.actionIntent)
+    {
+        const intent = context.actionIntent;
+        if (intent.type !== args.action_type || intent.orderNumber
+            && normalizeOrderNumber(intent.orderNumber) !== normalizeOrderNumber(args.order_number))
+            throw new Error('The proposed action does not match this user request.');
+        if (!intent.orderNumber) return formHandler({kind: args.action_type === 'return_order' ? 'return_request'
+            : args.action_type === 'cancel_order' ? 'cancellation' : 'shipping_address', order_number: null});
+    }
     if ((args.action_type === 'return_order' || args.action_type === 'cancel_order') && !args.reason)
     {
         return formHandler({
@@ -107,7 +117,7 @@ export const prepareActionHandler = (raw: unknown, context?: ToolContext): ToolE
         type: args.action_type,
         orderNumber,
         reason: args.reason!
-    });
+    }, context?.ownerScope);
 
     return {
         modelOutput: {prepared: true, actionType: confirmation.actionType, orderNumber: confirmation.orderNumber},

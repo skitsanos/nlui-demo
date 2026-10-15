@@ -1,7 +1,8 @@
-import {copyFile, cp, mkdtemp, rm, symlink, writeFile} from 'node:fs/promises';
+import {copyFile, cp, mkdir, mkdtemp, rm, symlink, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import {prepareHttpFileFixtures} from './http-file-fixtures.ts';
+import {probeOwnedSessions} from './http-session-probe.ts';
 
 const projectRoot = resolve(import.meta.dir, '..');
 
@@ -73,12 +74,15 @@ export const runHttpSmoke = async (options: {
         {
             await copyFile(join(projectRoot, name), join(fixtureRoot, name));
         }
+        await mkdir(join(fixtureRoot, 'data'), {recursive: true});
+        await copyFile(join(projectRoot, 'data', 'fixture-manifest.json'), join(fixtureRoot, 'data', 'fixture-manifest.json'));
+        await cp(join(projectRoot, 'data', 'knowledge'), join(fixtureRoot, 'data', 'knowledge'), {recursive: true});
         await prepareHttpFileFixtures(fixtureRoot);
         const uploadFixture = join(fixtureRoot, 'upload-fixture.bin');
         await writeFile(uploadFixture, new Uint8Array(8 * 1024 * 1024));
         server = Bun.spawn(compiledBinary ? [compiledBinary] : [process.execPath, join(fixtureRoot, 'src', 'index.ts')], {
             cwd: fixtureRoot,
-            env: {...process.env, PORT: '0', NODE_ENV: 'production', LOG_LEVEL: 'INFO'},
+            env: {...process.env, OPENAI_API_KEY: '', CHAT_MODEL: '', NLUI_EVAL_LIVE: '0', PORT: '0', NODE_ENV: 'production', LOG_LEVEL: 'INFO', NLUI_STATE_DB_PATH: join(fixtureRoot, 'data', 'conversations.sqlite')},
             stdin: 'ignore', stdout: 'pipe', stderr: 'pipe'
         });
         // Drain stderr without exposing runtime diagnostics or credentials.
@@ -91,6 +95,7 @@ export const runHttpSmoke = async (options: {
         });
         const code = await withTimeout(requests.exited, 30_000, 'HTTP smoke requests timed out');
         if (code !== 0) throw new Error(`HTTP smoke tests failed with exit code ${code}`);
+        await probeOwnedSessions(url);
         if (!options.quiet) console.log(`HTTP smoke passed (${compiledBinary ? 'compiled' : 'source'}); isolated fixtures will be removed.`);
     }
     finally

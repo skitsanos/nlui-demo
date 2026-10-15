@@ -36,16 +36,15 @@ export const createRequestDeadline = (parent: AbortSignal, timeoutMs: number) =>
 };
 
 /** Own the reader so a deadline can cancel an unfinished request body. */
-export const readRequestJson = async (req: Request, signal: AbortSignal, maximumBytes = 50 * 1024 * 1024): Promise<unknown> =>
+export const readRequestBytes = async (req: Request, signal: AbortSignal, maximumBytes: number): Promise<Uint8Array<ArrayBuffer>> =>
 {
-    if (!req.body) return JSON.parse('');
+    if (!req.body) return new Uint8Array();
     const reader = req.body.getReader();
     const cancel = () => {void reader.cancel().catch(() => undefined);};
     signal.addEventListener('abort', cancel, {once: true});
     try
     {
-        const decoder = new TextDecoder();
-        let body = '';
+        const chunks: Uint8Array[] = [];
         let bytes = 0;
         while (true)
         {
@@ -53,10 +52,12 @@ export const readRequestJson = async (req: Request, signal: AbortSignal, maximum
             if (chunk.done) break;
             bytes += chunk.value.byteLength;
             if (bytes > maximumBytes) throw new RequestBodyTooLargeError();
-            body += decoder.decode(chunk.value, {stream: true});
+            chunks.push(chunk.value);
         }
         signal.throwIfAborted();
-        return JSON.parse(body + decoder.decode());
+        const body = new Uint8Array(bytes); let offset = 0;
+        for (const chunk of chunks) {body.set(chunk, offset); offset += chunk.byteLength;}
+        return body;
     }
     finally
     {
@@ -65,3 +66,6 @@ export const readRequestJson = async (req: Request, signal: AbortSignal, maximum
         reader.releaseLock();
     }
 };
+
+export const readRequestJson = async (req: Request, signal: AbortSignal, maximumBytes = 50 * 1024 * 1024): Promise<unknown> =>
+    JSON.parse(new TextDecoder().decode(await readRequestBytes(req, signal, maximumBytes)));

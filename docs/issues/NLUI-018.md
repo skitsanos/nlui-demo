@@ -1,12 +1,12 @@
 # NLUI-018: Resolve the transitive KaTeX advisory through a compatible upgrade
 
-- Status: Open
+- Status: Closed
 - Priority: P3
 - Kind: Improvement
 - Created: 2026-10-14
-- Updated: 2026-10-14
+- Updated: 2026-10-15
 - Scope: package.json; bun.lock; @ant-design/x-markdown dependency tree
-- Evidence: 2026-10-14 repository review
+- Evidence: 2026-10-14 repository review; 2026-10-15 maintenance qualification
 
 ## Problem
 
@@ -24,10 +24,14 @@ Recheck current upstream metadata/advisory and select a compatible maintained Ma
 
 ## Acceptance criteria
 
-- [ ] Fresh audit confirms the vulnerable path is removed.
-- [ ] Math and Markdown rendering and sanitization regressions pass.
-- [ ] Dependency changes preserve the user's supplied upgrades and remain separately qualified.
+- [x] Fresh audit confirms the vulnerable path is removed.
+- [x] Math and Markdown rendering and sanitization regressions pass.
+- [x] Dependency changes preserve the user's supplied upgrades and remain separately qualified.
 
 ## Resolution
 
-Pending. Record the implemented change and the checks that satisfy each acceptance criterion before closing.
+Fresh upstream/advisory inspection found XMarkdown still declaring the vulnerable 0.16 range. The application therefore pins a specifically qualified KaTeX 0.18.2 override, rather than assuming upstream semver compatibility. Its public renderToString adapter remains compatible; a small .katex-tag CSS bridge preserves the renamed equation-tag positioning. Revisit the override when upstream publishes a suitable patched dependency range.
+
+Isolated regressions exercise the actual production Markdown component and upstream math adapter, including escaped HTML, inert links/images, inherited trust options, inline/block formulas and equation tags. A real browser confirms readable output, correct positioning, no unsafe executable nodes and no console warnings/errors. Fresh bun audit --json returns {} with exit 0 and the tree resolves one patched KaTeX path.
+
+The regular bun update/install preserves existing constraints while refreshing OpenAI to 7.34.0 and React/React DOM to 19.3.1. [Maintenance qualification](reviews/2026-10-15-maintenance-qualification.md) records 727 passing tests and source/compiled/container checks for these dependency changes. The override is tested application compatibility, not an upstream support claim; no live-provider performance/compatibility claim is made.

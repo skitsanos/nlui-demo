@@ -1,10 +1,11 @@
 import {z} from 'zod';
-import {DATASET_REFERENCE_DATE} from '../constants.ts';
+import {DATASET_REFERENCE_DATE} from '../../shared/dataset.ts';
 import {
     CUSTOMER_REGIONS,
     CUSTOMER_TIERS,
     ORDER_STATUSES,
     SEMANTIC_DIMENSION_IDS,
+    SEMANTIC_DIMENSIONS,
     SEMANTIC_METRIC_IDS,
     SEMANTIC_METRICS
 } from './catalog.ts';
@@ -41,7 +42,8 @@ const filterSchemas = [
     z.object({
         dimension: z.literal('order_status'),
         values: z.array(z.enum(ORDER_STATUSES)).min(1).max(ORDER_STATUSES.length)
-    }).strict()
+    }).strict(),
+    z.object({dimension: z.literal('product_category'), values: z.array(z.enum(SEMANTIC_DIMENSIONS.product_category.filterValues as [string, ...string[]])).min(1).max(10)}).strict()
 ] as const;
 
 export const semanticFilterSchema = z.discriminatedUnion('dimension', filterSchemas);

@@ -109,16 +109,21 @@ body { overflow: hidden; }
 }
 .welcome-wrap .ant-prompts { margin-top: 28px; }
 .welcome-wrap .ant-prompts-item {
+    position: relative;
     min-width: 260px;
     background: rgb(255 255 255 / 85%);
     border-color: #e3e5ec;
     box-shadow: 0 8px 26px rgb(33 40 70 / 5%);
     transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
-.welcome-wrap .ant-prompts-item:is(:hover, :focus-visible) {
+.welcome-wrap .ant-prompts-item:is(:hover, :focus-visible), .welcome-wrap .ant-prompts-item:has(.starter-button:focus-visible) {
     border-color: #a9a7ee;
     box-shadow: 0 10px 30px rgb(91 91 214 / 11%);
 }
+.starter-button { border: 0; background: none; color: inherit; padding: 0; font: inherit; text-align: left; cursor: pointer; }
+.starter-button::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.starter-button:focus-visible { outline: none; }
+.starter-button:focus-visible::after { outline: 2px solid #5b5bd6; outline-offset: 3px; }
 
 .message-list { height: 100%; padding: 28px max(24px, calc((100% - 940px) / 2)); overflow-y: auto; }
 .message-list .ant-bubble { margin-bottom: 20px; }
@@ -166,6 +171,7 @@ body { overflow: hidden; }
 .nlui-table-card .ant-card-head-title { padding-block: 12px; white-space: normal; line-height: 1.35; }
 .nlui-table-card .ant-card-body { min-width: 0; padding: 0; }
 .nlui-table-region { min-width: 0; }
+.table-scroll-hint { display: inline-block; margin: 6px 8px; color: #737b8f; font-size: 11px; }
 .nlui-table-card .ant-table-wrapper { min-width: 0; }
 .nlui-table-card .ant-table-content { overflow-x: auto; overscroll-behavior-inline: contain; }
 .nlui-table-card .ant-table-cell { white-space: nowrap; }
@@ -206,6 +212,23 @@ body { overflow: hidden; }
 .product-facts { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 8px 0 0; font-size: 12px; }
 .product-facts dt { color: #737b8f; }
 .product-facts dd { margin: 2px 0 0; color: #2b2e45; font-weight: 600; overflow-wrap: anywhere; }
+/* KaTeX 0.18 prefixes internal classes; preserve XMarkdown's inline-tag positioning. */
+.x-markdown .inline-katex .katex-display > .katex > .katex-html > .katex-tag { position: static; }
+
+.nlui-block, .analysis-controls, .analysis-panel { min-width: 0; width: 100%; }
+.analysis-controls { width: auto; }
+.analysis-panel, .dataset-preview { margin-top: 8px; padding: 12px; background: #fff; border: 1px solid #e3e5ef; border-radius: 12px; max-height: min(50vh, 440px); overflow: auto; }
+.analysis-panel .ant-descriptions-item-content { overflow-wrap: anywhere; }
+.source-list { list-style: none; padding: 0; margin: 0; }
+.source-list li { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eceef5; }
+.source-list li:last-child { border-bottom: 0; }
+.source-list li > svg { flex-shrink: 0; margin-top: 3px; }
+.source-list li > div { min-width: 0; }
+.control-status { margin: 0 0 6px; }
+.chart-data-toggle { display: block; margin: 8px auto 0; padding: 4px 8px; border: 1px solid #d8dbec; border-radius: 6px; background: #fff; color: #343497; cursor: pointer; }
+.chart-data-toggle:focus-visible, .nlui-table-region:focus-visible { outline: 2px solid #5b5bd6; outline-offset: 3px; }
+.mini-chart table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+.mini-chart th, .mini-chart td { padding: 6px 12px; border-bottom: 1px solid #eceef5; text-align: left; }
 .choice-submit { margin-top: 14px; }
 .form-submit-error { margin-bottom: 16px; }
 .nlui-form .ant-card-head-title { white-space: normal; overflow-wrap: anywhere; padding-block: 12px; }
@@ -216,6 +239,7 @@ body { overflow: hidden; }
 
 .composer-wrap { padding: 12px max(24px, calc((100% - 940px) / 2)) 14px; background: linear-gradient(180deg, rgb(244 246 250 / 20%), #f4f6fa 26%); }
 .composer-wrap .ant-sender { background: rgb(255 255 255 / 94%); border-color: #dcdfe8; box-shadow: 0 14px 42px rgb(31 37 64 / 10%); }
+.composer-wrap > .ant-flex { margin-bottom: 8px; align-items: flex-start; }
 .composer-wrap .ant-sender:focus-within { border-color: #8c88e4; box-shadow: 0 14px 44px rgb(78 73 180 / 14%); }
 .composer-hint { display: block; margin-top: 8px; text-align: center; font-size: 11px; }
 

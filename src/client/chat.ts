@@ -15,18 +15,19 @@ export interface ChatStreamOptions
     conversationId: string;
     input: ChatInput;
     previousResponseId?: string;
+    requestId?: string;
     signal: AbortSignal;
     onEvent: (event: ChatStreamEvent) => void;
     fetchChat?: (url: string, options: RequestInit) => Promise<Response>;
 }
 
-export const streamChat = async ({conversationId, input, previousResponseId, signal, onEvent, fetchChat = fetch}: ChatStreamOptions): Promise<void> =>
+export const streamChat = async ({conversationId, input, previousResponseId, requestId, signal, onEvent, fetchChat = fetch}: ChatStreamOptions): Promise<void> =>
 {
     signal.throwIfAborted();
     const response = await fetchChat('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({conversationId, input, previousResponseId}),
+        body: JSON.stringify({conversationId, input, previousResponseId, ...requestId && {requestId}}),
         signal
     });
 

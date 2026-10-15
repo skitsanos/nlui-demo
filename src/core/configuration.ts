@@ -5,7 +5,7 @@ import {resolveServerLimits, serverLimitsSchema} from './serverLimits.ts';
 
 const logger = new Logger('Config');
 
-const corsSchema = z.object({
+export const corsSchema = z.object({
     enabled: z.boolean().default(false),
     allowedOrigins: z.array(z.string()).default([]),
     allowedMethods: z.array(z.string()).default(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']),
@@ -13,6 +13,8 @@ const corsSchema = z.object({
     exposedHeaders: z.array(z.string()).default([]),
     allowCredentials: z.boolean().default(false),
     maxAge: z.number().int().nonnegative().default(0)
+}).refine((cors) => !(cors.allowedOrigins.includes('*') && cors.allowCredentials), {
+    message: 'Credentialed CORS requires explicit allowed origins', path: ['allowedOrigins']
 });
 
 const sslSchema = z.object({

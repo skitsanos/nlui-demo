@@ -8,6 +8,13 @@ export const prepareHttpFileFixtures = async (root: string): Promise<void> =>
     const docsDir = join(publicDir, 'docs');
     const sibling = join(root, 'public-private');
     await mkdir(docsDir, {recursive: true});
+    await writeFile(join(root, 'monthly-region.csv'), 'month,region,revenue_eur,order_count\n2026-06,West,1234.50,12\n2026-06,East,987.25,9\n');
+    await mkdir(join(root, 'config'), {recursive: true});
+    await writeFile(join(root, 'config/server.yaml'), 'server:\n  cors:\n    enabled: true\n    allowedOrigins: ["https://allowed.example"]\n    allowedMethods: [GET, HEAD, POST, DELETE, OPTIONS]\n    allowedHeaders: [Content-Type, Authorization]\n');
+    await writeFile(join(root, 'src/routes/api/cors-options.ts'),
+        'let mutations = 0; export const GET = () => Response.json({mutations});\n'
+        + 'export const POST = () => {mutations++; return Response.json({mutations});};\n'
+        + 'export const OPTIONS = () => new Response("Ordinary OPTIONS", {status: 202, headers: {Vary: "Accept-Encoding"}});\n');
     await mkdir(sibling);
     await mkdir(join(publicDir, 'boundary-folder.txt'));
     await mkdir(join(docsDir, 'boundary-folder.md'));

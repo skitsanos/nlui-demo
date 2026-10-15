@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Bun 1.3 or newer
+- Bun 1.4 or newer
 - An OpenAI API key and a Responses API-compatible chat model
 - Optional: Hurl and Task for HTTP smoke tests
 - Optional: Docker for the container path
@@ -13,7 +13,7 @@
 bun install --frozen-lockfile
 ```
 
-Create an ignored `.env` file in the project root:
+Reuse the existing ignored `.env` file; only create one if it is absent:
 
 ```dotenv
 OPENAI_API_KEY=your-api-key
@@ -61,6 +61,10 @@ Try these deterministic prompts:
 - `Help me choose a laptop for design work.`
 - `What is the return window and refund timing?`
 - `Change the delivery address for order 1176.`
+
+The browser restores its current conversation using an anonymous HttpOnly session cookie and private application events. `NLUI_STATE_DB_PATH` defaults to `data/conversations.sqlite`, separate from the analytical fixture. Protect this file: it contains local messages/artifacts and is not encrypted. Expired sessions cannot reclaim old conversations. This is single-process anonymous isolation, not production authentication or tenant filtering.
+
+**Explore dataset** provides provider-free typed analysis/refinement with exact receipts. **Inspect a dataset** accepts only the documented aggregate CSV template into quarantine; it never activates data. `?renderer=a2ui` enables the experimental pinned renderer while the controlled view remains the default/fallback.
 
 ## Local validation
 
@@ -124,7 +128,7 @@ The GitHub workflow defines Linux/macOS source-and-compiled jobs followed by a L
 
 ## Cost boundary
 
-Valid chat messages call the configured OpenAI model and can incur charges. `bun run check` and the default Hurl smoke suite are intentionally non-billable. The current conversation implementation chains stored Responses API results, so use synthetic or otherwise demo-safe prompts.
+Valid chat messages call the configured OpenAI model and can incur charges. `bun run check` and HTTP qualification are non-billable. The owned HTTP path uses `store: false` and bounded application history; the isolated evaluation adapter can still exercise managed chaining. Use synthetic/demo-safe prompts. The approved forty-request 2026-10-15 research budget is exhausted; do not reset it or make further provider calls without renewed approval. `bun --no-env-file scripts/research-refinements.ts` is a provider-free machine benchmark, not a human productivity study.
 
 The live evaluation runner requires both an environment opt-in and a command-line acknowledgement, plus an explicit scenario or category:
 

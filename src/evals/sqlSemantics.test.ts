@@ -73,11 +73,9 @@ describe('effective SQL semantic grading', () =>
     test('does not borrow exclusions from the wrong table or an ambiguous column', () =>
     {
         const from = `SELECT COUNT(*) AS n FROM orders o JOIN shipments s ON s.order_id = o.id WHERE`;
-        for (const column of ['s.status', 'status', 'unknown.status'])
-        {
-            expect(evaluateSqlSemantics(exclusions, `${from} ${column} NOT IN ('cancelled', 'returned')`))
-                .toContain('SQL did not satisfy');
-        }
+        expect(evaluateSqlSemantics(exclusions, `${from} s.status NOT IN ('cancelled', 'returned')`)).toContain('SQL did not satisfy');
+        for (const column of ['status', 'unknown.status'])
+            expect(evaluateSqlSemantics(exclusions, `${from} ${column} NOT IN ('cancelled', 'returned')`)).toContain('SQL_POLICY');
         expect(evaluateSqlSemantics(exclusions, `${from} o.status NOT IN ('cancelled', 'returned')`)).toBeUndefined();
     });
 

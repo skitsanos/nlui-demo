@@ -1,3 +1,4 @@
+import {type ConversationStore, getConversationStore } from '../conversations/store.ts';
 import {normalizeFormValues} from './formValues.ts';
 import {
     type Capability,
@@ -21,12 +22,15 @@ interface CapabilityEntry
     capability: Capability;
     expiresAt: number;
     consumedAt?: number;
+    supersededAt?: number;
+    supersessionKey?: string;
 }
 
 interface RegistryOptions
 {
     ttlMs?: number;
     now?: () => number;
+    storage?: () => ConversationStore;
 }
 
 const DEFAULT_TTL_MS = 15 * 60 * 1_000;
@@ -37,11 +41,14 @@ export class InteractionCapabilityRegistry
     private readonly entries = new Map<string, CapabilityEntry>();
     private readonly ttlMs: number;
     private readonly now: () => number;
+    private readonly storage?: () => ConversationStore;
+    private loaded = false;
 
-    constructor({ttlMs = DEFAULT_TTL_MS, now = Date.now}: RegistryOptions = {})
+    constructor({ttlMs = DEFAULT_TTL_MS, now = Date.now, storage}: RegistryOptions = {})
     {
         this.ttlMs = ttlMs;
         this.now = now;
+        this.storage = storage;
     }
 
     issue(conversationId: string, block: NluiBlock): void
@@ -51,10 +58,11 @@ export class InteractionCapabilityRegistry
 
     issueMany(conversationId: string, blocks: NluiBlock[]): void
     {
+        this.load();
         const now = this.now();
         for (const [interactionId, entry] of this.entries)
         {
-            if (entry.expiresAt <= now) this.entries.delete(interactionId);
+            if (entry.expiresAt <= now) {this.entries.delete(interactionId); this.storage?.().remove('capability', interactionId);}
         }
         const issued = blocks.map(capabilityFor).filter((entry) => entry !== undefined);
         const interactionIds = issued.map(({interactionId}) => interactionId);
@@ -67,13 +75,35 @@ export class InteractionCapabilityRegistry
         {
             throw new Error('The interaction capability limit was reached.');
         }
+        const keyFor = (block: NluiBlock): string | undefined =>
+        {
+            if (block.type === 'form') return block.interactionId.includes(':') ? `form:${block.interactionId.split(':')[0]}` : undefined;
+            if (block.type === 'choices') return 'choices';
+            if (block.type !== 'confirmation') return undefined;
+            const order = block.details.find(({label}) => label === 'Order')?.value;
+            const action = block.details.find(({label}) => label === 'Action')?.value;
+            return order && action ? `confirmation:${order}:${action}` : undefined;
+        };
+        const keys = new Set(blocks.map(keyFor).filter(Boolean));
+        for (const [id, previous] of this.entries)
+        {
+            if (previous.conversationId === conversationId && previous.supersessionKey && keys.has(previous.supersessionKey)
+                && previous.consumedAt === undefined && previous.capability.kind !== 'confirmation')
+            {previous.supersededAt = now; this.persist(id);}
+            else if (previous.conversationId === conversationId && previous.supersessionKey && keys.has(previous.supersessionKey)
+                && previous.consumedAt === undefined && previous.capability.kind === 'confirmation' && previous.capability.state === 'issued')
+            {previous.supersededAt = now; this.persist(id);}
+        }
         for (const entry of issued)
         {
+            const block = blocks.find((block) => ('interactionId' in block ? block.interactionId : block.id) === entry.interactionId)!;
+            block.controlExpiresAt = new Date(now + this.ttlMs).toISOString();
             this.entries.set(entry.interactionId, {
                 conversationId,
                 capability: entry.capability,
-                expiresAt: now + this.ttlMs
+                expiresAt: now + this.ttlMs, supersessionKey: keyFor(block)
             });
+            this.persist(entry.interactionId);
         }
     }
 
@@ -95,6 +125,7 @@ export class InteractionCapabilityRegistry
             throw new InteractionCapabilityError('consumed');
         }
         capability.state = 'executing';
+        this.persist(interactionId);
         return {status: 'execute'};
     }
 
@@ -105,6 +136,7 @@ export class InteractionCapabilityRegistry
         result: ResultBlock
     ): void
     {
+        this.load();
         const entry = this.entries.get(interactionId);
         if (!entry) throw new InteractionCapabilityError('unknown');
         if (entry.conversationId !== conversationId)
@@ -119,14 +151,17 @@ export class InteractionCapabilityRegistry
         }
         capability.state = 'completed';
         capability.result = result;
+        this.persist(interactionId);
     }
 
     releaseConfirmation(interactionId: string): void
     {
+        this.load();
         const entry = this.entries.get(interactionId);
         if (entry?.capability.kind === 'confirmation' && entry.capability.state === 'executing')
         {
             entry.capability.state = 'issued';
+            this.persist(interactionId);
         }
     }
 
@@ -136,6 +171,7 @@ export class InteractionCapabilityRegistry
         const normalized = entry.capability.kind === 'form' ? normalizeFormValues(entry.capability.fields, values) : {...values};
         validateCapability(entry.capability, normalized);
         entry.consumedAt = this.now();
+        this.persist(interactionId);
         if (entry.capability.kind === 'confirmation' && values.outcome === 'confirmed')
         {
             const result = entry.capability.result;
@@ -152,8 +188,38 @@ export class InteractionCapabilityRegistry
 
     releaseSubmission(conversationId: string, interactionId: string): void
     {
+        this.load();
         const entry = this.entries.get(interactionId);
-        if (entry?.conversationId === conversationId) delete entry.consumedAt;
+        if (entry?.conversationId === conversationId) {delete entry.consumedAt; this.persist(interactionId);}
+    }
+
+    states(conversationId: string): Record<string, 'available' | 'submitted' | 'expired' | 'completed' | 'executing' | 'superseded'>
+    {
+        this.load();
+        return Object.fromEntries([...this.entries].filter(([, entry]) => entry.conversationId === conversationId).map(([id, entry]) => [id,
+            entry.supersededAt !== undefined ? 'superseded' : entry.capability.kind === 'confirmation' && entry.capability.state === 'completed' ? 'completed'
+                : entry.expiresAt <= this.now() ? 'expired' : entry.consumedAt !== undefined ? 'submitted'
+                    : entry.capability.kind === 'confirmation' && entry.capability.state === 'executing' ? 'executing' : 'available']));
+    }
+
+    private load(): void
+    {
+        if (this.loaded || !this.storage) return;
+        for (const {id, body} of this.storage().records<string>('capability'))
+        {
+            const entry = JSON.parse(body, (_key, value) => value?.$map ? new Map(value.$map) : value?.$set ? new Set(value.$set) : value) as CapabilityEntry;
+            if (entry.capability.kind === 'confirmation' && entry.capability.state === 'executing') entry.capability.state = 'issued';
+            this.entries.set(id, entry);
+        }
+        this.loaded = true;
+    }
+
+    private persist(id: string): void
+    {
+        const entry = this.entries.get(id);
+        if (!entry || !this.storage) return;
+        this.storage().put('capability', id, entry.conversationId, JSON.stringify(entry, (_key, value) =>
+            value instanceof Map ? {$map: [...value]} : value instanceof Set ? {$set: [...value]} : value));
     }
 
     private usableEntry(conversationId: string, interactionId: string): CapabilityEntry
@@ -165,19 +231,20 @@ export class InteractionCapabilityRegistry
 
     private scopedEntry(conversationId: string, interactionId: string): CapabilityEntry
     {
+        this.load();
         const entry = this.entries.get(interactionId);
         if (!entry) throw new InteractionCapabilityError('unknown');
         if (entry.expiresAt <= this.now())
         {
-            this.entries.delete(interactionId);
             throw new InteractionCapabilityError('expired');
         }
         if (entry.conversationId !== conversationId)
         {
             throw new InteractionCapabilityError('conversation_mismatch');
         }
+        if (entry.supersededAt !== undefined) throw new InteractionCapabilityError('consumed');
         return entry;
     }
 }
 
-export const interactionCapabilities = new InteractionCapabilityRegistry();
+export const interactionCapabilities = new InteractionCapabilityRegistry({storage: getConversationStore});

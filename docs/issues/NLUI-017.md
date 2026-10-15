@@ -1,12 +1,12 @@
 # NLUI-017: Document the sanitized public activity protocol
 
-- Status: Open
+- Status: Closed
 - Priority: P3
 - Kind: Defect
 - Created: 2026-10-14
-- Updated: 2026-10-14
-- Scope: public/docs/architecture.md; src/services/publicChatStream.ts
-- Evidence: 2026-10-14 repository review
+- Updated: 2026-10-15
+- Scope: public/docs/architecture.md; public/docs/activity-protocol.md; src/services/publicChatStream.ts
+- Evidence: 2026-10-14 repository review; 2026-10-15 maintenance qualification
 
 ## Problem
 
@@ -24,9 +24,11 @@ Describe public application-authored activity events separately from internal ev
 
 ## Acceptance criteria
 
-- [ ] Documented public events match runtime types/filtering.
-- [ ] Examples do not disclose raw tool arguments, SQL, provider IDs or hidden reasoning.
+- [x] Documented public events match runtime types/filtering.
+- [x] Examples do not disclose raw tool arguments, SQL, provider IDs or hidden reasoning.
 
 ## Resolution
 
-Pending. Record the implemented change and the checks that satisfy each acceptance criterion before closing.
+The architecture and dedicated public activity protocol now describe the six actual NDJSON events, application-authored activity, framing/upserts, cancellation/EOF, receipts and action boundaries. Safe examples omit internal tool data and provider identifiers. Documentation explicitly distinguishes validated display payloads and the existing message.completed.responseId provider-continuation exception; removing that coupling remains NLUI-022.
+
+Public envelope/activity properties are explicitly projected to omit unexpected diagnostics. Tests compare the documentation's event table to the runtime catalog, round-trip its examples and reject private/unknown event data. [Maintenance qualification](reviews/2026-10-15-maintenance-qualification.md) records the complete 727-test/source/compiled/container pass. No provider-neutral transport or hidden-reasoning disclosure is claimed.

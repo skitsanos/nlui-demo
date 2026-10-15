@@ -31,7 +31,6 @@ describe('effective SQL equality proof', () =>
         "COALESCE(tier = 'gold', 1) = 1",
         "tier = 'GOLD'",
         "'tier' = 'gold'",
-        "unknown_column = 'gold'",
         "tier = tier",
         "tier IN ('gold')",
         "id IN (SELECT id FROM customers WHERE tier = 'gold')"
@@ -53,11 +52,12 @@ describe('effective SQL equality proof', () =>
         const from = 'SELECT COUNT(*) AS n FROM customers c JOIN orders o ON o.customer_id = c.id WHERE';
         expect(provesGold(`${from} tier = 'gold'`)).toBeTrue();
         expect(provesGold(`${from} "c"."tier" = 'gold'`)).toBeTrue();
-        expect(provesGold(`${from} unknown_alias.tier = 'gold'`)).toBeFalse();
-        expect(provesGold(`${from} o.tier = 'gold'`)).toBeFalse();
-        expect(provesGold(`${from} customers.tier = 'gold'`)).toBeFalse();
+        expect(() => provesGold(`${from} unknown_alias.tier = 'gold'`)).toThrow('SQL_POLICY');
+        expect(() => provesGold(`${from} o.tier = 'gold'`)).toThrow('SQL_POLICY');
+        expect(() => provesGold(`${from} customers.tier = 'gold'`)).toThrow('SQL_POLICY');
         const ambiguous = `${from} region = 'West'`;
-        expect(datasetQueryHasWhereEquality(ambiguous, 'region', 'West')).toBeFalse();
+        expect(() => datasetQueryHasWhereEquality(ambiguous, 'region', 'West')).toThrow('SQL_POLICY');
+        expect(() => provesGold(customerCount("unknown_column = 'gold'"))).toThrow('SQL_POLICY');
     });
 
     test('cannot conflate different instances of a repeated table', () =>

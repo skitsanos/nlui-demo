@@ -1,3 +1,5 @@
+import {conversationSession} from '../../conversations/session.ts';
+import {ConversationAccessError, getConversationStore} from '../../conversations/store.ts';
 import type {RouteHandler} from '../../core/types.ts';
 import {actionSuccessSchema} from '../../nlui/actionResponse.ts';
 import {
@@ -80,7 +82,25 @@ export const createActionPostHandler = ({
     }
 };
 
-export const POST = createActionPostHandler({
-    registry: interactionCapabilities,
-    confirmAction: confirmNluiAction
-});
+export const POST: RouteHandler = async (context) =>
+{
+    let raw: unknown;
+    try {raw = await context.req.clone().json();}
+    catch {return Response.json({message: 'Expected a JSON request body', outcome: 'unavailable', retryable: false}, {status: 400});}
+    const parsed = actionRequestSchema.safeParse(raw);
+    if (!parsed.success) return Response.json({message: 'Invalid action request', outcome: 'unavailable', retryable: false}, {status: 400});
+    try
+    {
+        const body = parsed.data;
+        const {owner} = conversationSession(context.req);
+        getConversationStore().assertOwner(owner, body.conversationId);
+        return await createActionPostHandler({registry: interactionCapabilities,
+            confirmAction: (id) => confirmNluiAction(id, `${owner}:${body.conversationId}`)})(context);
+    }
+    catch (error)
+    {
+        return Response.json({message: 'This action is unavailable.', outcome: 'unavailable', retryable: false}, {
+            status: error instanceof ConversationAccessError ? error.status : 400
+        });
+    }
+};

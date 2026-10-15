@@ -8,9 +8,15 @@ Priorities: **P0** critical immediate failure; **P1** high-impact correctness, d
 
 ## Current ledger
 
-32 issues: **9 Open**, **0 In progress**, **0 Blocked**, **0 Deferred**, **23 Closed**. Open priorities: **7 P2**, **2 P3**. No open P0/P1 issues. Next ID: **NLUI-033**.
+32 issues: **0 Open**, **0 In progress**, **0 Blocked**, **0 Deferred**, **32 Closed**. Open priorities: **0 P2**, **0 P3**. Next ID: **NLUI-033**; existing IDs remain permanent.
 
-Latest milestone: [Bounded presentation qualification](reviews/2026-10-15-presentation-qualification.md); NLUI-031 is Closed and release 1.5.0 is published. [Hosted run 38727922140](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140) passes all three Linux/macOS source-and-compiled and Linux production-container jobs for `cc4c00d016dbc698d925e011699adb7311fcfc52`. Both matrix jobs pass 717 tests; all 77 assertion labels are executable across 100 rules and all 35 provider-free reference cases pass. Local qualification also includes desktop/mobile browser evidence. These are bounded contracts, not a live-model score or general language grader. This evidence follow-up bumps to 1.5.1 before its own push and hosted verification. Retained data/provider settings and deployment were unchanged; earlier [CI qualification](reviews/2026-10-15-ci-qualification.md) remains dated evidence.
+Latest local milestone: [Owned workflows](reviews/2026-10-15-owned-workflows.md) and [bounded research](reviews/2026-10-15-remaining-research.md) close NLUI-019 through NLUI-024 in the user-approved isolated anonymous local-demo scope. Durable owner-scoped replay/capabilities, exact SQL fields and fresh action intent, immutable analytical refinement/receipts, quarantined CSV inspection and keyboard/mobile interaction are verified. **803 tests**, **60 source/60 compiled Hurl requests plus eight separate-session probes per mode**, all **35 provider-free references** in source/compiled/container modes, lint/typecheck and clean dependency audit pass. Browser evidence includes mobile tables, mutation-once refresh, exact refinement scope and opt-in X Card rendering. These working changes are **not committed, pushed or hosted-qualified**.
+
+The approved **40/40 provider-attempt budget is exhausted**: 36 complete usage records and four preserved schema-format failures, with monetary cost explicitly unpriced. Expanded guarded SQL/semantic/hybrid denotations all pass 4/4; there is no demonstrated reliability gain. Corrected A2UI samples qualify 4/4 but do not establish an advantage over controlled blocks. **Guarded SQL and controlled rendering remain defaults.** Machine-only refinement measurements do not establish human productivity gains; anonymous session isolation does not establish authenticated tenancy or production security. The retained v1 database and ignored provider configuration remain untouched.
+
+[Maintenance qualification](reviews/2026-10-15-maintenance-qualification.md) records the earlier NLUI-007/017/018 CORS, protocol and KaTeX fixes; its 727-test/48-request counts are historical. The owned protocol now replaces the earlier provider-continuation exception with application cursors.
+
+Last published baseline: release 1.5.1 at `6f162dc3bc5b1dfff64b2b35e0b6fc52f389e54c`, with all three jobs passing in [hosted run 38728507247](https://github.com/skitsanos/nlui-demo/actions/runs/38728507247). Its 717-test and 38-request-per-mode evidence is historical, not qualification for the current working changes. [Bounded presentation qualification](reviews/2026-10-15-presentation-qualification.md) and [CI qualification](reviews/2026-10-15-ci-qualification.md) preserve those milestones. Retained data/provider settings and deployment remain unchanged.
 
 | ID | Priority | Status | Finding or milestone |
 | --- | --- | --- | --- |
@@ -20,7 +26,7 @@ Latest milestone: [Bounded presentation qualification](reviews/2026-10-15-presen
 | [NLUI-004](NLUI-004.md) | P2 | Closed | Enforce real-path containment for static and document reads |
 | [NLUI-005](NLUI-005.md) | P2 | Closed | Require provider terminal completion before publishing a turn |
 | [NLUI-006](NLUI-006.md) | P2 | Closed | Grade effective SQL predicates rather than matching fragments |
-| [NLUI-007](NLUI-007.md) | P2 | Open | Make CORS preflights route- and method-aware |
+| [NLUI-007](NLUI-007.md) | P2 | Closed | Make CORS preflights route- and method-aware |
 | [NLUI-008](NLUI-008.md) | P2 | Closed | Sanitize unexpected action errors at the public boundary |
 | [NLUI-009](NLUI-009.md) | P2 | Closed | Bound request duration and shutdown grace periods |
 | [NLUI-010](NLUI-010.md) | P2 | Closed | Align observed fixture timestamps with the snapshot |
@@ -30,14 +36,14 @@ Latest milestone: [Bounded presentation qualification](reviews/2026-10-15-presen
 | [NLUI-014](NLUI-014.md) | P2 | Closed | Separate form submission progress from completed state |
 | [NLUI-015](NLUI-015.md) | P2 | Closed | Automate source, compiled and container qualification in CI |
 | [NLUI-016](NLUI-016.md) | P2 | Closed | Complete deterministic evaluation coverage and trace accounting |
-| [NLUI-017](NLUI-017.md) | P3 | Open | Document the sanitized public activity protocol |
-| [NLUI-018](NLUI-018.md) | P3 | Open | Resolve the transitive KaTeX advisory through a compatible upgrade |
-| [NLUI-019](NLUI-019.md) | P2 | Open | Expand the versioned semantic catalog and paired query experiments |
-| [NLUI-020](NLUI-020.md) | P2 | Open | Run a controlled A2UI and Ant Design X Card experiment |
-| [NLUI-021](NLUI-021.md) | P2 | Open | Add artifact-aware analytical refinements and provenance |
-| [NLUI-022](NLUI-022.md) | P2 | Open | Persist replayable provider-neutral conversation events |
-| [NLUI-023](NLUI-023.md) | P2 | Open | Evaluate adversarial data, exact query scope and principal authorization |
-| [NLUI-024](NLUI-024.md) | P2 | Open | Polish control lifecycle, accessibility and dataset onboarding UX |
+| [NLUI-017](NLUI-017.md) | P3 | Closed | Document the sanitized public activity protocol |
+| [NLUI-018](NLUI-018.md) | P3 | Closed | Resolve the transitive KaTeX advisory through a compatible upgrade |
+| [NLUI-019](NLUI-019.md) | P2 | Closed | Expand the versioned semantic catalog and paired query experiments |
+| [NLUI-020](NLUI-020.md) | P2 | Closed | Run a controlled A2UI and Ant Design X Card experiment |
+| [NLUI-021](NLUI-021.md) | P2 | Closed | Add artifact-aware analytical refinements and provenance |
+| [NLUI-022](NLUI-022.md) | P2 | Closed | Persist replayable provider-neutral conversation events |
+| [NLUI-023](NLUI-023.md) | P2 | Closed | Evaluate adversarial data, exact query scope and principal authorization |
+| [NLUI-024](NLUI-024.md) | P2 | Closed | Polish control lifecycle, accessibility and dataset onboarding UX |
 | [NLUI-025](NLUI-025.md) | P1 | Closed | Establish server-verified interaction capabilities |
 | [NLUI-026](NLUI-026.md) | P2 | Closed | Establish executable offline and opt-in live evaluation v1 |
 | [NLUI-027](NLUI-027.md) | P2 | Closed | Establish structured annotations and internally scrollable table UX |
@@ -64,14 +70,9 @@ The [frozen roadmap](reviews/2026-10-14-roadmap-migration.md) preserves every or
 | Completed annotations/table and activity milestones | NLUI-027 and NLUI-030 |
 | Fresh repository review | NLUI-001 through NLUI-018 |
 
-Next bounded milestones, in order:
+All existing milestones are closed with bounded evidence; there is no second hidden backlog. Negative/inconclusive research outcomes do not promote a candidate. Further statistically powered model comparisons, participant usability studies or production identity/row-tenancy integration need new separately scoped issues and approval, not a claim inferred from these closed local-demo milestones.
 
-1. Evidence-led research: expand the semantic comparison (NLUI-019). Bounded presentation qualification (NLUI-031), hosted CI infrastructure (NLUI-015), classification/adapters/trace accounting (NLUI-016), effective predicates (NLUI-006), coherent fixtures (NLUI-010) and embedded SQL worker resolution (NLUI-032) are complete.
-2. Artifact refinement/provenance (NLUI-021), controlled A2UI (NLUI-020), durable transport (NLUI-022) and adversarial tenancy (NLUI-023).
-
-The bounded control-recovery work (NLUI-011 through NLUI-014), file/provider boundaries and public-error/request/shutdown protection (NLUI-004/005/008/009) are complete. Broader control accessibility/onboarding polish remains NLUI-024.
-
-CORS, protocol documentation and the dependency advisory remain independently tracked in NLUI-007, NLUI-017 and NLUI-018.
+On 2026-10-15 the user approved forty billable attempts and isolated anonymous local ownership. The request cap was respected and is exhausted. Production identity/tenant integration remains outside that approved scope. No commit/push was requested for these changes; any future push must first bump the version and qualify its own hosted run.
 
 ## Established baseline and working principles
 
@@ -92,6 +93,9 @@ CORS, protocol documentation and the dependency advisory remain independently tr
 
 ## Reviews and evidence
 
+- [2026-10-15 owned workflows](reviews/2026-10-15-owned-workflows.md): durable ownership/replay, exact SQL scope and action intent, analytical artifacts, control accessibility, CSV quarantine, 803-test/source/compiled/container gates and browser evidence; local-only scope and initial diagnostics preserved.
+- [2026-10-15 remaining research](reviews/2026-10-15-remaining-research.md): catalog v3/four-arm pilot, A2UI/X Card experiment, typed refinement protocol benchmark, hard forty-attempt accounting, partial usage/unpriced cost and explicit no-promotion conclusion.
+- [2026-10-15 maintenance qualification](reviews/2026-10-15-maintenance-qualification.md): route-aware preflight and cache policy, documented/projected public activity, qualified patched KaTeX, 727-test/source/compiled/container gates and browser Markdown/math safety; no paid or hosted verification for these working changes.
 - [2026-10-15 presentation qualification](reviews/2026-10-15-presentation-qualification.md): seven bounded presentation/language contracts, independent rendered criteria, strict policy captions, 35 passing reference cases, regressions and local source/compiled/container plus desktop/mobile evidence; not live-model or general-language qualification.
 - [2026-10-15 CI qualification](reviews/2026-10-15-ci-qualification.md): safe workflow contract, mandatory tool installation, source/compiled/container gates, owned cleanup, local evidence and all three hosted jobs passing after authorized publication.
 - [2026-10-15 deterministic evaluation](reviews/2026-10-15-deterministic-evaluation.md): complete assertion classification, isolated route/trajectory adapters, adversarial expression/denotation checks, safe trace accounting, fail-closed promotion and compiled worker qualification.

@@ -101,7 +101,7 @@ function actionSummary(input: DemoActionInput): string {
     }
 }
 
-export function prepareDemoAction(database: Database, input: DemoActionInput): ActionConfirmation {
+export function prepareDemoAction(database: Database, input: DemoActionInput, ownerScope = 'legacy'): ActionConfirmation {
     const orderNumber = normalizedOrderNumber(input.orderNumber);
     const order = orderForAction(database, orderNumber);
     const validated = validateAction(order, { ...input, orderNumber } as DemoActionInput);
@@ -110,17 +110,17 @@ export function prepareDemoAction(database: Database, input: DemoActionInput): A
     const actionId = crypto.randomUUID();
     database.transaction(() => {
         database
-            .query<never, [number, string]>(
-                "UPDATE pending_actions SET status = 'superseded' WHERE order_id = ? AND action_type = ? AND status = 'pending'",
+            .query<never, [number, string, string]>(
+                "UPDATE pending_actions SET status = 'superseded' WHERE order_id = ? AND action_type = ? AND status = 'pending' AND COALESCE(json_extract(payload_json,'$._ownerScope'),'legacy') = ?",
             )
-            .run(order.id, validated.type);
+            .run(order.id, validated.type, ownerScope);
         database
             .query<never, [string, string, number, string, string, string]>(
                 `INSERT INTO pending_actions
                  (action_id, action_type, order_id, payload_json, status, created_at, expires_at)
                  VALUES (?, ?, ?, ?, 'pending', ?, ?)`,
             )
-            .run(actionId, validated.type, order.id, JSON.stringify(validated), createdAt.toISOString(), expiresAt);
+            .run(actionId, validated.type, order.id, JSON.stringify({...validated, _ownerScope: ownerScope}), createdAt.toISOString(), expiresAt);
     })();
     return {
         actionId,
@@ -131,7 +131,7 @@ export function prepareDemoAction(database: Database, input: DemoActionInput): A
     };
 }
 
-function pendingAction(database: Database, actionId: string): PendingActionRow {
+function pendingAction(database: Database, actionId: string, ownerScope: string): PendingActionRow {
     const row = database
         .query<PendingActionRow, [string]>(
             `SELECT pa.action_id AS actionId, pa.action_type AS actionType, pa.order_id AS orderId,
@@ -141,6 +141,7 @@ function pendingAction(database: Database, actionId: string): PendingActionRow {
         )
         .get(actionId);
     if (!row) throw new ActionDomainError("action_not_found");
+    if ((JSON.parse(row.payloadJson)._ownerScope ?? 'legacy') !== ownerScope) throw new ActionDomainError('action_not_found');
     if (row.status !== "pending" && row.status !== "completed") {
         throw new ActionDomainError("action_not_pending");
     }
@@ -211,12 +212,12 @@ function cancelOrder(database: Database, row: PendingActionRow, input: Extract<D
     return `Order ${row.orderNumber} cancelled`;
 }
 
-export function confirmDemoAction(database: Database, actionId: string): DemoActionResult {
+export function confirmDemoAction(database: Database, actionId: string, ownerScope = 'legacy'): DemoActionResult {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(actionId)) {
         throw new ActionDomainError("invalid_action_id");
     }
     return database.transaction(() => {
-        const row = pendingAction(database, actionId);
+        const row = pendingAction(database, actionId, ownerScope);
         const input = JSON.parse(row.payloadJson) as DemoActionInput;
         if (row.status === "completed") {
             if (!row.completedAt) throw new Error("The completed action is missing its completion timestamp");

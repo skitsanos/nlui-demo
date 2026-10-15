@@ -3,12 +3,41 @@ import type {ChatStreamEvent} from '../nlui/types.ts';
 import {ChatConfigurationError} from './openaiChat.ts';
 import {
     GENERIC_PUBLIC_CHAT_ERROR,
+    PUBLIC_CHAT_EVENT_TYPES,
     publicChatErrorMessage,
     publicChatStreamEvent
 } from './publicChatStream.ts';
 
 describe('public chat stream contract', () =>
 {
+    test('documentation enumerates exactly the public events and its examples match the actual catalog', async () =>
+    {
+        const text = await Bun.file(new URL('../../public/docs/activity-protocol.md', import.meta.url)).text();
+        const documented = [...text.matchAll(/^\| `([^`]+)` \|/gm)].map((match) => match[1]);
+        expect(documented).toEqual([...PUBLIC_CHAT_EVENT_TYPES]);
+        const examples = text.match(/```ndjson\n([\s\S]+?)\n```/)![1]!.split('\n').map((line) => JSON.parse(line));
+        for (const example of examples)
+        {
+            expect(publicChatStreamEvent(example)).toEqual(example);
+            expect(Object.keys(example.activity).sort()).toEqual(['id', 'kind', 'title', 'description', 'status', 'receipt'].sort());
+            expect(JSON.stringify(example)).not.toMatch(/SELECT|call_id|model|arguments|reasoning|resp_/);
+        }
+        expect(text).toContain('not SSE');
+        expect(text).toContain('no provider response ID crosses this route');
+        expect(text).toContain('Repeated identical requests replay persisted events');
+        expect(text).toContain('another session receives 404');
+        expect(text).toContain('not SSE or complete AG-UI event-family conformance');
+    });
+
+    test('projects public activity fields instead of forwarding unexpected internal diagnostics', () =>
+    {
+        const event = {type: 'activity.updated', provider: 'private', activity: {id: 'one', kind: 'data', title: 'Checking',
+            status: 'loading', receipt: true, arguments: {sql: 'private'}, reasoning: 'private'}};
+        expect(publicChatStreamEvent(event as ChatStreamEvent)).toEqual({type: 'activity.updated', activity: {
+            id: 'one', kind: 'data', title: 'Checking', status: 'loading', receipt: true
+        }});
+        expect(publicChatStreamEvent({type: 'unknown', private: 'not public'} as unknown as ChatStreamEvent)).toBeUndefined();
+    });
     test('removes legacy tool events while retaining public activity events', () =>
     {
         expect(publicChatStreamEvent({type: 'tool.started', name: 'query_dataset'})).toBeUndefined();

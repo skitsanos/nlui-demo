@@ -14,7 +14,7 @@ assert.notEqual(process.getuid?.(), 0, 'Runtime user must not be root');
 assert.equal(process.cwd(), '/app');
 assert.equal(process.env.OPENAI_API_KEY, undefined);
 assert.equal(process.env.CHAT_MODEL, undefined);
-for (const path of ['.env', '.git/config', 'data/demo.sqlite', 'tests/http-smoke.hurl', 'docs/issues/README.md'])
+for (const path of ['.env', '.git/config', 'data/demo.sqlite', 'data/conversations.sqlite', 'tests/http-smoke.hurl', 'docs/issues/README.md'])
 {
     assert.equal(await Bun.file(`/app/${path}`).exists(), false, `Private/generated/test file packaged: ${path}`);
 }
@@ -51,6 +51,8 @@ const customers = await queryDataset('SELECT COUNT(*) AS customer_count FROM cus
 assert.equal(customers.returnedRowCount, 1);
 assert.equal(customers.rows[0].c0, 200);
 assert.equal(await Bun.file('/app/data/demo.sqlite').exists(), true);
+const {probeOwnedSessions} = await import(`${process.cwd()}/scripts/http-session-probe.ts`);
+await probeOwnedSessions(url);
 // The real Dockerfile healthcheck runs independently of this HTTP probe.
 await Bun.sleep(1_200);
 console.log(`Container HTTP probe passed as UID ${process.getuid?.()}; port 3180; provider unconfigured.`);

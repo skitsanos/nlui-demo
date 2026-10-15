@@ -4,6 +4,78 @@ HTTP 200
 GET {{base_url}}/api/health
 HTTP 200
 
+# Genuine preflights resolve real resources and intersect their actual methods.
+OPTIONS {{base_url}}/does-not-exist
+Origin: https://allowed.example
+Access-Control-Request-Method: GET
+HTTP 404
+
+OPTIONS {{base_url}}/api/health
+Origin: https://allowed.example
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type
+HTTP 204
+[Asserts]
+header "Access-Control-Allow-Methods" == "GET, HEAD, OPTIONS"
+header "Access-Control-Allow-Origin" == "https://allowed.example"
+header "Vary" contains "Origin"
+header "Vary" contains "Access-Control-Request-Method"
+
+OPTIONS {{base_url}}/api/health
+Origin: https://allowed.example
+Access-Control-Request-Method: DELETE
+HTTP 405
+[Asserts]
+header "Access-Control-Allow-Methods" not exists
+
+OPTIONS {{base_url}}/api/health
+Origin: https://denied.example
+Access-Control-Request-Method: GET
+HTTP 403
+[Asserts]
+header "Access-Control-Allow-Origin" not exists
+header "Vary" contains "Origin"
+
+OPTIONS {{base_url}}/api/health
+Origin: https://allowed.example
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: X-Not-Allowed
+HTTP 403
+
+OPTIONS {{base_url}}/api/cors-options
+Origin: https://allowed.example
+HTTP 202
+[Asserts]
+body == "Ordinary OPTIONS"
+header "Vary" contains "Accept-Encoding"
+header "Vary" contains "Origin"
+header "Access-Control-Allow-Methods" not exists
+
+OPTIONS {{base_url}}/api/cors-options
+Origin: https://allowed.example
+Access-Control-Request-Method: POST
+HTTP 204
+
+GET {{base_url}}/api/cors-options
+HTTP 200
+[Asserts]
+jsonpath "$.mutations" == 0
+header "Vary" contains "Origin"
+
+OPTIONS {{base_url}}/boundary-safe.txt
+Origin: https://allowed.example
+Access-Control-Request-Method: HEAD
+HTTP 204
+[Asserts]
+header "Access-Control-Allow-Methods" == "GET, HEAD, OPTIONS"
+
+GET {{base_url}}/api/health
+Origin: https://denied.example
+HTTP 200
+[Asserts]
+header "Access-Control-Allow-Origin" not exists
+header "Vary" contains "Origin"
+
 GET {{base_url}}/api/version
 HTTP 200
 
@@ -168,3 +240,93 @@ HTTP 404
 
 GET {{base_url}}/docs/%2e%2e%2fprivate-fixture
 HTTP 404
+
+GET {{base_url}}/api/conversations
+HTTP 200
+[Asserts]
+header "Cache-Control" == "no-store"
+jsonpath "$.version" == 1
+
+GET {{base_url}}/api/catalog
+HTTP 200
+[Asserts]
+jsonpath "$.version" == 3
+jsonpath "$.metrics" count == 8
+
+POST {{base_url}}/api/analysis
+Content-Type: application/json
+{"conversationId":"http-owned-analysis","requestId":"analysis-first-http","plan":{"metric":"registered_customer_count","dimensions":["region"],"filters":[]}}
+HTTP 200
+[Captures]
+result_id: jsonpath "$.receipt.resultId"
+data_revision: jsonpath "$.receipt.datasetRevisionBefore"
+[Asserts]
+jsonpath "$.receipt.rowCount" == 5
+jsonpath "$.receipt.grain" == "customer"
+jsonpath "$.receipt.unit" == "count"
+jsonpath "$.receipt.datasetRevisionAfter" == "{{data_revision}}"
+
+GET {{base_url}}/api/conversations?conversationId=http-owned-analysis
+HTTP 200
+[Asserts]
+jsonpath "$.head" == "analysis-first-http"
+jsonpath "$.events" count == 5
+body not contains "provider"
+
+POST {{base_url}}/api/analysis
+Content-Type: application/json
+{"conversationId":"http-owned-analysis","requestId":"analysis-refine-http","previousResponseId":"analysis-first-http","parentResultId":"{{result_id}}","delta":{"filters":[{"dimension":"region","values":["West"]}]}}
+HTTP 200
+[Captures]
+refined_result_id: jsonpath "$.receipt.resultId"
+[Asserts]
+jsonpath "$.receipt.parentResultId" == "{{result_id}}"
+jsonpath "$.receipt.rowCount" == 1
+jsonpath "$.receipt.filters[0].values[0]" == "West"
+
+POST {{base_url}}/api/analysis
+Content-Type: application/json
+{"conversationId":"http-owned-analysis","requestId":"analysis-refine-http","previousResponseId":"analysis-first-http","parentResultId":"{{result_id}}","delta":{"filters":[{"dimension":"region","values":["West"]}]}}
+HTTP 200
+[Asserts]
+jsonpath "$.replayed" == true
+
+GET {{base_url}}/api/analysis?conversationId=http-owned-analysis&resultId={{refined_result_id}}
+HTTP 200
+[Asserts]
+jsonpath "$.receipt.rowCount" == 1
+jsonpath "$.sql" not exists
+
+GET {{base_url}}/api/analysis?conversationId=http-owned-analysis&resultId={{refined_result_id}}&debug=sql
+HTTP 200
+[Asserts]
+jsonpath "$.sql" contains "SELECT"
+
+GET {{base_url}}/api/conversations?conversationId=http-owned-analysis&transport=ag-ui
+HTTP 200
+[Asserts]
+jsonpath "$.adapterVersion" == 1
+body contains "RUN_FINISHED"
+body not contains "previous_response_id"
+
+POST {{base_url}}/api/datasets/preview
+[MultipartFormData]
+file: file,monthly-region.csv; text/csv
+HTTP 200
+[Captures]
+preview_id: jsonpath "$.id"
+[Asserts]
+jsonpath "$.rowCount" == 2
+jsonpath "$.status" == "quarantined"
+jsonpath "$.executable" == false
+
+GET {{base_url}}/api/datasets/preview?id={{preview_id}}
+HTTP 200
+[Asserts]
+jsonpath "$.rowCount" == 2
+
+POST {{base_url}}/api/analysis
+Origin: https://denied.example
+Content-Type: application/json
+{"conversationId":"http-owned-analysis","requestId":"analysis-origin-denied","plan":{"metric":"registered_customer_count"}}
+HTTP 403

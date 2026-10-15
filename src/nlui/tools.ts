@@ -7,7 +7,7 @@ import {orderHandler, policiesHandler, productsHandler} from './toolHandlers/cat
 import {queryDatasetHandler} from './toolHandlers/queryDataset.ts';
 import {semanticQueryHandler} from './toolHandlers/semanticQuery.ts';
 import {getRepository} from './toolRuntime.ts';
-import type {ToolDataSource, ToolExecution, ToolHandler} from './toolTypes.ts';
+import type {ToolContext, ToolDataSource, ToolExecution, ToolHandler} from './toolTypes.ts';
 import type {NluiBlock} from './types.ts';
 
 export type {ToolExecution} from './toolTypes.ts';
@@ -38,7 +38,7 @@ export const NLUI_TOOL_BLOCK_TYPES = {
 } as const satisfies Record<keyof typeof handlers, readonly NluiBlock['type'][]>;
 
 export const executeNluiTool = async (
-    name: string, encodedArguments: string, signal?: AbortSignal, data?: ToolDataSource
+    name: string, encodedArguments: string, signal?: AbortSignal, data?: ToolDataSource, context?: Omit<ToolContext, 'signal' | 'data'>
 ): Promise<ToolExecution> =>
 {
     signal?.throwIfAborted();
@@ -50,7 +50,7 @@ export const executeNluiTool = async (
 
     try
     {
-        const execution = await handler(JSON.parse(encodedArguments) as unknown, {signal, data});
+        const execution = await handler(JSON.parse(encodedArguments) as unknown, {...context, signal, data});
         signal?.throwIfAborted();
         return {
             modelOutput: execution.modelOutput,
@@ -69,9 +69,9 @@ export const executeNluiTool = async (
     }
 };
 
-export const confirmNluiAction = (actionId: string): ToolExecution =>
+export const confirmNluiAction = (actionId: string, ownerScope?: string): ToolExecution =>
 {
-    const result = getRepository().confirmAction(actionId);
+    const result = getRepository().confirmAction(actionId, ownerScope);
     const block: NluiBlock = {
         id: crypto.randomUUID(),
         type: 'result',

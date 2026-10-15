@@ -1,4 +1,5 @@
 import {Parser} from 'node-sql-parser/umd/sqlite.umd';
+import {rejectSqlComments, validateQueryFields} from './queryFields.ts';
 import {validateSelectSources} from './queryJoins.ts';
 import {selectProvesEquality} from './queryPredicateProof.ts';
 import {
@@ -167,6 +168,7 @@ const validateAst = (ast: AstNode, allowCanonicalQuotes = false, allowParameters
     if (selectCount > MAX_SELECTS) policyError(`At most ${MAX_SELECTS} SELECT scopes are allowed.`);
     if (joinCount > MAX_JOINS) policyError(`At most ${MAX_JOINS} relationship joins are allowed.`);
     if (physicalSourceCount === 0) policyError('The query must read at least one published dataset table.');
+    validateQueryFields(ast, allowCanonicalQuotes);
 };
 
 const parseOne = (sql: string): AstNode =>
@@ -193,6 +195,7 @@ export const canonicalizeDatasetQuery = (sql: string, options: {allowParameters?
     const trimmed = sql.trim();
     if (!trimmed) policyError('The generated query is empty.');
     if (trimmed.length > MAX_SQL_LENGTH) policyError(`SQL is limited to ${MAX_SQL_LENGTH.toLocaleString()} characters.`);
+    rejectSqlComments(trimmed);
 
     const ast = parseOne(trimmed);
     validateAst(ast, false, options.allowParameters);

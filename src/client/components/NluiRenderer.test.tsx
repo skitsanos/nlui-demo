@@ -2,6 +2,7 @@ import {describe, expect, test} from 'bun:test';
 import {isValidElement, type ReactElement, type ReactNode} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import type {TableBlock} from '../../nlui/types.ts';
+import {DataTable} from './DataTable.tsx';
 import {NluiRenderer} from './NluiRenderer.tsx';
 
 const tableBlock: TableBlock = {
@@ -40,8 +41,10 @@ describe('NLUI tables', () =>
             conversationId: 'conversation-test',
             onInteraction: async () => true
         });
-        const card = asElement((stack.props.children as ReactNode[])[0]);
-        const region = asElement(card.props.children as ReactNode);
+        const wrapper = asElement((stack.props.children as ReactNode[])[0]);
+        const card = asElement((wrapper.props.children as ReactNode[])[1]);
+        const dataTable = DataTable({block: tableBlock});
+        const region = asElement((dataTable.props.children as ReactNode[])[2]);
         const table = asElement(region.props.children as ReactNode);
 
         expect(card.props.className).toBe('nlui-card nlui-table-card');

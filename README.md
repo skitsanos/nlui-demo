@@ -16,16 +16,20 @@ The model never emits React, JSX, executable HTML, API routes, validation rules,
 - Read-only questions use fixed domain tools or a guarded text-to-SQL path; policy answers use local lexical retrieval.
 - An opt-in `semantic_query` experiment compares model-authored SQL with a small server-compiled semantic catalog without changing the production tool path.
 - Mutations require a prepared opaque action and a separate explicit confirmation request.
+- Versioned private SQLite events restore owned conversations and control lifecycle after refresh/restart; the HTTP provider adapter uses bounded application history with `store: false`.
+- **Explore dataset** creates immutable analytical results and typed refinements with exact scope/provenance; it needs no model call.
+- **Inspect a dataset** validates a fixed aggregate CSV template into quarantine, never automatic activation.
+- `?renderer=a2ui` opts into the pinned X Card/A2UI v0.9 experiment; controlled blocks stay the default.
 
 ## Quick start
 
-Requirements: [Bun](https://bun.sh/) 1.3 or newer and an OpenAI API key.
+Requirements: [Bun](https://bun.sh/) 1.4 or newer and an OpenAI API key.
 
 ```bash
 bun install --frozen-lockfile
 ```
 
-Create an ignored `.env` file:
+Reuse the existing ignored `.env`; only create one if it is absent:
 
 ```dotenv
 OPENAI_API_KEY=your-api-key
@@ -88,7 +92,7 @@ An action response has an explicit outcome, not just an HTTP status: a successfu
 
 The browser bounds each action request, including response-body reading, to 20 seconds. Network failures, timeouts, malformed responses and unexpected server failures keep the original confirmation details and show **Check result / retry**. This repeats the already-approved POST with the same conversation, interaction and action IDs: the server replays its recorded result or completes the original action if it has not run. It is not a read-only status check, does not create a new action and is never retried automatically. Cancel is unavailable while a request is pending or uncertain.
 
-A known rejection is displayed separately. If an uncertain request later encounters an expired/unavailable capability, the UI keeps the uncertainty and asks the user to inspect the order before preparing another action; it never infers that nothing changed. Recovery is bounded by the process-local capability lifetime. Reload/restart recovery and durable chat-event replay remain separate work.
+A known rejection is displayed separately. If an uncertain request later encounters an expired/unavailable capability, the UI keeps the uncertainty and asks the user to inspect the order before preparing another action; it never infers that nothing changed. Capabilities and cached results now persist in the separate private state database. Reload replays safe events and current lifecycle without repeating a confirmation; interrupted execution reconciles through the same durable domain action.
 
 Action completion and chat continuation are independent. If continuation fails or is cancelled, the successful action result stays visible and **Continue chat** retries only the typed UI result, never the mutation. An aborted or incomplete stream is not counted as a completed interaction, and late events cannot advance a reset/cancelled conversation's response chain.
 
@@ -115,7 +119,11 @@ Statistic blocks render their optional title and description above the establish
 - The API key remains server-side and must never be referenced from `src/client/`.
 - The dataset contains no real customer or production data.
 
-This is a demonstration, not a production authorization layer or a general SQL sandbox. Interaction state is process-local, and pending actions are currently de-duplicated globally by order and action type rather than by an authenticated principal. The generic query capability is acceptable here because it is restricted to a small synthetic fixture; production data still needs authentication, tenancy controls, row-level authorization, audited semantic views, and database-native limits. Valid chat requests call the configured OpenAI model and may incur API charges. The current Responses API integration uses stored responses for turn chaining; send only demo-safe content.
+This is an isolated anonymous-session, single-process demonstration, not production authentication/tenancy or a general SQL sandbox. A seven-day HttpOnly cookie owns conversations, artifacts, capabilities and upload previews; pending-action supersession is scoped to owner/conversation/type/order, and fresh user intent must match the proposal. The synthetic business dataset remains shared: session isolation is not row-level tenant authorization. Production data needs authenticated identity, audited views, database roles and retention/erasure policy.
+
+`NLUI_STATE_DB_PATH` defaults to `data/conversations.sqlite`, separate from the versioned business dataset. Unknown/newer state schemas are refused without modification. Local state contains messages and bounded private analytical artifacts; it is permission-restricted but not encrypted. Protect storage and backups. Expired sessions cannot reclaim old conversations. The owned HTTP path uses stateless provider requests and bounded committed history; an isolated evaluation adapter retains provider-managed chaining as a control. Chat is billable; send only demo-safe content.
+
+The [remaining-milestone research record](docs/issues/reviews/2026-10-15-remaining-research.md) preserves the forty-request budget, schema failures, denotation/timing/token results and explicit no-promotion conclusion. Neither the expanded semantic arm nor the declarative renderer has enough evidence to replace its control. No human productivity or production-security qualification is claimed.
 
 ## Deterministic data
 

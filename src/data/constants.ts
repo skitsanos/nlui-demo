@@ -1,9 +1,10 @@
 import { join } from "node:path";
 
+export {DATASET_REFERENCE_DATE} from '../shared/dataset.ts';
+
 export const DATASET_VERSION = 2;
 export const DATASET_SEED = 0x4e4c5549;
 export const DATASET_ID = "nlui-retail-operations-v2";
-export const DATASET_REFERENCE_DATE = "2026-06-30T12:00:00.000Z";
 
 export const DEFAULT_DATA_DIRECTORY = join(process.cwd(), "data");
 export const DEFAULT_DATABASE_PATH = join(DEFAULT_DATA_DIRECTORY, "demo.sqlite");

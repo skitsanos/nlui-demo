@@ -7,8 +7,8 @@ Use Bun from the project root. Application dependencies are installed with `bun 
 | Command | Required tools | Gates |
 | --- | --- | --- |
 | `bun run check` | Bun | Biome across source/scripts/tests, TypeScript, Bun regressions |
-| `bun run verify` | Bun, Hurl | Check, offline catalog, 38 source HTTP requests, exact reference profile |
-| `bun run test:compiled` | Bun, Hurl | Owned production server binary, 38 HTTP requests, owned source-free reference binary with embedded SQL worker |
+| `bun run verify` | Bun, Hurl | Check, offline catalog, 60 source Hurl requests plus 8 separate-session probes, exact reference profile |
+| `bun run test:compiled` | Bun, Hurl | Owned production server binary, 60 Hurl requests plus 8 separate-session probes, source-free reference binary with embedded SQL worker |
 | `bun run test:docker` | Bun, Docker daemon | Pulled production image, HTTP/data/permissions/health/shutdown, exact reference profile |
 | `bun run verify:all` | Bun, Hurl, Docker daemon | Source, compiled and container modes in sequence |
 
@@ -37,5 +37,7 @@ The production container is uniquely labelled/tagged, has `--network none`, no p
 Cleanup removes only the owned temporary directory, exact container name and exact image tag. It does not prune images/volumes/build cache, alter retained mounts or stop a developer server. Failed start/probe/reference/shutdown, unhealthy/never-ready state, removal failures and ambiguous create acknowledgement have regression coverage. Normal errors, cancellation and bounded subprocess timeouts execute cleanup; an unavailable daemon or forced host/process loss still requires inspection of owned labels rather than a broad cleanup command.
 
 ## Evidence
+
+The current owned-workflow qualification covers source, compiled and production-container execution, private durable state, typed analytics, explicit debug access, AG-UI replay projection and CSV quarantine. Separate cookie jars test foreign-session denial: a hand-written Cookie header in Hurl's shared cookie jar is not accepted as isolation evidence. Browser workflows use a disposable v2 dataset and an injected provider-free controller, not the retained v1 database or extra billable calls. See [owned workflows](issues/reviews/2026-10-15-owned-workflows.md) and [bounded research](issues/reviews/2026-10-15-remaining-research.md) for results, initial failures, limits and the exact current test count. These working changes have not been pushed or hosted-qualified.
 
 The [NLUI-015 review](issues/reviews/2026-10-15-ci-qualification.md) records fresh commands/results, initial diagnostics, cleanup/hygiene and the successful first hosted run. Historical milestone reports remain dated evidence, not current CI state; verify the run for the current commit before making a new qualification claim.

@@ -6,6 +6,8 @@ export type PublicChatStreamEvent = Exclude<
     {type: 'tool.started'} | {type: 'tool.completed'}
 >;
 
+export const PUBLIC_CHAT_EVENT_TYPES = ['message.started', 'activity.updated', 'text.delta', 'ui.block', 'message.completed', 'error'] as const;
+
 export const GENERIC_PUBLIC_CHAT_ERROR = 'The assistant could not complete this response. Please try again.';
 
 const CONFIGURATION_MESSAGES = new Set([
@@ -42,5 +44,17 @@ export const publicChatStreamEvent = (event: ChatStreamEvent): PublicChatStreamE
             message: PUBLIC_ERROR_MESSAGES.has(event.message) ? event.message : GENERIC_PUBLIC_CHAT_ERROR
         };
     }
-    return event;
+    switch (event.type)
+    {
+        case 'message.started': return {type: event.type, messageId: event.messageId};
+        case 'activity.updated':
+        {
+            const {id, kind, title, description, status, receipt} = event.activity;
+            return {type: event.type, activity: {id, kind, title, ...description !== undefined && {description}, status, receipt}};
+        }
+        case 'text.delta': return {type: event.type, delta: event.delta};
+        case 'ui.block': return {type: event.type, block: event.block};
+        case 'message.completed': return {type: event.type, messageId: event.messageId, responseId: event.responseId};
+        default: return undefined;
+    }
 };

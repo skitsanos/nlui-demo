@@ -1,62 +1,34 @@
-import {Bubble, Conversations, Prompts, Sender, Welcome, XProvider} from '@ant-design/x';
+import {Bubble, Conversations, Sender, Welcome, XProvider} from '@ant-design/x';
 import type {BubbleListRef} from '@ant-design/x/es/bubble';
-import XMarkdown, {type ComponentProps} from '@ant-design/x-markdown';
 import {
-    ChartLine,
     ChatsCircle,
     Database,
-    Package,
     Robot,
-    ShoppingCart,
     Sparkle,
     User
 } from '@phosphor-icons/react';
-import {Button, Flex, Tag, Typography} from 'antd';
+import {Alert, Button, Flex, Tag, Typography} from 'antd';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ChatInput} from '../nlui/types.ts';
 import {selectCurrentActivity} from './chatActivity.ts';
 import {ActivityPresentation} from './components/ActivityPresentation.tsx';
-import {NluiRenderer} from './components/NluiRenderer.tsx';
+import {AnalysisControls} from './components/AnalysisControls.tsx';
+import {AssistantMarkdown} from './components/AssistantMarkdown.tsx';
+import {ConversationStarters} from './components/ConversationStarters.tsx';
+import {DatasetOnboarding} from './components/DatasetOnboarding.tsx';
+import {ResponseSurface} from './components/ResponseSurface.tsx';
 import {useChat} from './useChat.ts';
-
-const STARTERS = [
-    {
-        key: 'sales',
-        label: 'Show the sales trend for the last six months',
-        description: 'A live chart with headline metrics',
-        icon: <ChartLine/>
-    },
-    {
-        key: 'orders',
-        label: 'Show delayed orders over €500',
-        description: 'An operational data table',
-        icon: <Package/>
-    },
-    {
-        key: 'products',
-        label: 'Help me choose a laptop for design work',
-        description: 'Interactive product choices',
-        icon: <ShoppingCart/>
-    },
-    {
-        key: 'return',
-        label: 'I need to return an order',
-        description: 'A guided form and safe confirmation',
-        icon: <ChatsCircle/>
-    }
-];
-
-const TextOnlyLink = ({children}: ComponentProps) => <span>{children}</span>;
-const OmittedImage = ({alt}: ComponentProps<{alt?: string}>) => <span>{alt ? `[Image: ${alt}]` : '[Image omitted]'}</span>;
 
 const App = () =>
 {
     const [draft, setDraft] = useState('');
+    const [now, setNow] = useState(Date.now);
     const [chatConfigured, setChatConfigured] = useState<boolean>();
-    const {messages, loading, conversationId, submit, cancel, reset} = useChat();
+    const {messages, loading, conversationId, states, historyError, submit, analyze, cancel, reset} = useChat();
     const consumedInteractions = useRef(new Set<string>());
     const messageListRef = useRef<BubbleListRef>(null);
     const latestMessageId = messages[messages.length - 1]?.id;
+    useEffect(() => {const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer);}, []);
 
     useEffect(() =>
     {
@@ -137,7 +109,7 @@ const App = () =>
         return {
             key: message.id,
             role: message.role,
-            classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table')
+            classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table' || type === 'chart' || type === 'stats')
                 ? {root: 'assistant-bubble-table'}
                 : undefined,
             loading: message.state === 'loading'
@@ -147,24 +119,25 @@ const App = () =>
             streaming: message.state === 'streaming',
             content: message.role === 'user' ? message.content : (
                 <div className="assistant-message">
-                    {message.content && <XMarkdown
+                    {message.content && <AssistantMarkdown
                         content={message.content}
-                        className={`x-markdown-light${message.blocks.length > 0 ? ' assistant-annotation' : ''}`}
-                        components={{a: TextOnlyLink, img: OmittedImage}}
-                        escapeRawHtml
-                        streaming={{hasNextChunk: message.state === 'streaming', tail: message.state === 'streaming'}}
+                        annotation={message.blocks.length > 0}
+                        streaming={message.state === 'streaming'}
                     />}
                     <ActivityPresentation message={message}/>
-                    <NluiRenderer
+                    <ResponseSurface
                         blocks={message.blocks}
                         conversationId={conversationId}
                         disabled={loading || message.state !== 'complete'}
+                        states={states}
+                        now={now}
+                        onAnalyze={analyze}
                         onInteraction={send}
                     />
                 </div>
             )
         };
-    }), [conversationId, loading, messages, send]);
+    }), [conversationId, loading, messages, send, states, analyze, now]);
 
     return (
         <XProvider theme={{
@@ -231,12 +204,7 @@ const App = () =>
                                 title="What would you like to understand or do?"
                                 description="This assistant can answer with prose, live data, and safe interactive controls."
                             />
-                            <Prompts
-                                title="Try an NLUI response"
-                                items={STARTERS}
-                                wrap
-                                onItemClick={({data}) => sendText(String(data.label))}
-                            />
+                            <ConversationStarters disabled={loading} onChoose={sendText}/>
                         </div> : <Bubble.List
                             ref={messageListRef}
                             autoScroll={false}
@@ -258,6 +226,8 @@ const App = () =>
                     </section>
 
                     <footer className="composer-wrap">
+                        {historyError && <Alert type="warning" title="Conversation recovery" description={historyError}/>}
+                        <Flex gap={8} wrap><AnalysisControls disabled={loading || !!historyError} onAnalyze={analyze}/><DatasetOnboarding/></Flex>
                         <Sender
                             value={draft}
                             onChange={setDraft}

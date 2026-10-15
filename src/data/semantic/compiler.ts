@@ -177,7 +177,7 @@ const planHash = (plan: CanonicalSemanticQuery): string =>
 const relationshipIdsFor = (plan: CanonicalSemanticQuery): SemanticRelationshipId[] =>
 {
     const entity = SEMANTIC_METRICS[plan.metric].baseEntity;
-    const relationships = new Set<SemanticRelationshipId>();
+    const relationships = new Set<SemanticRelationshipId>(SEMANTIC_METRICS[plan.metric].requiredRelationships ?? []);
     for (const dimension of [
         ...plan.dimensions,
         ...plan.filters.map(({dimension}) => dimension)
@@ -186,7 +186,8 @@ const relationshipIdsFor = (plan: CanonicalSemanticQuery): SemanticRelationshipI
         const relationship = sourceFor(dimension, entity).relationship;
         if (relationship) relationships.add(relationship);
     }
-    return [...relationships].sort((left, right) => left.localeCompare(right));
+    const order: SemanticRelationshipId[] = ['items_order', 'returns_order', 'items_product', 'orders_customer'];
+    return order.filter((id) => relationships.has(id));
 };
 
 const appendDefaultFilters = (
@@ -196,6 +197,7 @@ const appendDefaultFilters = (
 ): void =>
 {
     const metric = SEMANTIC_METRICS[plan.metric];
+    clauses.push(...metric.fixedPredicates ?? []);
     if (metric.excludedOrderStatuses)
     {
         clauses.push(`orders.status NOT IN (${metric.excludedOrderStatuses.map(() => '?').join(', ')})`);
@@ -268,7 +270,7 @@ const queryLines = (
     for (const relationshipId of relationships)
     {
         const relationship = SEMANTIC_RELATIONSHIPS[relationshipId];
-        if (relationship.fromEntity !== metric.baseEntity)
+        if (relationship.fromEntity !== metric.baseEntity && !relationships.some((id) => SEMANTIC_RELATIONSHIPS[id].toEntity === relationship.fromEntity))
         {
             throw new Error(`Relationship ${relationshipId} cannot start from ${metric.baseEntity}`);
         }

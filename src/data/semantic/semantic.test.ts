@@ -61,7 +61,7 @@ describe('semantic catalog', () =>
     test('publishes a versioned metric, dimension, and relationship contract', () =>
     {
         expect(SEMANTIC_CATALOG.id).toBe('retail-operations');
-        expect(SEMANTIC_CATALOG.version).toBe(2);
+        expect(SEMANTIC_CATALOG.version).toBe(3);
         expect(Object.keys(SEMANTIC_CATALOG.metrics)).toEqual([...SEMANTIC_METRIC_IDS]);
         expect(Object.keys(SEMANTIC_CATALOG.dimensions)).toEqual([...SEMANTIC_DIMENSION_IDS]);
         expect(SEMANTIC_CATALOG.metrics.registered_customer_count.timeScope)

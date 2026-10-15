@@ -1,3 +1,4 @@
+import {createOwnedChatHandler} from '../../../conversations/chat.ts';
 import config from '../../../core/configuration.ts';
 import type {RouteHandler} from '../../../core/types.ts';
 import {ConversationStateError, type ConversationStateRegistry, conversationStates} from '../../../nlui/conversationState.ts';
@@ -153,4 +154,4 @@ export const createChatHandler = ({
     });
 };
 
-export const POST = createChatHandler();
+export const POST = createOwnedChatHandler();

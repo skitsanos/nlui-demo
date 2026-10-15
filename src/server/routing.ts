@@ -1,3 +1,4 @@
+import config from '@/core/configuration.ts';
 import type {
     RouteContext,
     RouteMethod,
@@ -6,6 +7,7 @@ import type {
     SocketData
 } from '@/core/types.ts';
 import {ALLOWED_METHODS} from '@/core/types.ts';
+import {handleCors} from '@/utils/cors.ts';
 import type Logger from '@/utils/logger.ts';
 import {isDevelopment, routesDir} from '@/utils/runtime.ts';
 import {trackWebSockets} from './socketLifecycle.ts';
@@ -25,6 +27,7 @@ const isRouteMethod = (method: string): method is RouteMethod =>
  */
 export const getAllowedMethods = (route: RouteModule): RouteMethod[] =>
 {
+    if (route.default) return [...ALLOWED_METHODS];
     const explicit = ALLOWED_METHODS.filter((method) => route[method]);
     if (explicit.length > 0)
     {
@@ -34,16 +37,12 @@ export const getAllowedMethods = (route: RouteModule): RouteMethod[] =>
             explicit.splice(getIndex + 1, 0, 'HEAD');
         }
 
+        if (!explicit.includes('OPTIONS')) explicit.push('OPTIONS');
         return explicit;
     }
 
-    if (route.default)
-    {
-        return ALLOWED_METHODS;
-    }
-
     // A websocket-only route answers GET solely as an upgrade handshake.
-    return route.websocket ? ['GET'] : [];
+    return route.websocket ? ['GET', 'OPTIONS'] : [];
 };
 
 const websocketHandlers: RouteWebSocketHandler = {
@@ -119,6 +118,8 @@ const resolveRoute = async (
         server
     };
     const method = request.method.toUpperCase();
+    const preflight = handleCors(request, config.server.cors, getAllowedMethods(route));
+    if (preflight) return preflight;
 
     const isWebSocketUpgrade = request.headers.get('upgrade')?.toLowerCase() === 'websocket';
     if (isWebSocketUpgrade && method === 'GET' && route.websocket)
@@ -141,6 +142,8 @@ const resolveRoute = async (
     {
         return await routeHandler(context) ?? createResponse('', 204);
     }
+    if (method === 'OPTIONS' && getAllowedMethods(route).length)
+        return new Response(null, {status: 204, headers: {Allow: getAllowedMethods(route).join(', ')}});
 
     if (route.websocket && method === 'GET')
     {
