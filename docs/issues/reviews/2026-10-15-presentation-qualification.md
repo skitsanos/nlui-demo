@@ -1,6 +1,6 @@
 # NLUI-031 — Bounded presentation qualification
 
-Date: 2026-10-15. Local milestone based on release 1.4.1, followed by authorized release 1.5.0 qualification on `main`. The local evidence below precedes hosted verification; no paid provider run or deployment is claimed.
+Date: 2026-10-15. Local milestone based on release 1.4.1, followed by authorized release 1.5.0 publication and successful hosted qualification on `main`. The evidence follow-up bumps to 1.5.1 before its own push. No paid provider run or deployment is claimed.
 
 ## Baseline, hypothesis and outcome
 
@@ -63,4 +63,16 @@ Older reports cannot qualify the new evaluator/fixture/presentation contract. Hi
 
 ## Publication follow-up
 
-Release 1.5.0 includes the full NLUI-031 milestone. Hosted qualification is pending; no passing hosted result for these changes is claimed yet. The Issues Registry will be updated with the exact successful run after all hosted jobs complete.
+Release 1.5.0 includes the full NLUI-031 milestone, committed and pushed as `cc4c00d016dbc698d925e011699adb7311fcfc52`. [Qualification run 38727922140](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140) completed successfully on 2026-10-15 at 11:34:07 UTC. All three hosted commit check-runs are completed/success; there are no legacy commit-status checks in addition to those check-runs. No failure was waived, skipped or repaired.
+
+| Hosted job | Result and observed evidence |
+| --- | --- |
+| [Source and compiled, Ubuntu](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140/job/116398254691) | Passed on Linux x64: Biome/TypeScript, 717 tests/2181 expectations/80 files, offline 77-label/100-rule catalog, 38 source and 38 compiled HTTP requests, exact 35/35 source and standalone compiled reference profiles. |
+| [Source and compiled, macOS](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140/job/116398255022) | Passed on macOS arm64: the same 717 tests/2181 expectations/80 files, static/offline checks, both 38-request HTTP modes and both exact 35/35 reference profiles. |
+| [Production container, Linux](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140/job/116398979597) | Passed production-image build and real non-root HTTP/data/SQL/permissions checks, overridden-port health, exact 35/35 reference profile and graceful shutdown/owned-resource cleanup. |
+
+Bun 1.4.3 and Hurl 8.0.1 were observed in the hosted matrix. Workflow inputs still use current Bun and frozen application dependencies; these versions are evidence, not exact compatibility requirements. GitHub's runner-capacity and upcoming Ubuntu-image-migration annotations were informational, not failed checks. No provider configuration was supplied to hosted jobs or test containers. This is not a billable/live-model result, Windows qualification, branch-protection change or deployment.
+
+Before publication, the frozen dependency install changed no lockfile entries, `git diff --check` was clean, and fresh local `bun --no-env-file run verify:all` passed with the same 717-test and 35-case profiles. A local scan of all 331 publishable files plus the exact 53 staged files found no configured provider values or credential signatures; the scan printed only counts/findings, never configured values. `.env`, `TODO.md`, retained SQLite/runtime files and build outputs remained ignored. Docker exclusions and the real production-image probe confirmed private inputs and browser/test fixtures were absent from the runtime image.
+
+After all hosted jobs passed, the registry and active verification documentation were updated with this exact run. The evidence-only follow-up bumps to 1.5.1 under the version-before-every-push rule; application/runtime/test code remains identical to qualified release 1.5.0. Its own push triggers the same full hosted workflow and must also be checked before handoff. Historical reviews remain unchanged, and the registry remains 23 Closed/nine Open.

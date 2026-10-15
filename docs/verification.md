@@ -24,6 +24,8 @@ The workflow uses `bun-version: latest`; the Dockerfile uses `oven/bun:latest` r
 
 The first hosted [Qualification run 38721607962](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962) passed all three jobs on 2026-10-15 for release 1.4.0, commit `6a41630318af59630045789ed4f7b46dc8dd511c`. It qualifies the observed Ubuntu 24.04 x64/macOS 26 arm64 source-and-compiled jobs and Linux x64 production container; NLUI-015 is closed. Repository required-check and branch-protection settings were not changed and remain separate policy. Local or hosted success does not qualify untested platforms, fork settings or deployment.
 
+Later [Qualification run 38727922140](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140) passes all three jobs for release 1.5.0, commit `cc4c00d016dbc698d925e011699adb7311fcfc52`: 717 tests on each matrix platform, both 38-request HTTP modes and all 35 exact reference cases in source/compiled/container modes. [NLUI-031's publication evidence](issues/reviews/2026-10-15-presentation-qualification.md#publication-follow-up) records the jobs and bounded-contract limits. The registry/evidence-only follow-up uses version 1.5.1 and triggers its own full workflow; verify the current commit's checks rather than assuming a prior run qualifies later changes.
+
 ## Non-billable and retained-data boundaries
 
 Qualification commands use `--no-env-file`; subprocess environments withhold inherited OpenAI configuration and force live evaluation off. This is test isolation, not replacement of the existing ignored development `.env`. No credentials or configured model values are printed or forwarded to a test container. Production development/live verification keeps its existing configuration behavior.
