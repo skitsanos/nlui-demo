@@ -22,6 +22,15 @@ const asElement = (value: ReactNode): ReactElement<Record<string, unknown>> =>
     return value as ReactElement<Record<string, unknown>>;
 };
 
+test('choice cards reserve one radio/checkbox column and keep specification content together', async () =>
+{
+    const css = await Bun.file(new URL('../styles.css', import.meta.url)).text();
+    expect(css).toContain('grid-template-columns: 16px minmax(0, 1fr)');
+    expect(css).toContain('.choice-card > .ant-checkbox, .choice-card > .ant-radio');
+    expect(css).toContain('grid-row: 1 / span 4; align-self: start');
+    expect(css).toContain('.choice-card > span:last-child > * { grid-column: 2; min-width: 0; }');
+});
+
 describe('NLUI tables', () =>
 {
     test('use an app-owned full-width card and an intrinsic horizontal scroll width', () =>

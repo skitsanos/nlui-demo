@@ -1,5 +1,6 @@
 import type {ResponseTextConfig} from 'openai/resources/responses/responses';
 import {z} from 'zod';
+import {policyCaptions, type ResponsePolicy} from '../nlui/responsePolicy.ts';
 import {nluiBlocksSchema} from '../nlui/schemas.ts';
 import type {NluiBlock} from '../nlui/types.ts';
 
@@ -39,10 +40,11 @@ const blockCaptionSchema = {
     description: 'A brief conversational annotation that adds context or one useful takeaway without repeating data already rendered in the selected blocks.'
 };
 
-export const responseTextConfigFor = (blocks: NluiBlock[]): ResponseTextConfig =>
+export const responseTextConfigFor = (blocks: NluiBlock[], policies: readonly ResponsePolicy[] = []): ResponseTextConfig =>
 {
     const ids = blocks.map(({id}) => id);
     const hasBlocks = ids.length > 0;
+    const captions = policyCaptions(policies);
     return {
         format: {
             type: 'json_schema',
@@ -59,9 +61,10 @@ export const responseTextConfigFor = (blocks: NluiBlock[]): ResponseTextConfig =
                     answer: hasBlocks ? {type: 'null'} : {
                         type: 'string',
                         minLength: 1,
+                        ...captions.length > 0 && {enum: captions},
                         description: 'The complete concise user-facing Markdown answer.'
                     },
-                    caption: hasBlocks ? blockCaptionSchema : {type: 'null'},
+                    caption: hasBlocks ? {...blockCaptionSchema, ...captions.length > 0 && {enum: captions}} : {type: 'null'},
                     block_ids: hasBlocks ? {
                         type: 'array',
                         items: {type: 'string', enum: ids},
@@ -99,7 +102,7 @@ const invalid = (): never =>
     throw new StructuredResponseError();
 };
 
-export const resolveStructuredResponse = (encoded: string, candidates: NluiBlock[]): ResolvedAssistantResponse =>
+export const resolveStructuredResponse = (encoded: string, candidates: NluiBlock[], policies: readonly ResponsePolicy[] = []): ResolvedAssistantResponse =>
 {
     const parsedJson = (() =>
     {
@@ -116,6 +119,9 @@ export const resolveStructuredResponse = (encoded: string, candidates: NluiBlock
     if (!parsed.success) return invalid();
 
     const envelope = parsed.data;
+    const captions = policyCaptions(policies);
+    const text = candidates.length ? envelope.caption : envelope.answer;
+    if (captions.length > 0 && !captions.includes(text ?? '')) return invalid();
     const validatedCandidates = nluiBlocksSchema.safeParse(candidates);
     if (!validatedCandidates.success) return invalid();
     const candidatesById = new Map(validatedCandidates.data.map((block) => [block.id, block]));

@@ -1,9 +1,15 @@
+import {createHash} from 'node:crypto';
 import manifest from '../../data/fixture-manifest.json';
 import {SEMANTIC_CATALOG_VERSION} from '../data/semantic/catalog.ts';
+import {POLICY_CAPTIONS, RESPONSE_POLICY_VERSION} from '../nlui/responsePolicy.ts';
+import {FORM_QUESTION_CRITERIA, PRODUCT_FACT_CRITERIA} from './presentationCriteria.ts';
 import type {EvaluationResult, EvaluationTrace} from './types.ts';
 
-export const EVALUATOR_VERSION = 'deterministic-v2';
+export const EVALUATOR_VERSION = 'deterministic-v3-presentation';
 export const evaluationVersions = () => ({evaluator: EVALUATOR_VERSION, trace: 2,
+    presentationPolicy: RESPONSE_POLICY_VERSION,
+    presentationFingerprint: createHash('sha256').update(JSON.stringify({facts: PRODUCT_FACT_CRITERIA,
+        questions: FORM_QUESTION_CRITERIA, captions: POLICY_CAPTIONS})).digest('hex'),
     dataset: manifest.datasetVersion, semanticCatalog: SEMANTIC_CATALOG_VERSION,
     fixtureFingerprint: manifest.baselineFingerprint, goldenFixtures: manifest.goldenFixtures});
 

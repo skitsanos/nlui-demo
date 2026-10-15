@@ -1,10 +1,12 @@
 import type {DemoRepository} from '../data/types.ts';
+import type {ResponsePolicy} from './responsePolicy.ts';
 import type {NluiBlock} from './types.ts';
 
 export interface ToolExecution
 {
     modelOutput: unknown;
     traceOutput?: unknown;
+    responsePolicy?: ResponsePolicy;
     blocks: NluiBlock[];
 }
 

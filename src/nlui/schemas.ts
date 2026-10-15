@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {productFactSchema} from './productFacts.ts';
 
 const cellValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 const valueFormatSchema = z.enum(['text', 'number', 'currency', 'date', 'status']);
@@ -85,7 +86,9 @@ const choicesBlockSchema = blockBaseSchema.extend({
         value: z.string(),
         label: z.string(),
         description: z.string().optional(),
-        meta: z.string().optional()
+        meta: z.string().optional(),
+        facts: z.array(productFactSchema).max(5).refine((facts) => new Set(facts.map(({key}) => key)).size === facts.length,
+            'Product fact keys must be unique').optional()
     })).min(1).max(20)
 }).superRefine((block, context) =>
 {

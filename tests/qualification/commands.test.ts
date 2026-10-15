@@ -43,13 +43,16 @@ describe('non-billable, fail-closed qualification commands', () =>
         expect(calls).toBe(1);
         await expect(qualify('unknown')).rejects.toThrow('Expected source');
     });
-    test.each(['error', 'duplicate', 'different-incomplete', 'missing'])('rejects reference drift: %s', (kind) =>
+    test.each(['error', 'duplicate', 'incomplete', 'missing', 'wrong-id', 'stale-version', 'missing-version'])('rejects reference drift: %s', (kind) =>
     {
         const output = JSON.parse(referenceOutput());
         const results = output.reports[0].results;
         if (kind === 'error') results[0].status = 'error';
         if (kind === 'duplicate') results[1].scenarioId = results[0].scenarioId;
-        if (kind === 'different-incomplete') {results[0].status = 'incomplete'; results[28].status = 'passed';}
+        if (kind === 'incomplete') results[0].status = 'incomplete';
+        if (kind === 'wrong-id') results[0].scenarioId = 'unrelated-case';
+        if (kind === 'stale-version') output.reports[0].versions.evaluator = 'deterministic-v2';
+        if (kind === 'missing-version') delete output.reports[0].versions;
         if (kind === 'missing') results.pop();
         expect(() => verifyReferenceProfile(JSON.stringify(output))).toThrow('Unexpected provider-free');
     });

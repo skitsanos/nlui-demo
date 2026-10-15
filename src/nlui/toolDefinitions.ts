@@ -106,17 +106,18 @@ const CONTROL_TOOLS: FunctionTool[] = [
     {
         type: 'function',
         name: 'get_order',
-        description: 'Look up one order by an order number such as ORD-1042 and return its status, totals, shipment, and line items. Do not zero-pad the numeric part.',
+        description: 'Look up one order by number. Set intent to cancel when checking cancellation eligibility; otherwise lookup. Delivered cancellations require an application-owned refusal caption. Do not zero-pad the numeric part.',
         strict: true,
-        parameters: objectSchema({order_number: {type: 'string'}})
+        parameters: objectSchema({order_number: {type: 'string'}, intent: {type: ['string', 'null'], enum: ['lookup', 'cancel', null]}})
     },
     {
         type: 'function',
         name: 'search_policies',
-        description: 'Search the application-owned policy documents for returns, shipping, warranties, payments, privacy, or support guidance.',
+        description: 'Search application-owned policy documents. Set topic to address_after_dispatch for address changes after dispatch/in transit/delivered; otherwise general. Guarded topics constrain the final caption.',
         strict: true,
         parameters: objectSchema({
             query: {type: 'string'},
+            topic: {type: ['string', 'null'], enum: ['general', 'address_after_dispatch', null]},
             limit: {type: 'integer', minimum: 1, maximum: 8}
         })
     },
@@ -126,7 +127,7 @@ const CONTROL_TOOLS: FunctionTool[] = [
         description: 'Render an application-owned form when required information is missing for an order lookup, return, cancellation, address change, or product recommendation.',
         strict: true,
         parameters: objectSchema({
-            kind: {type: 'string', enum: ['order_lookup', 'return_request', 'cancellation', 'shipping_address', 'product_preferences']},
+            kind: {type: 'string', enum: ['order_lookup', 'order_resolution', 'return_request', 'cancellation', 'shipping_address', 'product_preferences']},
             order_number: nullable('string')
         })
     },

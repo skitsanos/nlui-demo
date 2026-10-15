@@ -8,9 +8,9 @@ Priorities: **P0** critical immediate failure; **P1** high-impact correctness, d
 
 ## Current ledger
 
-32 issues: **10 Open**, **0 In progress**, **0 Blocked**, **0 Deferred**, **22 Closed**. Open priorities: **8 P2**, **2 P3**. No open P0/P1 issues. Next ID: **NLUI-033**.
+32 issues: **9 Open**, **0 In progress**, **0 Blocked**, **0 Deferred**, **23 Closed**. Open priorities: **7 P2**, **2 P3**. No open P0/P1 issues. Next ID: **NLUI-033**.
 
-Latest milestone: [Hosted CI qualification](reviews/2026-10-15-ci-qualification.md). [Run 38721607962](https://github.com/skitsanos/nlui-demo/actions/runs/38721607962) passes Linux/macOS source-and-compiled jobs and the separate Linux production-container job; NLUI-015 is Closed. Both matrix jobs pass 628 tests and both HTTP modes. The reference profile remains 28 passed/seven explicitly incomplete; no live model experiment, retained-data reset, branch-policy change or deployment is claimed.
+Latest milestone: [Bounded presentation qualification](reviews/2026-10-15-presentation-qualification.md); NLUI-031 is Closed. All 77 assertion labels are executable across 100 rules; all 35 provider-free reference cases pass with zero incomplete results. Local source/compiled/container qualification passed with 717 tests and desktop/mobile browser evidence. These bounded contracts are not a live-model score or general language grader. Authorized release 1.5.0 hosted qualification is pending; earlier [CI qualification](reviews/2026-10-15-ci-qualification.md) remains dated evidence. Retained data/provider settings and deployment were unchanged.
 
 | ID | Priority | Status | Finding or milestone |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ Latest milestone: [Hosted CI qualification](reviews/2026-10-15-ci-qualification.
 | [NLUI-028](NLUI-028.md) | P2 | Closed | Complete the semantic-query A/B pilot and retain the control |
 | [NLUI-029](NLUI-029.md) | P2 | Closed | Harden semantic-query v2 scope and owned presentation |
 | [NLUI-030](NLUI-030.md) | P2 | Closed | Establish observable activity and selective provenance receipts |
-| [NLUI-031](NLUI-031.md) | P2 | Open | Qualify the seven remaining language and visible-product assertions |
+| [NLUI-031](NLUI-031.md) | P2 | Closed | Qualify the seven remaining language and visible-product assertions |
 | [NLUI-032](NLUI-032.md) | P1 | Closed | Resolve the embedded SQL worker from the compiled entrypoint |
 
 ## Migration and execution order
@@ -66,8 +66,8 @@ The [frozen roadmap](reviews/2026-10-14-roadmap-migration.md) preserves every or
 
 Next bounded milestones, in order:
 
-1. Trustworthy evaluation: qualify the seven explicitly unsupported language/visible-product assertions (NLUI-031). Hosted CI qualification (NLUI-015), classification/adapters/trace accounting (NLUI-016), effective predicates (NLUI-006), coherent fixtures (NLUI-010) and embedded SQL worker resolution (NLUI-032) are complete.
-2. Evidence-led research: expand the semantic comparison (NLUI-019), then artifact refinement/provenance (NLUI-021), controlled A2UI (NLUI-020), durable transport (NLUI-022) and adversarial tenancy (NLUI-023).
+1. Evidence-led research: expand the semantic comparison (NLUI-019). Bounded presentation qualification (NLUI-031), hosted CI infrastructure (NLUI-015), classification/adapters/trace accounting (NLUI-016), effective predicates (NLUI-006), coherent fixtures (NLUI-010) and embedded SQL worker resolution (NLUI-032) are complete.
+2. Artifact refinement/provenance (NLUI-021), controlled A2UI (NLUI-020), durable transport (NLUI-022) and adversarial tenancy (NLUI-023).
 
 The bounded control-recovery work (NLUI-011 through NLUI-014), file/provider boundaries and public-error/request/shutdown protection (NLUI-004/005/008/009) are complete. Broader control accessibility/onboarding polish remains NLUI-024.
 
@@ -92,6 +92,7 @@ CORS, protocol documentation and the dependency advisory remain independently tr
 
 ## Reviews and evidence
 
+- [2026-10-15 presentation qualification](reviews/2026-10-15-presentation-qualification.md): seven bounded presentation/language contracts, independent rendered criteria, strict policy captions, 35 passing reference cases, regressions and local source/compiled/container plus desktop/mobile evidence; not live-model or general-language qualification.
 - [2026-10-15 CI qualification](reviews/2026-10-15-ci-qualification.md): safe workflow contract, mandatory tool installation, source/compiled/container gates, owned cleanup, local evidence and all three hosted jobs passing after authorized publication.
 - [2026-10-15 deterministic evaluation](reviews/2026-10-15-deterministic-evaluation.md): complete assertion classification, isolated route/trajectory adapters, adversarial expression/denotation checks, safe trace accounting, fail-closed promotion and compiled worker qualification.
 - [2026-10-15 snapshot fixture](reviews/2026-10-15-snapshot-fixture.md): uniform lifecycle alignment, full observed-field validation, v2 fingerprint, unchanged golden denotations, isolated tools and source/compiled seed checks.

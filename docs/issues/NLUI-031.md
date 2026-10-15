@@ -1,12 +1,12 @@
 # NLUI-031: Qualify the seven remaining language and visible-product assertions
 
-- Status: Open
+- Status: Closed
 - Priority: P2
 - Kind: Verification gap
 - Created: 2026-10-15
 - Updated: 2026-10-15
-- Scope: data/scenarios.jsonl; src/evals; product presentation and semantic language grading
-- Evidence: NLUI-016 isolated provider-free corpus and explicit unsupported assertion records
+- Scope: data/scenarios.jsonl; src/evals; product/form presentation; bounded policy-caption composition
+- Evidence: [Presentation qualification](reviews/2026-10-15-presentation-qualification.md), provider-free regressions and desktop/mobile browser verification
 
 ## Problem
 
@@ -14,7 +14,7 @@ Seven of the 77 catalog assertion labels require evidence that is not supplied b
 
 ## Evidence and reproduction
 
-`bun run eval:offline` reports 70 executable labels, 100 configured rules, seven unsupported labels and zero unconfigured labels. `bun run eval:fixtures` executes all 35 cases with real tools and isolated adapters: 28 pass and seven are incomplete. These are oracle/reference executions, not live model results. See [NLUI-016 evidence](reviews/2026-10-15-deterministic-evaluation.md).
+Baseline before this milestone: `bun run eval:offline` reported 70 executable labels, 100 configured rules, seven unsupported labels and zero unconfigured labels. The 35 real-tool/adapted reference cases produced 28 passed/seven incomplete. These were oracle executions, not live model results. The dated [NLUI-016 evidence](reviews/2026-10-15-deterministic-evaluation.md) is preserved.
 
 The remaining assertions are:
 
@@ -28,7 +28,7 @@ The remaining assertions are:
 | action-cancel-delivered-refusal | The delivered-order refusal is explained correctly |
 | disambiguation-order | The form adequately asks for the intended outcome as well as order number |
 
-Partial deterministic checks remain attached where useful, but cannot override an unsupported rule on the same label. No uncalibrated external grader can satisfy the promotion gate. This is narrower than semantic-catalog expansion in NLUI-019, authorization in NLUI-023 or general UX polish in NLUI-024; it is not a duplicate of those milestones.
+Partial deterministic checks could not override an unsupported rule on the same label. That fail-closed behavior remains regression-tested for future unsupported labels. No uncalibrated external grader can satisfy the promotion gate. This is narrower than semantic-catalog expansion in NLUI-019, authorization in NLUI-023 or general UX polish in NLUI-024.
 
 ## Proposed correction
 
@@ -36,11 +36,15 @@ Prefer application-owned structured presentation and deterministic rendered evid
 
 ## Acceptance criteria
 
-- [ ] All seven named assertions have reviewed, executable criteria that test the actual visible or linguistic claim, not merely retrieved data or keywords.
-- [ ] Positive, negative, misleading and paraphrased regression cases establish each criterion; rendered checks cover attributes/form prompts where relevant.
-- [ ] Any language grader is calibrated against human labels with recorded held-out results and approval criteria; it is never silently classified as deterministic.
-- [ ] Corpus classifications, promotion rules, manifest hashes and documentation are updated without rewriting historical evidence or treating reference runs as model qualification.
+- [x] All seven named assertions have explicit executable criteria testing production-rendered facts/questions or exact application-owned policy language, not merely retrieved data or keywords.
+- [x] Positive, negative, misleading and paraphrased regression cases cover the bounded criteria; rendered checks and fresh browser evidence cover attributes/form prompts.
+- [x] No language grader was introduced. The two linguistic requirements are guaranteed by a finite application-authored caption contract; arbitrary paraphrases are unproven, not semantically graded. Human-calibrated held-out results would still be required before adding a general language grader.
+- [x] Corpus classification, strict qualification/promotion version boundaries, manifest hashes and active documentation are updated; historical evidence and the reference/model distinction are preserved.
 
 ## Resolution
 
-Pending. The seven labels remain explicitly unsupported, their results incomplete and ineligible for promotion. No live model or calibrated semantic-grader evidence was produced by NLUI-016.
+Closed on 2026-10-15. Product choice cards render SKU-bound typed specifications with application-owned labels/units. Home-office forms ask budget, desk/accessibility and device/connection questions; ambiguous order forms collect an order number and a required controlled intended outcome. Independent frozen criteria prevent a production label change from grading itself.
+
+Trusted tool decisions constrain the final JSON-schema caption to registered wording for delivered-order cancellation and post-dispatch address changes. Runtime validation also enforces that contract, including provider-refusal bypass rejection before publication. Normal analytical annotations remain conversational. Tool intent selection remains model planning, and no arbitrary-language or live-model capability claim is made.
+
+Fresh `bun --no-env-file run verify:all` passed: Biome 244 files, TypeScript, 717 tests/2181 expectations across 80 files, offline classification, 38 source and 38 compiled HTTP requests, exact 35/35 reference profiles in source/isolated compiled/container modes, and non-root production container health/permissions/shutdown. Browser checks covered all seven examples, 390px responsive product/form layout and real typed form submissions through the capability/chat boundary. See the linked review for fingerprints, diagnostics and limits. Existing ignored provider settings and retained data were not changed. Authorized release 1.5.0 qualification is now pending; successful hosted evidence will be recorded after all jobs pass.

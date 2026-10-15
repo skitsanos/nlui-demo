@@ -36,7 +36,7 @@ export const qualifyContainer = async (project: string, run: QualificationRunner
         await run({command: ['docker', 'stop', '--time', '10', id], capture: true, timeoutMs: 15_000});
         const exit = await run({command: ['docker', 'inspect', '--format', '{{.State.ExitCode}}', id], capture: true});
         if (exit.stdout.trim() !== '0') throw new Error('Container did not shut down successfully on SIGTERM');
-        console.log('Container: production HTTP/data/permissions/health/shutdown passed; reference 28 passed, seven incomplete.');
+        console.log('Container: production HTTP/data/permissions/health/shutdown passed; reference 35 passed, zero incomplete.');
     }
     finally
     {

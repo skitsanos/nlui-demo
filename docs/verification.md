@@ -14,7 +14,7 @@ Use Bun from the project root. Application dependencies are installed with `bun 
 
 Task equivalents are `task test:verify`, `task test:compiled` and `task test:docker`; `task test` retains the direct source HTTP smoke command. Missing Hurl is an error before source/compiled qualification. Install it using the [official Hurl instructions](https://hurl.dev/docs/installation.html), for example Homebrew on macOS. The CI workflow instead installs the pinned official npm wrapper into `$RUNNER_TEMP/hurl` with Bun's explicit `--trust` flag for that package's binary-install script; it does not change application dependencies or global user packages. The wrapper package version and reported native Hurl version are distinct and recorded separately.
 
-The provider-free reference contract is 35 unique cases: 28 passed and exactly the seven named unsupported cases incomplete. Changed case classification, duplicate/missing results or any failure/error fails qualification. This is a plumbing profile, not a passing live-model evaluation or a promotion override; remaining language qualification is NLUI-031.
+The provider-free reference contract is the exact set of 35 case IDs, all passed with zero incomplete results. Changed/missing/duplicate IDs, incomplete/failing/error results or stale evaluator/fixture/presentation versions fail qualification. NLUI-031 replaces seven unsupported checks with production-rendered, record-bound product facts, explicit form questions and bounded application-owned policy captions. This is reference contract/plumbing evidence, not a live-model evaluation, arbitrary-language grader or promotion override. The earlier 28/seven profile is retained only in dated historical reviews.
 
 ## GitHub workflow
 

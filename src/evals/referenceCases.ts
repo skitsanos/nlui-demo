@@ -6,7 +6,8 @@ export const referenceArguments = (scenario: EvaluationScenario, tool: string): 
     const id = scenario.id;
     if (tool === 'get_dashboard') return {from: '2026-01-01', to: '2026-06-30', region: null,
         group_by: id.includes('region') ? 'region' : id.includes('category') ? 'category' : 'month'};
-    if (tool === 'get_order') return {order_number: id.includes('address') || id === 'action-cancel-prepare' ? 'ORD-1176' : 'ORD-1042'};
+    if (tool === 'get_order') return {order_number: id.includes('address') || id === 'action-cancel-prepare' ? 'ORD-1176' : 'ORD-1042',
+        intent: id === 'action-cancel-delivered-refusal' ? 'cancel' : 'lookup'};
     if (tool === 'list_orders') return {search: null, statuses: [id.includes('returned') ? 'returned' : id.includes('delivered') ? 'delivered' : 'delayed'],
         region: id.includes('east') ? 'East' : null, minimum_total_eur: id.includes('high-value') || id.includes('bulk') ? 500 : null,
         maximum_total_eur: null, from: null, to: null, sort: id.includes('high-value') ? 'total_desc' : 'created_desc',
@@ -18,9 +19,10 @@ export const referenceArguments = (scenario: EvaluationScenario, tool: string): 
         minimum_stock: id.includes('low-stock') ? 1 : null, maximum_stock: id.includes('low-stock') ? 4 : null,
         in_stock_only: true, preferences: [], attribute_filters: id.includes('audio')
             ? [{key: 'wireless', value: true}, {key: 'noiseCancelling', value: true}] : [], limit: id.includes('travel') ? 3 : 5};
-    if (tool === 'request_details') return {kind: id.includes('order') ? 'order_lookup' : 'product_preferences', order_number: null};
+    if (tool === 'request_details') return {kind: id === 'disambiguation-order' ? 'order_resolution' : id.includes('order') ? 'order_lookup' : 'product_preferences', order_number: null};
     if (tool === 'search_policies') return {query: id.includes('return') || id.includes('refund') ? 'return window refund timing'
-        : id.includes('laptop') ? 'laptop travel development specifications' : 'shipping address delay escalation', limit: 3};
+        : id.includes('laptop') ? 'laptop travel development specifications' : 'shipping address delay escalation', limit: 3,
+        topic: id === 'policy-address-change' ? 'address_after_dispatch' : 'general'};
     if (tool === 'prepare_action') return {action_type: id.includes('address') ? 'update_shipping_address'
         : id.includes('cancel') ? 'cancel_order' : 'return_order', order_number: id.includes('return') ? 'ORD-1042' : 'ORD-1176',
         reason: 'Performance did not meet expectations', address: id.includes('address')

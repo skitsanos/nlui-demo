@@ -10,10 +10,10 @@ describe('evaluation catalog validation', () =>
         expect(report.scenarios).toBe(35);
         expect(report.executionModes.route).toBe(2);
         expect(report.executionModes['multi-turn']).toBe(1);
-        expect(report.deterministicAssertions).toBe(70);
-        expect(report.deterministicRules).toBe(93);
+        expect(report.deterministicAssertions).toBe(77);
+        expect(report.deterministicRules).toBe(100);
         expect(report.configuredRules).toBe(100);
-        expect(report.unsupportedAssertions).toBe(7);
+        expect(report.unsupportedAssertions).toBe(0);
         expect(report.ungradedAssertions).toBe(0);
         expect(report.issues).toEqual([]);
     });

@@ -31,9 +31,9 @@ test('compiled provider-free evaluation CLI preserves routes, workers and all 35
         expect(output.kind).toBe('provider-free-reference');
         const results = output.reports.flatMap((report: {results: unknown[]}) => report.results);
         expect(results).toHaveLength(35);
-        expect(results.filter((result: {status: string}) => result.status === 'passed')).toHaveLength(28);
-        expect(results.filter((result: {status: string}) => result.status === 'incomplete')).toHaveLength(7);
-        expect(output.reports.every((report: {versions: {evaluator: string}}) => report.versions.evaluator === 'deterministic-v2')).toBeTrue();
+        expect(results.filter((result: {status: string}) => result.status === 'passed')).toHaveLength(35);
+        expect(results.filter((result: {status: string}) => result.status === 'incomplete')).toHaveLength(0);
+        expect(output.reports.every((report: {versions: {evaluator: string}}) => report.versions.evaluator === 'deterministic-v3-presentation')).toBeTrue();
         const secrets = [process.env.OPENAI_API_KEY, process.env.CHAT_MODEL].filter((value): value is string => !!value);
         expect(secrets.every((value) => !JSON.stringify(output).includes(value))).toBeTrue();
     }

@@ -17,6 +17,7 @@ import {Confirmation} from './Confirmation.tsx';
 import {DynamicForm} from './DynamicForm.tsx';
 import {FormattedValue} from './FormattedValue.tsx';
 import {MiniChart} from './MiniChart.tsx';
+import {ProductFacts} from './ProductFacts.tsx';
 import {StatisticsBlock} from './StatisticsBlock.tsx';
 
 interface Props
@@ -75,10 +76,12 @@ const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
             <strong>{option.label}</strong>
             {option.description && <span>{option.description}</span>}
             {option.meta && <Tag>{option.meta}</Tag>}
+            <ProductFacts sku={option.value} facts={option.facts ?? []}/>
         </Checkbox> : <Radio key={option.value} value={option.value} className="choice-card">
             <strong>{option.label}</strong>
             {option.description && <span>{option.description}</span>}
             {option.meta && <Tag>{option.meta}</Tag>}
+            <ProductFacts sku={option.value} facts={option.facts ?? []}/>
         </Radio>
     );
 

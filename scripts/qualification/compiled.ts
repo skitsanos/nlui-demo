@@ -24,7 +24,7 @@ export const qualifyCompiled = async (project: string, run: QualificationRunner,
         // cannot be hidden by a fallback into the developer checkout.
         const result = await run({command: [reference, '--json'], cwd: root, capture: true, timeoutMs: 60_000});
         verifyReferenceProfile(result.stdout);
-        console.log('Compiled reference: 28 passed, seven explicitly incomplete; no source fallback.');
+        console.log('Compiled reference: 35 passed, zero incomplete; no source fallback.');
     }
     finally {await rm(root, {recursive: true, force: true});}
 };

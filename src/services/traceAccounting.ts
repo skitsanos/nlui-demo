@@ -11,7 +11,7 @@ export const traceFailureOutcome = (error: unknown, signal: AbortSignal): Exclud
         : /without successful completion|stream continued|changed response identifiers/i.test(message) ? 'truncated' : 'error';
 };
 
-export const toolReceipt = (execution: ToolExecution): Pick<ChatToolTrace, 'queryHash' | 'planHash' | 'policyCode' | 'emptyResult' | 'outcome'> =>
+export const toolReceipt = (execution: ToolExecution): Pick<ChatToolTrace, 'queryHash' | 'planHash' | 'policyCode' | 'emptyResult' | 'outcome' | 'responsePolicy'> =>
 {
     const output = execution.traceOutput ?? execution.modelOutput;
     const record = typeof output === 'object' && output !== null ? output as Record<string, unknown> : {};
@@ -20,6 +20,7 @@ export const toolReceipt = (execution: ToolExecution): Pick<ChatToolTrace, 'quer
     const code = typeof model.error === 'string' ? model.error.match(/^SQL_[A-Z_]+/)?.[0] : undefined;
     const hash = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
     return {outcome: model.ok === false ? 'rejected' : 'accepted',
+        ...execution.responsePolicy && {responsePolicy: execution.responsePolicy},
         ...hash(record.queryHash) && {queryHash: record.queryHash},
         ...hash(record.planHash) && {planHash: record.planHash},
         ...code && {policyCode: code},

@@ -1,6 +1,8 @@
+import {policyCaptions, type ResponsePolicy} from '../nlui/responsePolicy.ts';
 import {executeNluiTool} from '../nlui/tools.ts';
 import type {ChatToolTrace} from '../services/chatTrace.ts';
 import {emptyTokenUsage} from '../services/chatTrace.ts';
+import {resolveStructuredResponse} from '../services/structuredResponse.ts';
 import {toolReceipt} from '../services/traceAccounting.ts';
 import {blockNameFor} from './blockNames.ts';
 import {createIsolatedExecutor} from './isolatedExecutor.ts';
@@ -20,6 +22,7 @@ export const createReferenceExecutor = (catalog: EvaluationScenario[]): Scenario
         emit({type: 'message.started', messageId});
         const tools: ChatToolTrace[] = [];
         const blocks = [];
+        const policies: ResponsePolicy[] = [];
         for (const name of scenario.expectedTools)
         {
             signal.throwIfAborted();
@@ -27,6 +30,7 @@ export const createReferenceExecutor = (catalog: EvaluationScenario[]): Scenario
             const started = performance.now();
             emit({type: 'tool.started', name});
             const execution = await executeNluiTool(name, JSON.stringify(args), signal, data);
+            if (execution.responsePolicy) policies.push(execution.responsePolicy);
             const receipt: ChatToolTrace = {...toolReceipt(execution), round: 1, callId: crypto.randomUUID(), name,
                 arguments: args, modelOutput: execution.traceOutput ?? execution.modelOutput,
                 candidateBlockIds: execution.blocks.map(({id}) => id), candidateBlockTypes: execution.blocks.map(({type}) => type),
@@ -37,10 +41,13 @@ export const createReferenceExecutor = (catalog: EvaluationScenario[]): Scenario
             blocks.push(...execution.blocks.filter((block) => scenario.expectedBlocks.includes(blockNameFor(block))));
             emit({type: 'tool.completed', name});
         }
-        const text = referenceAnnotation(scenario.id);
+        const annotation = policyCaptions(policies)[0] ?? referenceAnnotation(scenario.id);
+        const {text} = resolveStructuredResponse(JSON.stringify({presentation: blocks.length ? 'blocks' : 'message',
+            answer: blocks.length ? null : annotation, caption: blocks.length ? annotation : null,
+            block_ids: blocks.map(({id}) => id)}), blocks, policies);
         emit({type: 'text.delta', delta: text});
         for (const block of blocks) emit({type: 'ui.block', block});
         emit({type: 'message.completed', messageId, responseId});
-        return {messageId, responseId, model: 'deterministic-reference', promptVersion: 'reference-v1', text, blocks,
+        return {messageId, responseId, model: 'deterministic-reference', promptVersion: 'reference-v2-presentation', text, blocks,
             tools, rounds: [], usage: emptyTokenUsage(), durationMs: 0};
     }}));

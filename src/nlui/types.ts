@@ -1,3 +1,5 @@
+import type {ProductFact} from './productFacts.ts';
+
 export type CellValue = string | number | boolean | null;
 export type ValueFormat = 'text' | 'number' | 'currency' | 'date' | 'status';
 export type StringValueFormat = Extract<ValueFormat, 'text' | 'date' | 'status'>;
@@ -64,6 +66,7 @@ export interface ChoicesBlock extends BlockBase
         label: string;
         description?: string;
         meta?: string;
+        facts?: ProductFact[];
     }>;
 }
 

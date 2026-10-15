@@ -25,15 +25,15 @@ describe('complete assertion classification and fail-closed evidence', () =>
         for (let index = 0; index < catalog.length; index += 10)
         {
             const report = await runEvaluationSuite({scenarios: catalog.slice(index, index + 10), executor});
-            expect(report.versions?.evaluator).toBe('deterministic-v2');
+            expect(report.versions?.evaluator).toBe('deterministic-v3-presentation');
             results.push(...report.results);
         }
         expect(results).toHaveLength(35);
-        expect(results.filter(({status}) => status === 'passed')).toHaveLength(28);
-        expect(results.filter(({status}) => status === 'incomplete')).toHaveLength(7);
+        expect(results.filter(({status}) => status === 'passed')).toHaveLength(35);
+        expect(results.filter(({status}) => status === 'incomplete')).toHaveLength(0);
         expect(results.filter(({status}) => status === 'failed' || status === 'error')).toEqual([]);
         expect(results.flatMap(({dataAssertions}) => dataAssertions).filter(({status}) => status === 'not_evaluated'))
-            .toHaveLength(7);
+            .toHaveLength(0);
         expect(results.every(({trace}) => trace.fixture && !trace.fixture.unexpectedMutation)).toBeTrue();
         const trajectory = results.find(({scenarioId}) => scenarioId === 'analytics-customers-by-tier')!.trace;
         expect(trajectory.trajectory?.map(({scenarioId}) => scenarioId)).toEqual(['analytics-customer-count']);

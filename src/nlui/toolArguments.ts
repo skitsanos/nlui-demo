@@ -83,11 +83,12 @@ export const productsArguments = z.object({
     limit: z.number().int().min(1).max(20)
 }).strict();
 
-export const orderArguments = z.object({order_number: z.string().min(1)}).strict();
-export const policyArguments = z.object({query: z.string().min(2), limit: z.number().int().min(1).max(8)}).strict();
+export const orderArguments = z.object({order_number: z.string().min(1), intent: z.enum(['lookup', 'cancel']).nullable().optional()}).strict();
+export const policyArguments = z.object({query: z.string().min(2), limit: z.number().int().min(1).max(8),
+    topic: z.enum(['general', 'address_after_dispatch']).nullable().optional()}).strict();
 
 export const detailsArguments = z.object({
-    kind: z.enum(['order_lookup', 'return_request', 'cancellation', 'shipping_address', 'product_preferences']),
+    kind: z.enum(['order_lookup', 'order_resolution', 'return_request', 'cancellation', 'shipping_address', 'product_preferences']),
     order_number: nullableString
 }).strict();
 

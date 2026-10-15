@@ -127,6 +127,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
         let activeComposeActivityId: string | undefined;
         let finalResponseId = '';
         const candidates: NluiBlock[] = [];
+        const responsePolicies: NonNullable<ToolExecution['responsePolicy']>[] = [];
         const candidateIds = new Set<string>();
         const tools: ChatToolTrace[] = [];
         const rounds: ChatRoundTrace[] = [];
@@ -199,7 +200,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         model: dependencies.model, instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
                         input, previous_response_id: previousResponseId, tools: dependencies.tools ?? OPENAI_TOOLS,
                         parallel_tool_calls: false, max_output_tokens: MAX_OUTPUT_TOKENS, store: true, stream: true,
-                        text: responseTextConfigFor(candidates)
+                        text: responseTextConfigFor(candidates, responsePolicies)
                     }, signal), signal);
                     for await (const event of abortableEvents(stream, signal))
                     {
@@ -236,9 +237,10 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                     finishActivity(requestActivityId, 'success');
                     if (!activeComposeActivityId) beginComposeActivity();
                     signal.throwIfAborted();
+                    if (refusal.trim() && responsePolicies.length) throw new Error('A guarded response requires a structured policy caption');
                     const resolved = refusal.trim()
                         ? refusalResponse(refusal)
-                        : resolveStructuredResponse(encodedResponse, candidates);
+                        : resolveStructuredResponse(encodedResponse, candidates, responsePolicies);
                     signal.throwIfAborted();
                     dependencies.issueCapabilities(request.conversationId, resolved.blocks);
                     finishComposeActivity('success');
@@ -297,6 +299,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         toolResultCache.set(call.call_id, {name: call.name, arguments: call.arguments, execution});
                         if (!cached)
                         {
+                            if (execution.responsePolicy) responsePolicies.push(execution.responsePolicy);
                             if (candidates.length + execution.blocks.length > MAX_RESPONSE_BLOCKS)
                             {
                                 throw new Error(`The assistant exceeded ${MAX_RESPONSE_BLOCKS} UI blocks`);

@@ -27,6 +27,10 @@ export const formHandler = (raw: unknown): ToolExecution =>
             fields: [
                 {name: 'use_case', label: 'Primary use', input: 'text', required: true, placeholder: 'Design, travel, development…'},
                 {name: 'maximum_price_eur', label: 'Maximum price (€)', input: 'number', min: 1},
+                {name: 'desk_requirements', label: 'Desk space and accessibility needs', input: 'textarea', maxLength: 300,
+                    help: 'How much desk space is available? Include any accessibility or positioning needs.'},
+                {name: 'device_requirements', label: 'Devices and connections', input: 'textarea', maxLength: 300,
+                    help: 'Which devices will you use, and which ports or connections do they need?'},
                 {name: 'preferences', label: 'Other preferences', input: 'textarea', maxLength: 300}
             ]
         };
@@ -61,6 +65,11 @@ export const formHandler = (raw: unknown): ToolExecution =>
             initialValues: args.order_number ? {order_number: args.order_number} : undefined,
             fields: [
                 commonOrderField,
+                ...args.kind === 'order_resolution' ? [{name: 'intended_outcome', label: 'What would you like to do?',
+                    input: 'select' as const, required: true, options: [
+                        {label: 'Track delivery', value: 'track'}, {label: 'Change shipping address', value: 'change_address'},
+                        {label: 'Request a return', value: 'return'}, {label: 'Cancel the order', value: 'cancel'},
+                        {label: 'Something else', value: 'other'}]}] : [],
                 ...needsReason ? [{name: 'reason', label: 'Reason', input: 'textarea' as const, required: true, maxLength: 300}] : []
             ]
         };

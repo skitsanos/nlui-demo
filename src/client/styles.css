@@ -195,13 +195,17 @@ body { overflow: hidden; }
 .chart-caption { display: block; text-align: center; font-size: 11px; }
 
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; width: 100%; }
-.choice-card { display: grid; grid-template-columns: auto 1fr; gap: 3px 9px; min-height: 86px; padding: 13px; border: 1px solid #e1e3eb; border-radius: 12px; transition: border-color .2s, background .2s; }
+.choice-card { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-content: start; align-items: start; gap: 3px 9px; min-height: 86px; padding: 13px; border: 1px solid #e1e3eb; border-radius: 12px; transition: border-color .2s, background .2s; }
 .choice-card:hover { border-color: #9e9bea; background: #fafaff; }
-.choice-card .ant-checkbox { grid-row: 1 / 4; }
+.choice-card > .ant-checkbox, .choice-card > .ant-radio { grid-column: 1; grid-row: 1 / span 4; align-self: start; margin-top: 2px; }
 .choice-card > span:last-child { display: contents; }
+.choice-card > span:last-child > * { grid-column: 2; min-width: 0; }
 .choice-card strong { color: #2b2e45; }
 .choice-card span { color: #737b8f; font-size: 12px; }
 .choice-card .ant-tag { justify-self: start; margin-top: 3px; }
+.product-facts { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin: 8px 0 0; font-size: 12px; }
+.product-facts dt { color: #737b8f; }
+.product-facts dd { margin: 2px 0 0; color: #2b2e45; font-weight: 600; overflow-wrap: anywhere; }
 .choice-submit { margin-top: 14px; }
 .form-submit-error { margin-bottom: 16px; }
 .nlui-form .ant-card-head-title { white-space: normal; overflow-wrap: anywhere; padding-block: 12px; }

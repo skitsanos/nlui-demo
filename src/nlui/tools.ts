@@ -1,3 +1,4 @@
+import {responsePolicySchema} from './responsePolicy.ts';
 import {nluiBlockSchema, nluiBlocksSchema} from './schemas.ts';
 import {OPENAI_TOOLS, type QueryArm, toolsForQueryArm} from './toolDefinitions.ts';
 import {formHandler, prepareActionHandler} from './toolHandlers/actions.ts';
@@ -54,6 +55,7 @@ export const executeNluiTool = async (
         return {
             modelOutput: execution.modelOutput,
             ...execution.traceOutput !== undefined && {traceOutput: execution.traceOutput},
+            ...execution.responsePolicy !== undefined && {responsePolicy: responsePolicySchema.parse(execution.responsePolicy)},
             blocks: nluiBlocksSchema.parse(execution.blocks)
         };
     }

@@ -1,3 +1,4 @@
+import {productFacts} from '../productFacts.ts';
 import {orderArguments, policyArguments, productsArguments} from '../toolArguments.ts';
 import {euros, getRepository, normalizeOrderNumber} from '../toolRuntime.ts';
 import type {ToolContext, ToolExecution} from '../toolTypes.ts';
@@ -66,7 +67,8 @@ export const productsHandler = (raw: unknown, context?: ToolContext): ToolExecut
                 value: product.sku,
                 label: product.name,
                 description: product.description,
-                meta: `€${euros(product.priceCents).toLocaleString()} · ${product.rating.toFixed(1)}★`
+                meta: `€${euros(product.priceCents).toLocaleString()} · ${product.rating.toFixed(1)}★`,
+                facts: productFacts(product.attributes)
             }))
         }]
     };
@@ -83,6 +85,7 @@ export const orderHandler = (raw: unknown, context?: ToolContext): ToolExecution
     }
     return {
         modelOutput: {found: true, order: details},
+        ...args.intent === 'cancel' && details.status === 'delivered' && {responsePolicy: 'delivered_cancellation' as const},
         blocks: [
             {
                 id: crypto.randomUUID(),
@@ -122,9 +125,16 @@ export const orderHandler = (raw: unknown, context?: ToolContext): ToolExecution
 export const policiesHandler = (raw: unknown, context?: ToolContext): ToolExecution =>
 {
     const args = policyArguments.parse(raw);
-    const matches = getRepository(context).searchPolicies(args.query, args.limit);
+    const repository = getRepository(context);
+    const matches = args.topic === 'address_after_dispatch'
+        ? repository.searchPolicies('address changes', 8).filter((match) =>
+            match.sourcePath === 'knowledge/shipping-policy.md' && match.section === 'Address changes').slice(0, args.limit)
+        : repository.searchPolicies(args.query, args.limit);
+    const addressPolicy = args.topic === 'address_after_dispatch' && matches.some((match) =>
+        match.sourcePath === 'knowledge/shipping-policy.md' && match.section === 'Address changes');
     return {
         modelOutput: {matches},
+        ...addressPolicy && {responsePolicy: 'address_after_dispatch' as const},
         blocks: matches.length === 0 ? [] : [{
             id: crypto.randomUUID(),
             type: 'sources',

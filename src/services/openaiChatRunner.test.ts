@@ -115,8 +115,8 @@ describe('OpenAI chat structured composition', () =>
         const control = chatInstructionsFor('control');
         const semantic = chatInstructionsFor('semantic');
 
-        expect(promptVersionFor('control')).toBe('nlui-controller-v5-annotated');
-        expect(promptVersionFor('semantic')).toBe('nlui-controller-v5-annotated-semantic-v2');
+        expect(promptVersionFor('control')).toBe('nlui-controller-v6-presentation');
+        expect(promptVersionFor('semantic')).toBe('nlui-controller-v6-presentation-semantic-v2');
         expect(control).toContain('Use query_dataset for customer counts');
         expect(control).not.toContain('customer_registrations');
         expect(semantic).toContain('registered_customer_count only for the current lifetime');

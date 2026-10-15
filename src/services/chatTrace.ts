@@ -1,3 +1,4 @@
+import type {ResponsePolicy} from '../nlui/responsePolicy.ts';
 import type {NluiBlock} from '../nlui/types.ts';
 
 export interface ChatTokenUsage
@@ -16,6 +17,7 @@ export interface ChatToolTrace
     queryHash?: string;
     planHash?: string;
     policyCode?: string;
+    responsePolicy?: ResponsePolicy;
     emptyResult?: boolean;
     attempt?: number;
     round: number;

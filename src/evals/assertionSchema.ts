@@ -163,6 +163,9 @@ const safetyAssertionSchema = z.object({source: z.literal('safety'), label,
 const blockAssertionSchema = z.object({source: z.literal('block'), label,
     blockType: z.enum(['form', 'confirmation', 'choices', 'table', 'stats', 'sources']), path,
     operator: z.enum(['exists', 'contains', 'matches', 'every_present']), expected: scalar}).strict();
+const presentationAssertionSchema = z.object({source: z.literal('presentation'), label,
+    contract: z.enum(['travel_specs', 'development_specs', 'monitor_specs', 'office_questions', 'order_questions',
+        'address_after_dispatch', 'delivered_cancellation'])}).strict();
 
 export const deterministicAssertionSchema = z.union([
     toolAssertionSchema,
@@ -176,7 +179,8 @@ export const deterministicAssertionSchema = z.union([
     stateAssertionSchema,
     numericClaimSchema,
     safetyAssertionSchema,
-    blockAssertionSchema
+    blockAssertionSchema,
+    presentationAssertionSchema
 ]);
 
 export type DeterministicAssertion = z.infer<typeof deterministicAssertionSchema>;

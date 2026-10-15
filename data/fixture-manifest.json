@@ -7,7 +7,7 @@
   "goldenFixtures": [
     {
       "path": "scenarios.jsonl",
-      "sha256": "908f1a718f9837c0a7c4ce0ea586a15ace7b352fede24ead591630f483fa4183"
+      "sha256": "423cd88cceac573c9bd26dfda8b4d159f1cc61d9b6ecf9e371248d9c1c3da816"
     },
     {
       "path": "experiments/semantic-query-v1.jsonl",

@@ -21,7 +21,7 @@ export const qualify = async (mode: string, {
         const reference = await run({command: [process.execPath, '--no-env-file', 'scripts/eval-fixtures.ts', '--json'],
             cwd: project, capture: true, timeoutMs: 60_000});
         verifyReferenceProfile(reference.stdout);
-        console.log('Source reference: 28 passed, seven explicitly incomplete; no provider.');
+        console.log('Source reference: 35 passed, zero incomplete; no provider.');
     }
     if (mode === 'compiled' || mode === 'all') await qualifyCompiled(project, run);
     if (mode === 'container' || mode === 'all') await qualifyContainer(project, run);

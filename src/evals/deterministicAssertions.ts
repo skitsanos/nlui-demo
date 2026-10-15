@@ -3,6 +3,7 @@ import type {ChatToolTrace} from '../services/chatTrace.ts';
 import {collectionCheck, valueAtPath} from './assertionValues.ts';
 import {observedBlockNames} from './blockNames.ts';
 import {evaluateEvidenceRule} from './evidenceRules.ts';
+import {evaluatePresentationRule} from './presentationRules.tsx';
 import type {DeterministicAssertion, EvaluationScenario} from './scenario.ts';
 import {evaluateSqlSemantics} from './sqlSemantics.ts';
 import type {DataAssertionResult, EvaluationTrace} from './types.ts';
@@ -158,6 +159,7 @@ const toolSequenceFailure = (
 const evaluateRule = (rule: DeterministicAssertion, trace: EvaluationTrace): string | undefined =>
 {
     if (rule.source === 'unsupported') return undefined;
+    if (rule.source === 'presentation') return evaluatePresentationRule(rule, trace);
     if (rule.source === 'state' || rule.source === 'numeric_claim' || rule.source === 'safety' || rule.source === 'block')
     {
         return evaluateEvidenceRule(rule, trace);
