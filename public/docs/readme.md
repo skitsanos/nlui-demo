@@ -10,6 +10,8 @@ The user can ask a question in prose and receive concise text plus application-r
 - [`/docs/getting-started`](/docs/getting-started) — local setup, data reset, validation, and Docker
 - [`/docs/architecture`](/docs/architecture) — transport, tool, rendering, and action boundaries
 - [`/docs/activity-protocol`](/docs/activity-protocol) — sanitized public NDJSON activity events and internal-trace boundary
+- [`/docs/research`](/docs/research) — current opt-ins, provider-free evaluations, frozen pilot results and budget limits
+- [`/docs/skills`](/docs/skills) — optional reviewed instruction-only workflows and their loading/security boundaries
 
 ## Primary API
 
@@ -40,8 +42,12 @@ The inherited Bun scaffold also retains example upload, validation, and dynamic-
 | `search_policies` | Deterministic local policy retrieval | sources |
 | `request_details` | Ask only for missing application-defined values | form |
 | `prepare_action` | Validate a mutation without executing it | confirmation |
+| `semantic_query` | Evaluation-only alternative to guarded SQL; never a default replacement | statistics, chart, table |
+| `get_infographic` | Opt-in source-backed binary comparison, recorded timeline or general-policy process | infographic with exact readable alternative |
 
 Confirmation is deliberately outside the model tool loop: the browser posts the opaque `actionId` to `/api/actions` only after explicit user approval.
+
+The separate `load_skill` helper is published only with `NLUI_SKILLS=1`. It supplies bounded reviewed workflow instructions, not domain data, UI blocks or permission to act. It leaves the domain table above unchanged; see [Skills](/docs/skills).
 
 ## Dataset
 
@@ -65,4 +71,4 @@ This single-process local demo has durable application-owned conversation state 
 
 **Explore dataset** performs typed analytics/refinement without provider calls. **Inspect a dataset** validates only a fixed aggregate CSV template and never activates uploads. The default controlled renderer is unchanged; `?renderer=a2ui` opts into the pinned X Card/A2UI experiment and safely falls back for unsupported surfaces.
 
-Valid chat turns may incur OpenAI usage. Automated qualification is provider-free. Research scripts require explicit billable opt-in and a persistent request budget; the approved 2026-10-15 forty-request run is exhausted, and new provider work requires a new user-approved budget. The small study did not justify replacing guarded SQL or the controlled renderer.
+Valid chat turns may incur OpenAI usage. Automated qualification is provider-free. The independent 2026-10-15 **40/40** and 2026-10-16 **32/32** approved research budgets are both exhausted and retained. Do not reset either ledger. No further provider work is authorized; any new live study needs a separately approved cap and preregistered plan. The small studies did not justify replacing guarded SQL or the controlled renderer. See [research](/docs/research) for opt-ins, exact frozen outcomes and the provider-free fallback correction.

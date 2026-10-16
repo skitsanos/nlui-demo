@@ -66,6 +66,10 @@ The browser restores its current conversation using an anonymous HttpOnly sessio
 
 **Explore dataset** provides provider-free typed analysis/refinement with exact receipts. **Inspect a dataset** accepts only the documented aggregate CSV template into quarantine; it never activates data. `?renderer=a2ui` enables the experimental pinned renderer while the controlled view remains the default/fallback.
 
+`NLUI_INFOGRAPHICS=1 bun run dev` enables source-backed visual comparisons, recorded timelines and general-policy explanations. It is off by default and does not authorize another live study. See [research](/docs/research) for exact/readable fallbacks, provider-free lab commands, both exhausted budgets and the v2 fallback contract.
+
+`NLUI_SKILLS=1 bun run dev` enables three reviewed instruction-only workflows over the same tools. It is off by default, not a native provider or shell integration, and normal valid chat still incurs provider usage. Use the [Skills fixture](/docs/skills) instead for provider-free inspection; this milestone authorizes no new provider calls.
+
 ## Local validation
 
 Run all non-network code checks:
@@ -128,7 +132,7 @@ The GitHub workflow defines Linux/macOS source-and-compiled jobs followed by a L
 
 ## Cost boundary
 
-Valid chat messages call the configured OpenAI model and can incur charges. `bun run check` and HTTP qualification are non-billable. The owned HTTP path uses `store: false` and bounded application history; the isolated evaluation adapter can still exercise managed chaining. Use synthetic/demo-safe prompts. The approved forty-request 2026-10-15 research budget is exhausted; do not reset it or make further provider calls without renewed approval. `bun --no-env-file scripts/research-refinements.ts` is a provider-free machine benchmark, not a human productivity study.
+Valid chat messages call the configured OpenAI model and can incur charges. `bun run check` and HTTP qualification are non-billable. The owned HTTP path uses `store: false` and bounded application history; the isolated evaluation adapter can still exercise managed chaining. Use synthetic/demo-safe prompts. The independent 2026-10-15 40/40 and 2026-10-16 32/32 research budgets are exhausted; do not reset either ledger or make further provider calls without a new approved cap and preregistered plan. `bun --no-env-file scripts/research-refinements.ts` is a provider-free machine benchmark, not a human productivity study.
 
 The live evaluation runner requires both an environment opt-in and a command-line acknowledgement, plus an explicit scenario or category:
 

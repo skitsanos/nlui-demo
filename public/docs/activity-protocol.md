@@ -17,6 +17,8 @@
 
 Activities may update before final text is available. The controller buffers its structured response until the provider completes and the envelope/block selection validates; it then publishes the annotation and selected UI. A partial stream/error must not commit provisional content as a completed turn. The client maintains one active activity indicator and a selective completed receipt list, not every transient event as permanent prose.
 
+With the optional Skills prototype, `load_skill` uses the fixed request-kind label “Loading a reviewed workflow.” It does not add event fields or expose pack bodies, paths or tool arguments. Approved ID/version/hash/byte provenance remains internal; loading is not authorization. See [Skills](/docs/skills).
+
 ## Safe examples
 
 These application-authored activity records contain no tool arguments, query text, result rows, model IDs or reasoning. Repeated IDs update one activity rather than create duplicates.

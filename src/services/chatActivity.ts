@@ -4,6 +4,10 @@ type ActivityStatus = ChatActivity['status'];
 type ActivityTemplate = Pick<ChatActivity, 'kind' | 'title' | 'description' | 'receipt'>;
 
 const TOOL_ACTIVITY_CATALOG = {
+    load_skill: {
+        kind: 'request', title: 'Loading a reviewed workflow',
+        description: 'Applying bounded application-owned guidance; permissions are unchanged.', receipt: true
+    },
     get_infographic: {
         kind: 'data', title: 'Preparing a visual explanation',
         description: 'Binding an approved template to recorded data or policy sources.', receipt: true

@@ -1,5 +1,7 @@
 # Design QA: Welcome prompt hover border
 
+Historical single-surface evidence from the initial UI phase. Counts and local screenshot paths below are not current release qualification or portable assets. The keyboard-semantics follow-up was subsequently addressed by NLUI-024; see `docs/issues/NLUI-024.md` and the maintained verification guide for later evidence.
+
 - Source visual truth: `/var/folders/v2/x4zbz9nd10lf_kqzhpm4r84w0000gn/T/codex-clipboard-2571d04b-b44e-4e6e-ad2b-0c8741e08fe8.png`
 - Browser-rendered implementation: `/Users/skitsanos/.codex/visualizations/2026/07/30/019fb2f3-5cdf-7172-86d9-1a2a8b2bbe25/nlui-hover-after.png`
 - Normalized implementation crop: `/Users/skitsanos/.codex/visualizations/2026/07/30/019fb2f3-5cdf-7172-86d9-1a2a8b2bbe25/nlui-hover-after-normalized.png`

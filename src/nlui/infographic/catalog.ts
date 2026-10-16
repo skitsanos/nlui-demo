@@ -1,6 +1,7 @@
 import type {FunctionTool} from 'openai/resources/responses/responses';
+import {featureEnabled} from '../features.ts';
 
-export const infographicsEnabled = (): boolean => process.env.NLUI_INFOGRAPHICS === '1';
+export const infographicsEnabled = (): boolean => featureEnabled('infographics');
 export const INFOGRAPHIC_PROMPT = `
 Experimental visual explanations are enabled. Use get_infographic only for an explicit visual explanation of two regions' eligible revenue, one order's recorded history, or the standard return process.
 Do not use it for a single number, lists of records, monthly trends, causes, funnels, eligibility decisions or actions. Keep the ordinary scalar/table/chart tools for those questions.

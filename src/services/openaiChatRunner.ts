@@ -7,6 +7,7 @@ import type {
     ResponseStreamEvent,
     ResponseUsage
 } from 'openai/resources/responses/responses';
+import {createSkillSession, skillTraceArguments} from '../nlui/skills/session.ts';
 import type {ToolExecution} from '../nlui/tools.ts';
 import {OPENAI_TOOLS} from '../nlui/tools.ts';
 import type {ChatActivity, ChatRequest, ChatStreamEvent, NluiBlock} from '../nlui/types.ts';
@@ -47,6 +48,7 @@ export interface OpenAIChatDependencies
 {
     // Presence (including []) selects owned, stateless history. Never accepted from HTTP input.
     history?: Array<{role: 'user' | 'assistant'; content: string}>;
+    skills?: boolean;
     model: string;
     tools?: FunctionTool[];
     instructions?: string;
@@ -121,6 +123,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
     async (request, emit, signal, observe) =>
     {
         const started = performance.now();
+        const skills = createSkillSession({enabled: dependencies.skills, tools: dependencies.tools ?? OPENAI_TOOLS});
         const messageId = crypto.randomUUID();
         const ownedHistory = dependencies.history !== undefined;
         let previousResponseId = ownedHistory ? undefined : request.previousResponseId;
@@ -203,8 +206,8 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                 try
                 {
                     const stream = await abortable(() => dependencies.createResponse({
-                        model: dependencies.model, instructions: dependencies.instructions ?? CHAT_INSTRUCTIONS,
-                        input, previous_response_id: previousResponseId, tools: dependencies.tools ?? OPENAI_TOOLS,
+                        model: dependencies.model, instructions: (dependencies.instructions ?? CHAT_INSTRUCTIONS) + skills.instructions,
+                        input, previous_response_id: previousResponseId, tools: skills.tools,
                         parallel_tool_calls: false, max_output_tokens: MAX_OUTPUT_TOKENS, store: !ownedHistory, stream: true,
                         ...ownedHistory && {include: ['reasoning.encrypted_content']},
                         text: responseTextConfigFor(candidates, responsePolicies)
@@ -266,7 +269,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         messageId,
                         responseId,
                         model: responseModel,
-                        promptVersion: dependencies.promptVersion ?? CHAT_PROMPT_VERSION,
+                        promptVersion: (dependencies.promptVersion ?? CHAT_PROMPT_VERSION) + skills.promptSuffix,
                         text: resolved.text,
                         blocks: resolved.blocks,
                         tools,
@@ -301,7 +304,8 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                             throw new Error('A repeated tool call changed its name or arguments');
                         }
                         const execution = cached?.execution ?? await abortable(
-                            () => dependencies.executeTool(call.name, call.arguments, signal), signal
+                            () => call.name === 'load_skill' ? skills.load(call.arguments, signal)
+                                : dependencies.executeTool(call.name, call.arguments, signal), signal
                         );
                         signal.throwIfAborted();
                         toolResultCache.set(call.call_id, {name: call.name, arguments: call.arguments, execution});
@@ -327,7 +331,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                             round: round + 1,
                             callId: call.call_id,
                             name: call.name,
-                            arguments: parseTraceArguments(call.arguments),
+                            arguments: call.name === 'load_skill' ? skillTraceArguments(call.arguments) : parseTraceArguments(call.arguments),
                             modelOutput: execution.traceOutput ?? execution.modelOutput,
                             candidateBlockIds: execution.blocks.map(({id}) => id),
                             candidateBlockTypes: execution.blocks.map(({type}) => type),
@@ -351,7 +355,7 @@ export const createOpenAIChatRunner = (dependencies: OpenAIChatDependencies): Op
                         {
                             const outcome = traceFailureOutcome(error, signal);
                             const failed: ChatToolTrace = {round: round + 1, callId: call.call_id, name: call.name,
-                                arguments: parseTraceArguments(call.arguments), modelOutput: {ok: false, error: 'Tool attempt failed'},
+                                arguments: call.name === 'load_skill' ? skillTraceArguments(call.arguments) : parseTraceArguments(call.arguments), modelOutput: {ok: false, error: 'Tool attempt failed'},
                                 candidateBlockIds: [], candidateBlockTypes: [], durationMs: performance.now() - toolStarted,
                                 cached: false, rejected: true, outcome: outcome === 'incomplete' || outcome === 'truncated' ? 'error' : outcome,
                                 attempt: tools.filter((tool) => tool.name === call.name && !tool.cached).length + 1};

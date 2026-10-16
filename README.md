@@ -2,6 +2,8 @@
 
 Development work is tracked in the [Issues Registry](docs/issues/README.md), with permanent `NLUI-NNN` files and recorded acceptance/verification evidence.
 
+Current operator guides live in [`public/docs/`](public/docs/readme.md) and are served at `/docs`; [research status](public/docs/research.md) separates opt-ins, provider-free checks and exhausted live budgets. Use `bun run docs:check` for current command/link/catalog/feature parity. Dated issue reviews remain historical evidence, not a second current manual.
+
 A full-stack Bun application that demonstrates a controlled natural-language user interface. The user chats through React and Ant Design X; an OpenAI model selects application-owned tools; the Bun server turns verified tool results into a small catalog of interactive UI blocks.
 
 The model never emits React, JSX, executable HTML, API routes, validation rules, or mutation callbacks. It requests capabilities from a server-owned tool catalog, then returns a strict structured envelope that chooses either a prose answer or references to trusted blocks with a concise conversational annotation. The production-default open-ended analytics path lets it propose one SQL `SELECT` inside a dedicated tool call; the server parses, restricts, canonicalizes, and isolates that query before any data is read. A separate, explicit research arm lets the model select versioned semantic metrics and dimensions while the server owns SQL compilation.
@@ -21,6 +23,7 @@ The model never emits React, JSX, executable HTML, API routes, validation rules,
 - **Inspect a dataset** validates a fixed aggregate CSV template into quarantine, never automatic activation.
 - `?renderer=a2ui` opts into the pinned X Card/A2UI v0.9 experiment; controlled blocks stay the default.
 - `NLUI_INFOGRAPHICS=1` enables three experimental, source-backed visual explanations; it is off by default.
+- `NLUI_SKILLS=1` enables three reviewed instruction-only workflow packs; it is off by default and adds no shell, native provider Skills or new action authority. See [Skills](public/docs/skills.md).
 
 ## Quick start
 
@@ -210,6 +213,7 @@ The separate selection-only live harness requires both `NLUI_PRESENTATION_LIVE=1
 
 ```bash
 bun run check       # Biome, TypeScript, and Bun tests
+bun run docs:check  # current documentation commands, links, tools and feature flags
 bun run compile     # production single-file executable
 bun run eval:offline # non-network scenario and scorer validation
 bun run eval:fixtures # real isolated tools/routes with reference answers; no provider
@@ -236,7 +240,7 @@ The first hosted [Qualification run](https://github.com/skitsanos/nlui-demo/acti
 
 Release 1.5.0's [Qualification run 38727922140](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140) also passes all three jobs, with 717 tests on each matrix platform and all 35 bounded reference cases passing in source, compiled and container modes. [NLUI-031's evidence](docs/issues/reviews/2026-10-15-presentation-qualification.md#publication-follow-up) preserves the exact commit/jobs and limitations; the registry follow-up bumps to 1.5.1 and is checked by its own workflow.
 
-Release **1.7.0**, `8446350366f2d8752f47d632a305a2b6e0c6c572`, publishes NLUI-033 through NLUI-035 and passes all three jobs in [Qualification run 38869687421](https://github.com/skitsanos/nlui-demo/actions/runs/38869687421): **912 tests / 4,682 expectations** per Linux/macOS platform, static/offline/source/compiled/reference gates and Linux production-container qualification. [The publication receipt](docs/issues/reviews/2026-10-16-publication.md) records exact jobs and unchanged frozen evidence/configuration/data, with no new provider calls or renderer promotion. This evidence-only follow-up bumps to **1.7.1** and must pass its own full workflow; a prior green run is not final-head qualification.
+Release **1.7.0**, `8446350366f2d8752f47d632a305a2b6e0c6c572`, publishes NLUI-033 through NLUI-035 and passes all three jobs in [Qualification run 38869687421](https://github.com/skitsanos/nlui-demo/actions/runs/38869687421): **912 tests / 4,682 expectations** per Linux/macOS platform, static/offline/source/compiled/reference gates and Linux production-container qualification. Its evidence-only **1.7.1** follow-up, `e0ca5a2fb1c4c247a99a91e505b449d8fb9ce7d7`, independently passes all three jobs in [run 38870544256](https://github.com/skitsanos/nlui-demo/actions/runs/38870544256), verified on 2026-10-16. [The publication receipt](docs/issues/reviews/2026-10-16-publication.md) preserves the original implementation evidence. Neither run qualifies later working changes or live-model behavior; no renderer is promoted.
 
 The unit, tool, and malformed-request smoke tests do not call OpenAI. A valid `POST /api/chat` is intentionally not part of the default suite because it is billable and model-dependent.
 

@@ -63,7 +63,7 @@ A random seven-day HttpOnly/SameSite=Strict cookie identifies an anonymous local
 
 ## Controlled NLUI rendering
 
-The model does not describe component trees. It selects from eight strict tools; application code creates a discriminated block union:
+The model does not describe component trees. The default catalog contains eight strict domain tools; application code creates a discriminated block union. Explicit research opt-ins do not replace the default catalog or grant additional mutation authority:
 
 | Block | Renderer responsibility |
 | --- | --- |
@@ -75,6 +75,7 @@ The model does not describe component trees. It selects from eight strict tools;
 | `confirmation` | Review of a prepared opaque action |
 | `sources` | Policy evidence from the local corpus |
 | `result` | Completed action or error outcome |
+| `infographic` | Opt-in comparison, recorded-event timeline or complete-policy process; exact readable alternatives remain available |
 
 React switches exhaustively on `block.type` and maps each variant to known Ant Design components. Descriptors contain data, labels, and opaque identifiers—not functions, URLs, SQL, JSX, or endpoint names. The model can reference a validated descriptor by ID but cannot generate or alter its props. Generated SQL remains server-side and is never used as a rendering description.
 
@@ -90,6 +91,10 @@ OpenAI receives strict function definitions for:
 - `search_policies`
 - `request_details`
 - `prepare_action`
+
+`get_infographic` is added only with `NLUI_INFOGRAPHICS=1`. Its three approved templates use server-bound values, recorded timestamps and complete policy sections; the model cannot supply SDK options, SVG, assets, URLs or actions. The semantic evaluation arm instead swaps `query_dataset` for `semantic_query`. See [research](/docs/research) for current experiments and their limits.
+
+`NLUI_SKILLS=1` additionally publishes a bounded instruction-only `load_skill` helper. Metadata is discovered before bodies; two reviewed embedded packs and 4,096 instruction bytes may load per controller invocation. It issues no blocks, performs no data reads, and grants no action, SQL, filesystem, network or shell authority. Existing round/call limits, structured composition and domain checks remain unchanged. Internal provenance omits bodies; the public activity catalog uses a fixed label. This is an application-managed prototype, not a native provider Skills adapter. See [Skills](/docs/skills).
 
 Every call is parsed again with a Zod schema before it reaches a handler. Most handlers invoke a fixed `DemoRepository` interface backed by `bun:sqlite`.
 
@@ -161,7 +166,7 @@ The catalog has 77 executable assertion labels across 100 deterministic rules, w
 
 `bun run eval:fixtures` executes all 35 cases with explicit reference arguments/annotations against real tools, structured composition, renderers and adapters. Its expected 35 passed/zero incomplete profile qualifies bounded contracts and plumbing, not model performance or every possible interpretation of a prompt. Qualification requires the exact case IDs and current versions. Live incomplete opt-in does not bypass promotion gates. Adversarial regression fixtures independently exercise nulls, refunds, multiple payments/shipments, sparse results, join amplification and invalid numeric data. They are deliberate variants, not the pinned baseline.
 
-`data/experiments/semantic-query-v1.jsonl` is a separate versioned fixture of paired paraphrases. `bun run eval:query-ab` adapts each case to the guarded `query_dataset` control and the server-compiled `semantic_query` arm, requires `NLUI_EVAL_LIVE=1` plus `--confirm-billable`, and validates the projected paired run count before provider work. The operator must explicitly select `--all`, one or more `--case` values, or one or more `--id` values. Reports compare exact tool choice, denotation and UI success, latency, token use, provider rounds, rejected attempts, and whether every paraphrase in a case passes. Full raw reports can be written only beneath the ignored `eval-results/` directory. The harness does not itself establish a winner; no live comparative result is claimed here.
+`data/experiments/semantic-query-v1.jsonl` is a separate versioned fixture of paired paraphrases. `bun run eval:query-ab` adapts each case to the guarded `query_dataset` control and the server-compiled `semantic_query` arm, requires `NLUI_EVAL_LIVE=1` plus `--confirm-billable`, and validates the projected paired run count before provider work. The operator must explicitly select `--all`, one or more `--case` values, or one or more `--id` values. Reports compare exact tool choice, denotation and UI success, latency, token use, provider rounds, rejected attempts, and whether every paraphrase in a case passes. Full raw reports can be written only beneath the ignored `eval-results/` directory. The harness does not itself establish a winner. Bounded live research and no-promotion decisions are summarized in [research status](/docs/research); both existing provider budgets remain exhausted.
 
 ## Deployment and persistence
 
@@ -169,7 +174,7 @@ The Docker image copies source, runtime dependencies, configuration, scripts, do
 
 Without a volume, the database is container-local and ephemeral. A Docker named volume at `/app/data` preserves confirmed demo actions. The application is a single SQLite writer; it is not designed for horizontally scaled replicas sharing one database file.
 
-The OpenAI API key remains in the server process. Valid chat requests can be billable, and the current provider call uses stored responses for conversation chaining. Automated unit and malformed-request smoke tests avoid the provider entirely.
+The OpenAI API key remains in the server process. Valid chat requests can be billable. The HTTP controller uses application-owned bounded history with `store: false`; it does not chain cross-turn provider response IDs. Within-turn provider output is retained only as needed for tool continuation. The isolated evaluation adapter can still exercise managed chaining as a control. Automated qualification avoids real provider requests.
 
 ## Qualification pipeline
 

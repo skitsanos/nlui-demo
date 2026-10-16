@@ -1,6 +1,6 @@
 {
   "name": "nlui-demo",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
@@ -10,6 +10,7 @@
     "seed": "bun run scripts/seed.ts",
     "reset:data": "bun run scripts/reset-demo.ts",
     "typecheck": "bunx tsc --noEmit",
+    "docs:check": "bun --no-env-file scripts/check-docs.ts",
     "test": "bun test",
     "test:http": "bun run scripts/smoke-http.ts",
     "verify": "bun --no-env-file scripts/qualify.ts source",
