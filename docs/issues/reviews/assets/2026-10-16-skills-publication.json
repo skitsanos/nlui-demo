@@ -1,0 +1,110 @@
+{
+  "milestones": [
+    "NLUI-036",
+    "NLUI-037"
+  ],
+  "version": "1.8.0",
+  "verifiedAt": "2026-10-16 08:54:30 UTC",
+  "attempt": 1,
+  "conclusion": "success",
+  "createdAt": "2026-10-16T08:49:48Z",
+  "databaseId": 38876296502,
+  "event": "push",
+  "headBranch": "main",
+  "headSha": "780e420ede08b7383c291f2146f5ce98625bd1c6",
+  "jobs": [
+    {
+      "completedAt": "2026-10-16T08:51:28Z",
+      "conclusion": "success",
+      "databaseId": 116892061544,
+      "name": "Source and compiled (ubuntu-latest)",
+      "startedAt": "2026-10-16T08:49:51Z",
+      "status": "completed",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892061544"
+    },
+    {
+      "completedAt": "2026-10-16T08:51:50Z",
+      "conclusion": "success",
+      "databaseId": 116892061725,
+      "name": "Source and compiled (macos-latest)",
+      "startedAt": "2026-10-16T08:50:03Z",
+      "status": "completed",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892061725"
+    },
+    {
+      "completedAt": "2026-10-16T08:52:50Z",
+      "conclusion": "success",
+      "databaseId": 116892800081,
+      "name": "Production container (Linux)",
+      "startedAt": "2026-10-16T08:51:53Z",
+      "status": "completed",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892800081"
+    }
+  ],
+  "status": "completed",
+  "updatedAt": "2026-10-16T08:52:51Z",
+  "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502",
+  "checkRuns": [
+    {
+      "id": 116892800081,
+      "name": "Production container (Linux)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892800081"
+    },
+    {
+      "id": 116892061725,
+      "name": "Source and compiled (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892061725"
+    },
+    {
+      "id": 116892061544,
+      "name": "Source and compiled (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38876296502/job/116892061544"
+    }
+  ],
+  "qualification": {
+    "matrixPlatforms": [
+      "linux/x64",
+      "darwin/arm64"
+    ],
+    "bun": "1.4.3",
+    "testsPerMatrixPlatform": 941,
+    "expectationsPerMatrixPlatform": 4932,
+    "testFilesPerMatrixPlatform": 110,
+    "offlineScenarios": 35,
+    "assertionLabels": 77,
+    "deterministicRules": 100,
+    "sourceHurlRequests": 60,
+    "compiledHurlRequests": 60,
+    "separateSessionProbesPerMode": 8,
+    "referenceCasesPerMode": 35,
+    "incompleteReferenceCases": 0,
+    "productionContainerUid": 1000,
+    "providerConfiguredInQualification": false,
+    "failuresRequiringRemediation": 0
+  },
+  "boundaries": {
+    "newProviderCalls": 0,
+    "skillsDefaultEnabled": false,
+    "nativeProviderSkillsQualified": false,
+    "liveSkillsBenefitQualified": false,
+    "deploymentPerformed": false,
+    "branchPolicyChanged": false,
+    "priorBudget": {
+      "used": 40,
+      "maximum": 40
+    },
+    "selectionBudget": {
+      "used": 32,
+      "maximum": 32
+    },
+    "protectedFilesUnchanged": 111,
+    "originalPilotInventoryEntriesUnchanged": 99
+  },
+  "followUp": "The evidence-only 1.8.1 commit is separately version-bumped before push and must pass its own complete workflow. This receipt qualifies only the implementation head above."
+}
