@@ -230,6 +230,26 @@ body { overflow: hidden; }
 .mini-chart table { border-collapse: collapse; width: 100%; margin-top: 8px; }
 .mini-chart th, .mini-chart td { padding: 6px 12px; border-bottom: 1px solid #eceef5; text-align: left; }
 .choice-submit { margin-top: 14px; }
+.infographic-card .ant-card-head-title { white-space: normal; padding-block: 12px; }
+.infographic-card .ant-card-body { padding: 16px; }
+.infographic-scroll { width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; border: 1px solid #eceef5; border-radius: 10px; }
+.infographic-scroll:focus-visible, .infographic-alternative summary:focus-visible { outline: 2px solid #5b5bd6; outline-offset: 3px; }
+.infographic-canvas { width: 100%; }
+.infographic-canvas svg { display: block; width: 100%; height: auto; }
+.infographic-canvas-comparison { min-width: 580px; max-width: 760px; margin-inline: auto; }
+.infographic-canvas-timeline { min-width: 480px; max-width: 540px; margin-inline: auto; }
+.infographic-canvas-process { min-width: 1250px; }
+.infographic-alternative { margin-top: 12px; }
+.infographic-scroll-hint { display: block; margin-top: 6px; font-size: 12px; }
+.infographic-alternative summary { cursor: pointer; color: #343497; padding: 6px 0; }
+.infographic-data { width: 100%; border-collapse: collapse; margin-block: 12px; }
+.infographic-data caption { text-align: left; color: #737b8f; margin-bottom: 8px; }
+.infographic-data th, .infographic-data td { padding: 8px; text-align: left; border-bottom: 1px solid #eceef5; overflow-wrap: anywhere; }
+.infographic-steps { padding-left: 22px; }
+.infographic-steps li { padding: 6px; }
+.infographic-steps p { margin: 6px 0; line-height: 1.6; }
+.infographic-provenance { margin-top: 14px; padding-top: 12px; border-top: 1px solid #eceef5; color: #687187; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.infographic-provenance summary { cursor: pointer; }
 .form-submit-error { margin-bottom: 16px; }
 .nlui-form .ant-card-head-title { white-space: normal; overflow-wrap: anywhere; padding-block: 12px; }
 .confirm-actions { margin-top: 18px; }

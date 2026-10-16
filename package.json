@@ -1,6 +1,6 @@
 {
   "name": "nlui-demo",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
@@ -17,9 +17,13 @@
     "test:compiled": "bun --no-env-file scripts/qualify.ts compiled",
     "test:docker": "bun --no-env-file scripts/qualify.ts container",
     "eval:offline": "bun run scripts/eval-offline.ts",
+    "eval:presentation": "bun --no-env-file scripts/eval-presentation.ts",
+    "eval:presentation:fallback": "bun --no-env-file scripts/eval-presentation-fallback.ts",
+    "eval:presentation:live": "bun run scripts/eval-presentation-live.ts",
     "eval:fixtures": "bun run scripts/eval-fixtures.ts",
     "eval:live": "bun run scripts/eval-live.ts",
     "eval:query-ab": "bun run scripts/eval-query-ab.ts",
+    "measure:infographic": "bun --no-env-file scripts/measure-infographic-bundle.ts",
     "check": "bun run lint && bun run typecheck && bun test"
   },
   "devDependencies": {
@@ -38,6 +42,7 @@
     "@ant-design/x": "^2.9.0",
     "@ant-design/x-card": "2.9.0",
     "@ant-design/x-markdown": "^2.9.0",
+    "@antv/infographic": "0.2.20",
     "@phosphor-icons/react": "^2.1.10",
     "antd": "^6.6.6",
     "node-sql-parser": "^5.4.0",

@@ -10,6 +10,7 @@ import {
     ORDER_STATUSES as SEMANTIC_ORDER_STATUSES
 } from '../data/semantic/catalog.ts';
 import {semanticCatalogGuide} from '../data/semantic/metadata.ts';
+import {INFOGRAPHIC_TOOL} from './infographic/catalog.ts';
 import {ORDER_STATUSES, PRODUCT_CATEGORIES, REGIONS} from './toolArguments.ts';
 
 const objectSchema = (properties: Record<string, unknown>, required = Object.keys(properties)) => ({
@@ -243,7 +244,8 @@ const SEMANTIC_QUERY_TOOL: FunctionTool = {
 
 export type QueryArm = 'control' | 'semantic';
 
-export const toolsForQueryArm = (arm: QueryArm): FunctionTool[] =>
-    CONTROL_TOOLS.map((tool) => tool.name === 'query_dataset' && arm === 'semantic' ? SEMANTIC_QUERY_TOOL : tool);
+export const toolsForQueryArm = (arm: QueryArm, infographics = false): FunctionTool[] =>
+    [...CONTROL_TOOLS.map((tool) => tool.name === 'query_dataset' && arm === 'semantic' ? SEMANTIC_QUERY_TOOL : tool),
+        ...infographics ? [INFOGRAPHIC_TOOL] : []];
 
 export const OPENAI_TOOLS = toolsForQueryArm('control');

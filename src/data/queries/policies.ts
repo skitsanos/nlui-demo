@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { PolicyMatch } from "../types.ts";
+import type { PolicyMatch, PolicySection } from "../types.ts";
 import { clampInteger } from "./helpers.ts";
 
 interface PolicyRow {
@@ -96,4 +96,13 @@ export function queryPolicies(database: Database, query: string, limit = 5): Pol
         .filter((match) => match.score > 0)
         .sort((left, right) => right.score - left.score || left.documentId.localeCompare(right.documentId))
         .slice(0, clampInteger(limit, 5, 1, 10));
+}
+
+// Full owned sections for explanations: search snippets intentionally truncate and can omit policy conditions.
+export function queryPolicySections(database: Database, sourcePath: string): PolicySection[] {
+    const document = database.query<PolicyRow, [string]>(
+        "SELECT id, title, tags, body, source_path AS sourcePath FROM policy_documents WHERE source_path = ?",
+    ).get(sourcePath);
+    return document ? sections(document.body).map(({heading, text}) => ({title: document.title,
+        section: heading, text: text.replaceAll(/\s+/g, " ").trim(), sourcePath: document.sourcePath})) : [];
 }

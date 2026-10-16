@@ -16,6 +16,7 @@ import {AnalysisControls, type AnalysisSubmission} from './AnalysisControls.tsx'
 import {Confirmation} from './Confirmation.tsx';
 import {DataTable} from './DataTable.tsx';
 import {DynamicForm} from './DynamicForm.tsx';
+import {InfographicCard} from './InfographicCard.tsx';
 import {MiniChart} from './MiniChart.tsx';
 import {ProductFacts} from './ProductFacts.tsx';
 import {StatisticsBlock} from './StatisticsBlock.tsx';
@@ -27,6 +28,7 @@ interface Props
     disabled?: boolean;
     states?: Record<string, ControlState>;
     now?: number;
+    infographics?: boolean;
     onAnalyze?: (input: AnalysisSubmission) => Promise<boolean>;
     onInteraction: (input: ChatInput, displayText: string) => Promise<boolean>;
 }
@@ -98,7 +100,7 @@ const ChoiceInput = ({block, disabled, onInteraction}: Pick<Props, 'disabled' | 
     );
 };
 
-export const NluiRenderer = ({blocks, conversationId, disabled: globallyDisabled, onInteraction, states = {}, onAnalyze, now = Date.now()}: Props) => (
+export const NluiRenderer = ({blocks, conversationId, disabled: globallyDisabled, onInteraction, states = {}, onAnalyze, now = Date.now(), infographics = false}: Props) => (
     <Space orientation="vertical" size={12} className="nlui-stack">
         {blocks.map((block) =>
         {
@@ -108,6 +110,8 @@ export const NluiRenderer = ({blocks, conversationId, disabled: globallyDisabled
             const disabled = globallyDisabled || !!state && state !== 'available';
             const render = () => {switch (block.type)
             {
+                case 'infographic':
+                    return <InfographicCard key={block.id} block={block} enabled={infographics}/>;
                 case 'stats':
                     return <StatisticsBlock key={block.id} block={block}/>;
                 case 'chart':

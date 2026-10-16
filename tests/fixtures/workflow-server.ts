@@ -4,6 +4,7 @@ import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 import homepage from '../../src/client/index.html';
 import type {RouteHandler, SocketData} from '../../src/core/types.ts';
+import infographicLab from './infographic.html';
 
 // Actual App, HTTP routes, fixture DB and durable state; never a provider call.
 const project = resolve(import.meta.dir, '../..');
@@ -35,7 +36,17 @@ const chat = createOwnedChatHandler({store, registry: interactionCapabilities, r
     let name = 'query_dataset';
     let args: Record<string, unknown> = {sql: 'SELECT COUNT(*) AS customer_count FROM customers', title: 'Registered customers', presentation: 'metric'};
     let caption = 'Here’s the customer population in the synthetic snapshot.';
-    if (text.includes('sales') || text.includes('trend'))
+    if (process.env.NLUI_INFOGRAPHICS === '1' && (text.includes('visual comparison') || text.includes('event timeline') || text.includes('visually explain')))
+    {
+        name = 'get_infographic';
+        args = text.includes('visual comparison') ? {view: 'comparison', regions: ['West', 'East'], from: '2026-01-01', to: '2026-06-30', order_number: null}
+            : text.includes('event timeline') ? {view: 'timeline', regions: [], from: null, to: null, order_number: 'ORD-1042'}
+                : {view: 'process', regions: [], from: null, to: null, order_number: null};
+        caption = text.includes('visual comparison') ? 'Here’s the requested side-by-side view. A revenue difference alone does not explain its cause.'
+            : text.includes('event timeline') ? 'Here’s the recorded sequence. Unrecorded milestones and delivery forecasts are deliberately left out.'
+                : 'Here’s how the general policy fits together. We would still need to check a specific order before proposing a return.';
+    }
+    else if (text.includes('sales') || text.includes('trend'))
     {
         name = 'get_dashboard'; args = {from: '2026-01-01', to: '2026-06-30', region: null, group_by: 'month'};
         caption = 'Here’s the six-month view. Compare the monthly pattern with the headline metrics before drilling into a region.';
@@ -80,11 +91,21 @@ const routes: Record<string, Partial<Record<string, RouteHandler>>> = {
     '/api/chat': {POST: chat}, '/api/conversations': {GET: conversations.GET}, '/api/analysis': {GET: analysis.GET, POST: analysis.POST},
     '/api/actions': {POST: actions.POST}, '/api/datasets/preview': {GET: datasets.GET, POST: datasets.POST}, '/api/catalog': {GET: catalog.GET}
 };
-const server = Bun.serve<SocketData>({hostname: '127.0.0.1', port: 0, routes: {'/': homepage}, development: {console: true},
+const server = Bun.serve<SocketData>({hostname: '127.0.0.1', port: 0, routes: {'/': homepage, '/infographic-lab': infographicLab}, development: {console: true},
     async fetch(req, server)
     {
         const pathname = new URL(req.url).pathname;
-        if (pathname === '/api/config') return Response.json({chat: {configured: true}});
+        if (pathname === '/api/config') return Response.json({chat: {configured: true}, features: {infographics: process.env.NLUI_INFOGRAPHICS === '1'}});
+        if (pathname === '/api/fixture/infographics' && process.env.NLUI_INFOGRAPHICS === '1')
+        {
+            const args = [
+                {view: 'comparison', regions: ['West', 'East'], from: '2026-01-01', to: '2026-06-30', order_number: null},
+                {view: 'timeline', regions: [], from: null, to: null, order_number: 'ORD-1042'},
+                {view: 'process', regions: [], from: null, to: null, order_number: null}
+            ];
+            const blocks = await Promise.all(args.map((arg) => executeNluiTool('get_infographic', JSON.stringify(arg), undefined, data)));
+            return Response.json(blocks.flatMap(({blocks}) => blocks));
+        }
         if (pathname === '/api/fixture/state') return Response.json({toolCalls, mutationCount: observedDatabase.query<{n: number}, []>('SELECT COUNT(*) n FROM activity_log').get()!.n});
         const handler = routes[pathname]?.[req.method];
         return handler ? await handler({req, server, pathname, params: {}, query: {}}) ?? new Response(null, {status: 500}) : new Response(null, {status: 404});

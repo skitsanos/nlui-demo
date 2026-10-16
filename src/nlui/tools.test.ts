@@ -16,7 +16,7 @@ describe('NLUI tool catalog', () =>
         expect(control.filter(({name}) => !generic.has(name)).map(({name}) => name))
             .toEqual(semantic.filter(({name}) => !generic.has(name)).map(({name}) => name));
         expect(OPENAI_TOOLS.map(({name}) => name)).toEqual(control.map(({name}) => name));
-        expect([...new Set([...control, ...semantic].map(({name}) => name))].sort())
+        expect([...new Set([...toolsForQueryArm('control', true), ...semantic].map(({name}) => name))].sort())
             .toEqual(Object.keys(NLUI_TOOL_BLOCK_TYPES).sort());
 
         const definition = semantic.find(({name}) => name === 'semantic_query');

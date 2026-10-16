@@ -1,0 +1,1622 @@
+{
+  "version": "presentation-v1",
+  "caseFingerprint": "82ab42df009114cbcc11d759c37bd5a781983a84fe04863b6dae65e27d12a063",
+  "runtime": "1.4.3",
+  "dataset": {
+    "id": "nlui-retail-operations-v2",
+    "version": 2,
+    "before": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+    "after": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+    "unchanged": true
+  },
+  "boundary": "Authored reference selections; raw SQLite/full-policy oracle. Construction timings exclude browser, network, model and humans.",
+  "constructionTimingCaveat": "Baseline projects preloaded oracle data; eligible candidate calls the real tool, including its query and validation. These construction timings are not equal-work latency comparisons.",
+  "accounting": {
+    "providerRequests": 0,
+    "usage": "not_applicable",
+    "monetaryCost": "not_applicable",
+    "repairs": 0,
+    "liveModelSelection": "not_run",
+    "humanStudy": "not_run",
+    "observedBrowserFallbacks": "recorded_separately"
+  },
+  "decision": "no_promotion",
+  "results": [
+    {
+      "id": "customer-count",
+      "evidenceHash": "209bfbc7cad3fa326a8a805f685715c271cf9c6e670b945ebd1b139f94a060f2",
+      "baseline": {
+        "selection": "stats",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0903330000000011,
+        "serializedBytes": 407
+      },
+      "candidate": {
+        "selection": "stats",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.09158299999999997,
+        "serializedBytes": 407
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "latest-customers",
+      "evidenceHash": "c858c896b07535ac7774249fd6ccc69b82a6f16f112b71350e2ea37713a7ce1b",
+      "baseline": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.016375000000010687,
+        "serializedBytes": 1372
+      },
+      "candidate": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.005916999999996619,
+        "serializedBytes": 1372
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "monthly-revenue",
+      "evidenceHash": "38a3f00238f2f2f61367f86acf9093d586d2b8c721013f4b225fa8115cedc4d3",
+      "baseline": {
+        "selection": "chart",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.010041999999998552,
+        "serializedBytes": 789
+      },
+      "candidate": {
+        "selection": "chart",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.003375000000005457,
+        "serializedBytes": 789
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "regional-comparison",
+      "evidenceHash": "96725c7bcfdffd3714f0ce1809a7845dd0375ad501fa3f9ba33505f22d41200a",
+      "baseline": {
+        "selection": "chart",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.005167000000000144,
+        "serializedBytes": 643
+      },
+      "candidate": {
+        "selection": "infographic:comparison",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 2.4726670000000013,
+        "serializedBytes": 1049
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": true
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "order-history",
+      "evidenceHash": "64e1c0282afe5afb60938ce9a31c35b589b01cfe9090c709f684acb222d2e3d5",
+      "baseline": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.003416999999998893,
+        "serializedBytes": 1028
+      },
+      "candidate": {
+        "selection": "infographic:timeline",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.3847499999999968,
+        "serializedBytes": 1257
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": true
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "return-policy",
+      "evidenceHash": "a9be75c56fe4103eec2d6a6f4022fbee1d7e7ba39920ec24c9aab921b2f4f70b",
+      "baseline": {
+        "selection": "sources",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.007584000000008473,
+        "serializedBytes": 1915
+      },
+      "candidate": {
+        "selection": "infographic:process",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.20720799999999429,
+        "serializedBytes": 2185
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": true
+        }
+      ]
+    },
+    {
+      "id": "ambiguous",
+      "evidenceHash": "19f974736ba244548478ab27dd69c7ff61fc94efcd0ab4fc6497d721c9a39800",
+      "baseline": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0006670000000070786,
+        "serializedBytes": 252
+      },
+      "candidate": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0013749999999959073,
+        "serializedBytes": 252
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "missing-order",
+      "evidenceHash": "4bce851a6fdd0db957912f456566e625043dc6536ea2762ef23226470a154854",
+      "baseline": {
+        "selection": "result",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0012499999999988631,
+        "serializedBytes": 402
+      },
+      "candidate": {
+        "selection": "result",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.001208000000005427,
+        "serializedBytes": 402
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "empty-customers",
+      "evidenceHash": "faaf967bedf784cdf9859826aaeecc7716b777b27fe0f333806e24fade97d797",
+      "baseline": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0030830000000037217,
+        "serializedBytes": 656
+      },
+      "candidate": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.005749999999991928,
+        "serializedBytes": 656
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "zero-revenue",
+      "evidenceHash": "ce0c942b4889712fa4d6d13cbeffef3c543032ba75c9f1879e954c4f269e41cc",
+      "baseline": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.002083999999996422,
+        "serializedBytes": 678
+      },
+      "candidate": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0017089999999910788,
+        "serializedBytes": 678
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "future-forecast",
+      "evidenceHash": "c2f2940f2f38fdd6b9a9139d6b963416878d203bb809c37c63650d30f675c665",
+      "baseline": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0004160000000013042,
+        "serializedBytes": 274
+      },
+      "candidate": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0014589999999969905,
+        "serializedBytes": 274
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "causality",
+      "evidenceHash": "962b16c89f079490ab25d9c1de415042804dd50e00bde84f62c17dfec2090282",
+      "baseline": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0007080000000030395,
+        "serializedBytes": 281
+      },
+      "candidate": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0005830000000059954,
+        "serializedBytes": 281
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "order-eligibility",
+      "evidenceHash": "4cc5ac203da0519d253783921b82809f0835feb66539fa7bed699245987bbdf4",
+      "baseline": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0002920000000017353,
+        "serializedBytes": 319
+      },
+      "candidate": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0005829999999917845,
+        "serializedBytes": 319
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "incompatible-scope",
+      "evidenceHash": "7bd483495c421a56f653d95a396f95049a4f3650e4dc2df2ab81269a7446e35c",
+      "baseline": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0002499999999940883,
+        "serializedBytes": 275
+      },
+      "candidate": {
+        "selection": "message",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0005420000000100345,
+        "serializedBytes": 275
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "adversarial-label",
+      "evidenceHash": "5752d4548da49343b9c31520bdd7a5ad811231d74dc89e63c3c80a14da08ed54",
+      "baseline": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0014169999999893435,
+        "serializedBytes": 621
+      },
+      "candidate": {
+        "selection": "table",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.001125000000001819,
+        "serializedBytes": 621
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "chart",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    },
+    {
+      "id": "explicit-line",
+      "evidenceHash": "38a3f00238f2f2f61367f86acf9093d586d2b8c721013f4b225fa8115cedc4d3",
+      "baseline": {
+        "selection": "chart",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0018330000000048585,
+        "serializedBytes": 802
+      },
+      "candidate": {
+        "selection": "chart",
+        "passed": true,
+        "errors": [],
+        "constructionMs": 0.0013339999999999463,
+        "serializedBytes": 802
+      },
+      "eligibility": [
+        {
+          "representation": "message",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "stats",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "table",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "chart",
+          "baseline": true,
+          "candidate": true
+        },
+        {
+          "representation": "sources",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "result",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:comparison",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:timeline",
+          "baseline": false,
+          "candidate": false
+        },
+        {
+          "representation": "infographic:process",
+          "baseline": false,
+          "candidate": false
+        }
+      ]
+    }
+  ],
+  "canaries": [
+    {
+      "id": "altered-eur",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "cents-as-eur",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "swapped-regions",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "shifted-timestamp",
+      "caseId": "order-history",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "omitted-milestone",
+      "caseId": "order-history",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "misleading-elapsed-time",
+      "caseId": "order-history",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "omitted-refund-condition",
+      "caseId": "return-policy",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "invented-action",
+      "caseId": "return-policy",
+      "passed": false,
+      "errors": [
+        "invalid_blocks"
+      ]
+    },
+    {
+      "id": "wrong-filter",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "scope_unit_source_snapshot"
+      ]
+    },
+    {
+      "id": "wrong-unit",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "scope_unit_source_snapshot"
+      ]
+    },
+    {
+      "id": "wrong-source",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "scope_unit_source_snapshot"
+      ]
+    },
+    {
+      "id": "future-snapshot",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "scope_unit_source_snapshot"
+      ]
+    },
+    {
+      "id": "causal-claim",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "causal-title",
+      "caseId": "regional-comparison",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "duplicate-annotation",
+      "caseId": "latest-customers",
+      "passed": false,
+      "errors": [
+        "annotation_contract"
+      ]
+    },
+    {
+      "id": "dropped-record",
+      "caseId": "latest-customers",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "reordered-records",
+      "caseId": "latest-customers",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "raw-dates",
+      "caseId": "latest-customers",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "misleading-chart-type",
+      "caseId": "monthly-revenue",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "wrong-count",
+      "caseId": "customer-count",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "invented-row",
+      "caseId": "empty-customers",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "missing-is-zero",
+      "caseId": "zero-revenue",
+      "passed": false,
+      "errors": [
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "id": "unrequested-block",
+      "caseId": "ambiguous",
+      "passed": false,
+      "errors": [
+        "message_hides_evidence"
+      ]
+    },
+    {
+      "id": "false-success",
+      "caseId": "missing-order",
+      "passed": false,
+      "errors": [
+        "result_contract"
+      ]
+    }
+  ],
+  "negativeControls": [
+    {
+      "caseId": "customer-count",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "customer-count",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "customer-count",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "latest-customers",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "latest-customers",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "latest-customers",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "monthly-revenue",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "monthly-revenue",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "monthly-revenue",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "ambiguous",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "ambiguous",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "ambiguous",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "missing-order",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "missing-order",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "missing-order",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "empty-customers",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "empty-customers",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "empty-customers",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "zero-revenue",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "zero-revenue",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "zero-revenue",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "future-forecast",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "future-forecast",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "future-forecast",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "causality",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "causality",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "causality",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "order-eligibility",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "order-eligibility",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "order-eligibility",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "incompatible-scope",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "incompatible-scope",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "incompatible-scope",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "adversarial-label",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "adversarial-label",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "adversarial-label",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "explicit-line",
+      "representation": "infographic:comparison",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "explicit-line",
+      "representation": "infographic:timeline",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    },
+    {
+      "caseId": "explicit-line",
+      "representation": "infographic:process",
+      "passed": false,
+      "errors": [
+        "ineligible_representation",
+        "denotation_or_semantics"
+      ]
+    }
+  ],
+  "summary": {
+    "matchedCases": 16,
+    "eligibleInfographicCases": 3,
+    "baselineReferenceFailures": 0,
+    "candidateReferenceFailures": 0,
+    "injectedFailuresDetected": 24,
+    "wrongInfographicsRejected": 39
+  },
+  "totalConstructionMs": 19.43650000000001
+}

@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import { confirmDemoAction, prepareDemoAction } from "./actions.ts";
 import { queryDashboard } from "./queries/dashboard.ts";
 import { queryOrder, queryOrders } from "./queries/orders.ts";
-import { queryPolicies } from "./queries/policies.ts";
+import { queryPolicies, queryPolicySections } from "./queries/policies.ts";
 import { queryProducts } from "./queries/products.ts";
 import { configureDatabase } from "./schema.ts";
 import { ensureDemoDatabase } from "./seed.ts";
@@ -19,6 +19,7 @@ import type {
     OrderSummary,
     Page,
     PolicyMatch,
+    PolicySection,
     ProductSearchFilters,
     ProductSummary,
 } from "./types.ts";
@@ -55,6 +56,11 @@ class SqliteDemoRepository implements DemoRepository {
     searchPolicies(query: string, limit?: number): PolicyMatch[] {
         this.assertOpen();
         return queryPolicies(this.database, query, limit);
+    }
+
+    getPolicySections(sourcePath: string): PolicySection[] {
+        this.assertOpen();
+        return queryPolicySections(this.database, sourcePath);
     }
 
     prepareAction(input: DemoActionInput, ownerScope?: string): ActionConfirmation {

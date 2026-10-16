@@ -1,0 +1,725 @@
+{
+  "version": "presentation-fallback-v2",
+  "protocolFingerprint": "5783face42faeae02e1196afdd83b68a654d3a58d30ed47c8e5c5ef4d1121561",
+  "caseFingerprint": "7e2529db04f89f5f391ac20c003db02a4404e55ef91a24d4892ad81cdb44b8ac",
+  "originalProtocol": "nlui-034-selection-2026-10-16-v1",
+  "originalScoresUnchanged": {
+    "baseline": 13,
+    "candidate": 16,
+    "denominator": 16
+  },
+  "dataset": {
+    "id": "nlui-retail-operations-v2",
+    "version": 2,
+    "before": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+    "after": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+    "unchanged": true
+  },
+  "cases": [
+    {
+      "id": "customer-count",
+      "context": {
+        "kind": "scalar"
+      },
+      "evidenceFingerprint": "209bfbc7cad3fa326a8a805f685715c271cf9c6e670b945ebd1b139f94a060f2",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "scalar",
+          "preferred": "stats",
+          "eligible": [
+            "stats"
+          ],
+          "promptFingerprint": "1e12b45421911ac57dcf85c30fc395ed146ed46e1d3b90c773ea3dfa3ce36e5d",
+          "referenceGrades": [
+            {
+              "representation": "stats",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "scalar",
+          "preferred": "stats",
+          "eligible": [
+            "stats"
+          ],
+          "promptFingerprint": "75fb2a2df3c6dc71869b3a42404035f90365c528ad3aff48794104fcb41eb0ed",
+          "referenceGrades": [
+            {
+              "representation": "stats",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "latest-customers",
+      "context": {
+        "kind": "records",
+        "outcome": "rows"
+      },
+      "evidenceFingerprint": "c858c896b07535ac7774249fd6ccc69b82a6f16f112b71350e2ea37713a7ce1b",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "08f015de45b6efbe495f38105c566c577665e2f7e116dd0a11e009079c70bd2b",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "96bee98c97eaa6de2a27958d070b405edd42d819f822edcfbc9af24bbcf02114",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "monthly-revenue",
+      "context": {
+        "kind": "series",
+        "format": "automatic"
+      },
+      "evidenceFingerprint": "38a3f00238f2f2f61367f86acf9093d586d2b8c721013f4b225fa8115cedc4d3",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "series",
+          "preferred": "chart",
+          "eligible": [
+            "chart"
+          ],
+          "promptFingerprint": "29a34f4abb9dfa10b124b61a2f56faa38295fce5df2107254094ab1eb8589144",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "series",
+          "preferred": "chart",
+          "eligible": [
+            "chart"
+          ],
+          "promptFingerprint": "f1ae08d45cbb5081ac86729fb479956a96e5eedff5160c55068bda024d5a3aca",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "regional-comparison",
+      "context": {
+        "kind": "binary-revenue",
+        "visual": true,
+        "totals": "nonzero"
+      },
+      "evidenceFingerprint": "96725c7bcfdffd3714f0ce1809a7845dd0375ad501fa3f9ba33505f22d41200a",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "visual-comparison",
+          "preferred": "chart",
+          "eligible": [
+            "chart"
+          ],
+          "promptFingerprint": "58ff3cc0dbfeaa0411fcb927dc5a86703a2ec6324b882054cbf7b04853191578",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "visual-comparison",
+          "preferred": "infographic:comparison",
+          "eligible": [
+            "chart",
+            "infographic:comparison"
+          ],
+          "promptFingerprint": "bd43c992a5002ae0c6999991a7cfe78304013d185b226bf62a91a1cf2be0a2da",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            },
+            {
+              "representation": "infographic:comparison",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "order-history",
+      "context": {
+        "kind": "recorded-history",
+        "visual": true
+      },
+      "evidenceFingerprint": "64e1c0282afe5afb60938ce9a31c35b589b01cfe9090c709f684acb222d2e3d5",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "visual-history",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "e1f977451524c365d56387fddc4a5dfe62abe8521c3dbcd371a41b7c94112ea8",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "visual-history",
+          "preferred": "infographic:timeline",
+          "eligible": [
+            "table",
+            "infographic:timeline"
+          ],
+          "promptFingerprint": "d64766a965d67bb43662aca109c455cea0228d52d71afb99a0861bbf7618dea1",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            },
+            {
+              "representation": "infographic:timeline",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "return-policy",
+      "context": {
+        "kind": "general-policy",
+        "visual": true
+      },
+      "evidenceFingerprint": "a9be75c56fe4103eec2d6a6f4022fbee1d7e7ba39920ec24c9aab921b2f4f70b",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "visual-policy",
+          "preferred": "sources",
+          "eligible": [
+            "sources"
+          ],
+          "promptFingerprint": "b9dd975d1170508a6916995800c5b4a20ba524d6d3c06251973e214f6ffcf842",
+          "referenceGrades": [
+            {
+              "representation": "sources",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "visual-policy",
+          "preferred": "infographic:process",
+          "eligible": [
+            "sources",
+            "infographic:process"
+          ],
+          "promptFingerprint": "312a57ea65aa6f6bbd7028e13213a16fe3a28553dfae85eaeb2d869725a97bfb",
+          "referenceGrades": [
+            {
+              "representation": "sources",
+              "passed": true,
+              "errors": []
+            },
+            {
+              "representation": "infographic:process",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ambiguous",
+      "context": {
+        "kind": "clarify",
+        "blocker": "scope"
+      },
+      "evidenceFingerprint": "19f974736ba244548478ab27dd69c7ff61fc94efcd0ab4fc6497d721c9a39800",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "e1790170eb3ab000f26e6563b6592a29cfc99cd536eea5bf99735e97b7e5909b",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "d724fa92954a17bd432c83d5a82eb253c31a4d22d52f2266597402a2fe4ef0c0",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "missing-order",
+      "context": {
+        "kind": "missing-record",
+        "lookup": "verified-absent"
+      },
+      "evidenceFingerprint": "4bce851a6fdd0db957912f456566e625043dc6536ea2762ef23226470a154854",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "missing-record",
+          "preferred": "result",
+          "eligible": [
+            "result"
+          ],
+          "promptFingerprint": "e7a4b5e5af45cc42632d4dd25785e1ae6f626cdc8dbd96e5d25f27cac4ee6c5c",
+          "referenceGrades": [
+            {
+              "representation": "result",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "missing-record",
+          "preferred": "result",
+          "eligible": [
+            "result"
+          ],
+          "promptFingerprint": "86405be278a91d47a16e9704e9f4f7f3e9165f5f8df2fe7bfc16c1e72ac42fa0",
+          "referenceGrades": [
+            {
+              "representation": "result",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "empty-customers",
+      "context": {
+        "kind": "records",
+        "outcome": "empty"
+      },
+      "evidenceFingerprint": "faaf967bedf784cdf9859826aaeecc7716b777b27fe0f333806e24fade97d797",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "2ac61e71180843f9f9ac38028fdb30449e86539888570610c46023b55b54bf78",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "a5ab60126bd3d4fbef121cb5e4a71d6fbb88c8035dfd536141426049f60f9312",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zero-revenue",
+      "context": {
+        "kind": "binary-revenue",
+        "visual": false,
+        "totals": "both-zero"
+      },
+      "evidenceFingerprint": "ce0c942b4889712fa4d6d13cbeffef3c543032ba75c9f1879e954c4f269e41cc",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "zero-totals",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "16aa200d53a475464f43f0bb8dd96b07a12ca9a445e6e63b7632ace3173b7d80",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "zero-totals",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "62e56181da416d97810ec47627049d5365d11d751b4f775f75368b49402199ed",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "future-forecast",
+      "context": {
+        "kind": "clarify",
+        "blocker": "forecast"
+      },
+      "evidenceFingerprint": "c2f2940f2f38fdd6b9a9139d6b963416878d203bb809c37c63650d30f675c665",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "14ae8fc30a4829dd68fe9c87eb675c2dde36fc27d68c881586d6d9902772ffcc",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "5498c113fb467f3156ae1a766b07ba0d136f6926af4dd4dfb28d2f29854f1db2",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "causality",
+      "context": {
+        "kind": "clarify",
+        "blocker": "cause"
+      },
+      "evidenceFingerprint": "962b16c89f079490ab25d9c1de415042804dd50e00bde84f62c17dfec2090282",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "b39a243fa2aa9ac18e481b53119f5b5c3d63915280d4b483f6a08b3254dac193",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "62bc19856b623af2cf1a28db2c84330f7d862e8a2eadf82217562b8892d390f4",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "order-eligibility",
+      "context": {
+        "kind": "clarify",
+        "blocker": "eligibility"
+      },
+      "evidenceFingerprint": "4cc5ac203da0519d253783921b82809f0835feb66539fa7bed699245987bbdf4",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "1c4b6f552e0c743b334ee0f8dc6c9bf608d06dd4f5d4e86ee30898fd71cb75a4",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "a3e5e8d66f34ec7bb9321ca4dccf314b80865594cef20bc1cfa91e125087acc5",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "incompatible-scope",
+      "context": {
+        "kind": "clarify",
+        "blocker": "format-scope"
+      },
+      "evidenceFingerprint": "7bd483495c421a56f653d95a396f95049a4f3650e4dc2df2ab81269a7446e35c",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "2f4a7ba077d480eda7a03b4f2412c03de262210d12a144e3902952090eb51830",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "clarify",
+          "preferred": "message",
+          "eligible": [
+            "message"
+          ],
+          "promptFingerprint": "7662a5ebd24a4d077b45feca5ffb1de0a0e40a9e078c1d7f1242a4cf72c000db",
+          "referenceGrades": [
+            {
+              "representation": "message",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "adversarial-label",
+      "context": {
+        "kind": "records",
+        "outcome": "literal"
+      },
+      "evidenceFingerprint": "5752d4548da49343b9c31520bdd7a5ad811231d74dc89e63c3c80a14da08ed54",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "c7822d0deec00503dc501241facf9d18e9b26e3ffaea47826af56f9e64521520",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "records",
+          "preferred": "table",
+          "eligible": [
+            "table"
+          ],
+          "promptFingerprint": "78e5b89980169bce78d021dd015f2319cc0e32f3a460a74989affb634af8e4aa",
+          "referenceGrades": [
+            {
+              "representation": "table",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "explicit-line",
+      "context": {
+        "kind": "series",
+        "format": "line"
+      },
+      "evidenceFingerprint": "38a3f00238f2f2f61367f86acf9093d586d2b8c721013f4b225fa8115cedc4d3",
+      "arms": [
+        {
+          "arm": "baseline",
+          "rule": "series",
+          "preferred": "chart",
+          "eligible": [
+            "chart"
+          ],
+          "promptFingerprint": "4468e99fa14f6574912930d1b98acda068ba8ce809e9fab5879d0c09db5cd35a",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        },
+        {
+          "arm": "candidate",
+          "rule": "series",
+          "preferred": "chart",
+          "eligible": [
+            "chart"
+          ],
+          "promptFingerprint": "40948e66f4d1320c64051c868bae17605b544c040bded6b57268ca0417dbbd46",
+          "referenceGrades": [
+            {
+              "representation": "chart",
+              "passed": true,
+              "errors": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "accounting": {
+    "providerRequests": 0,
+    "usage": "not_applicable",
+    "monetaryCost": "not_applicable",
+    "createdBudget": false
+  },
+  "qualification": {
+    "referenceOnly": true,
+    "liveVerification": "pending_new_authorization",
+    "heldOutReplication": "not_preregistered",
+    "humanStudy": "not_run",
+    "promoted": false,
+    "boundary": "Post-pilot protocol correction on reused development fixtures, not regrading live outputs or proving model comprehension. A future held-out/repeated study needs its own preregistration and approved cap."
+  }
+}

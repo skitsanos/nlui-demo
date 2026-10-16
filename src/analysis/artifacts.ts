@@ -94,7 +94,7 @@ export const executeAnalysis = async ({store, conversation, plan: raw, parentRes
     // Immutable objects: a refinement creates a new identity and keeps its parent.
     store.put('artifact', receipt.resultId, conversation, artifact);
     const rendered = renderDatasetResult(result, metric.label, semanticPresentationFor(compiled.plan, result).presentation);
-    return {artifact, blocks: rendered.blocks.map((block) => ({...block, analysis: receipt}))};
+    return {artifact, blocks: rendered.blocks.map((block) => block.type === 'infographic' ? block : ({...block, analysis: receipt}))};
 };
 
 export const inputPlan = (plan: CanonicalSemanticQuery): unknown => ({metric: plan.metric, dimensions: plan.dimensions,

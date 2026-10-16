@@ -1,0 +1,1268 @@
+{
+  "manifest": {
+    "id": "nlui-034-selection-2026-10-16-v1",
+    "approvalDate": "2026-10-16",
+    "maximumAttempts": 32,
+    "evidenceKind": "live_provider",
+    "protocolFingerprint": "ba05cc7bdf5052e27fb339da2f3cf2432d56a5ea013c2771fb8629edf28e6751",
+    "caseFingerprint": "82ab42df009114cbcc11d759c37bd5a781983a84fe04863b6dae65e27d12a063",
+    "fixtureFingerprint": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+    "modelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+    "runtime": "1.4.3",
+    "dependencyFingerprint": "f829848f20c6d01d1e37c298e5155f89d41577a45599d6ec9056a43d3957eb52",
+    "transport": {
+      "maxRetries": 0,
+      "timeoutMs": 45000,
+      "maxOutputTokens": 1200,
+      "store": false
+    },
+    "order": [
+      "customer-count:baseline",
+      "customer-count:candidate",
+      "latest-customers:candidate",
+      "latest-customers:baseline",
+      "monthly-revenue:baseline",
+      "monthly-revenue:candidate",
+      "regional-comparison:candidate",
+      "regional-comparison:baseline",
+      "order-history:baseline",
+      "order-history:candidate",
+      "return-policy:candidate",
+      "return-policy:baseline",
+      "ambiguous:baseline",
+      "ambiguous:candidate",
+      "missing-order:candidate",
+      "missing-order:baseline",
+      "empty-customers:baseline",
+      "empty-customers:candidate",
+      "zero-revenue:candidate",
+      "zero-revenue:baseline",
+      "future-forecast:baseline",
+      "future-forecast:candidate",
+      "causality:candidate",
+      "causality:baseline",
+      "order-eligibility:baseline",
+      "order-eligibility:candidate",
+      "incompatible-scope:candidate",
+      "incompatible-scope:baseline",
+      "adversarial-label:baseline",
+      "adversarial-label:candidate",
+      "explicit-line:candidate",
+      "explicit-line:baseline"
+    ],
+    "commonInputHashes": [
+      {
+        "caseId": "customer-count",
+        "hash": "5bc78de6722d6446c0b605382f6eaa3328ea6398956b85432d82419006bf3ffc"
+      },
+      {
+        "caseId": "latest-customers",
+        "hash": "4258b80c233b51a6401502e1d3aae9db20e021c1f1f9afb50a3aa000366eac3c"
+      },
+      {
+        "caseId": "monthly-revenue",
+        "hash": "7fa6a65a245d1ecf2e9adc571cd2a086b264aa35707728c7ce84f4a42950dafd"
+      },
+      {
+        "caseId": "regional-comparison",
+        "hash": "a80f936335a860399b56c07fea7c2983a5f7fec1c0d5633260e65d53a25fb151"
+      },
+      {
+        "caseId": "order-history",
+        "hash": "ef246092e2180f404343cbbb268e566e3dc68c429d32b5237a1dfa5d59d6b9fc"
+      },
+      {
+        "caseId": "return-policy",
+        "hash": "df0001d8524a49b956a87d2accbeea350a786d02acffd2bf4618eddfc2d5e086"
+      },
+      {
+        "caseId": "ambiguous",
+        "hash": "03327cc3fb1ac4af22d056a2ce3dfb03e2c1fea7a5beaccbd1650f169ddbd478"
+      },
+      {
+        "caseId": "missing-order",
+        "hash": "50cc650a8347b77902421419f7d7525f610e78b0104e8a8ac07df99ffa1cba92"
+      },
+      {
+        "caseId": "empty-customers",
+        "hash": "661644b23ff25128f2ddd117aaf860e4505c5756b4551f4cb1c7b5544667e4a3"
+      },
+      {
+        "caseId": "zero-revenue",
+        "hash": "edaddf7ee9ce5e47a54dc518f466b353a2ddcf846c6851601b85c9791230d504"
+      },
+      {
+        "caseId": "future-forecast",
+        "hash": "ea1af58ac5bf12a4821257ef453a699c132f244ba8da77fd8a0548e3c88dd3ae"
+      },
+      {
+        "caseId": "causality",
+        "hash": "80bdb6c2189df03f77ff954550652d04d489e70c289cdbe9bf182b2038e9c1af"
+      },
+      {
+        "caseId": "order-eligibility",
+        "hash": "70ed4895971dd836956630350a86906d445af4ca915c165a77a119efa2db8a0b"
+      },
+      {
+        "caseId": "incompatible-scope",
+        "hash": "8e03b08b4da6008eb0e9b1e656f4661b2e4775d1e97075bb377995bbd618a95d"
+      },
+      {
+        "caseId": "adversarial-label",
+        "hash": "19dc760b55b6466eba72c5e30ea6d55088785044eed2b4728f3efb5f084ba331"
+      },
+      {
+        "caseId": "explicit-line",
+        "hash": "a0a8e4d01d2905bf943bc1a0821576fff2c6cc22b0caf0555f432d3c2b8032f0"
+      }
+    ],
+    "boundary": "One strict renderer-enum selection per case/arm; no retries, SQL, tools, generated captions or participant measures."
+  },
+  "providerAccounting": {
+    "requests": 32,
+    "maximum": 32,
+    "accounted": 32,
+    "inputTokens": 17960,
+    "cachedTokens": 0,
+    "outputTokens": 2021,
+    "totalTokens": 19981
+  },
+  "accounting": {
+    "planned": 32,
+    "reserved": 32,
+    "unattempted": 0,
+    "responsesWithKnownUsage": 32,
+    "unknownUsageReservations": 0,
+    "totalOutputBytes": 905,
+    "totalResponseBytes": 150344,
+    "monetaryCost": {
+      "status": "unpriced",
+      "reason": "No matching versioned provider prices were supplied. Unknown usage is not zero or free."
+    }
+  },
+  "arms": {
+    "baseline": {
+      "planned": 16,
+      "reserved": 16,
+      "completed": 16,
+      "passed": 13,
+      "selectionErrors": 3,
+      "invalidOutput": 0,
+      "contentFailures": 0,
+      "incomplete": 0,
+      "requestErrors": 0,
+      "usageKnown": 16,
+      "infographicSelections": 0,
+      "inappropriateInfographics": 0,
+      "totalRequestMs": 32736.947457000006,
+      "meanKnownRequestMs": 2046.0592160625004,
+      "repairs": 0,
+      "executedFallbacks": 0
+    },
+    "candidate": {
+      "planned": 16,
+      "reserved": 16,
+      "completed": 16,
+      "passed": 16,
+      "selectionErrors": 0,
+      "invalidOutput": 0,
+      "contentFailures": 0,
+      "incomplete": 0,
+      "requestErrors": 0,
+      "usageKnown": 16,
+      "infographicSelections": 3,
+      "inappropriateInfographics": 0,
+      "totalRequestMs": 23550.946707000014,
+      "meanKnownRequestMs": 1471.9341691875009,
+      "repairs": 0,
+      "executedFallbacks": 0
+    }
+  },
+  "paired": {
+    "completed": 16,
+    "bothPass": 13,
+    "baselineOnly": 0,
+    "candidateOnly": 3,
+    "neither": 0,
+    "cases": [
+      {
+        "caseId": "customer-count",
+        "baseline": "stats",
+        "candidate": "stats",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "latest-customers",
+        "baseline": "table",
+        "candidate": "table",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "monthly-revenue",
+        "baseline": "chart",
+        "candidate": "chart",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "regional-comparison",
+        "baseline": "chart",
+        "candidate": "infographic:comparison",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "order-history",
+        "baseline": "message",
+        "candidate": "infographic:timeline",
+        "baselinePassed": false,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "return-policy",
+        "baseline": "message",
+        "candidate": "infographic:process",
+        "baselinePassed": false,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "ambiguous",
+        "baseline": "message",
+        "candidate": "message",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "missing-order",
+        "baseline": "message",
+        "candidate": "result",
+        "baselinePassed": false,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "empty-customers",
+        "baseline": "table",
+        "candidate": "table",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "zero-revenue",
+        "baseline": "table",
+        "candidate": "table",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "future-forecast",
+        "baseline": "message",
+        "candidate": "message",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "causality",
+        "baseline": "message",
+        "candidate": "message",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "order-eligibility",
+        "baseline": "message",
+        "candidate": "message",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "incompatible-scope",
+        "baseline": "message",
+        "candidate": "message",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "adversarial-label",
+        "baseline": "table",
+        "candidate": "table",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      },
+      {
+        "caseId": "explicit-line",
+        "baseline": "chart",
+        "candidate": "chart",
+        "baselinePassed": true,
+        "candidatePassed": true,
+        "complete": true
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "slot": 1,
+      "reservation": 1,
+      "caseId": "customer-count",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "stats",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 439,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 469,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 2756.330291,
+      "responseId": "resp_05c85f6fe8f78b7f016ad1b124bf1087d2be7423bc9ff4560b",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4310,
+      "recovered": false
+    },
+    {
+      "slot": 2,
+      "reservation": 2,
+      "caseId": "customer-count",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "stats",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 584,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 614,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1381.4663329999994,
+      "responseId": "resp_0b33c79c87a89119016ad1b12693c487d294d98a8f8992536f",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4380,
+      "recovered": false
+    },
+    {
+      "slot": 3,
+      "reservation": 3,
+      "caseId": "latest-customers",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 837,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 867,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1207.4070000000002,
+      "responseId": "resp_0310ac2b1e588c82016ad1b127f3a487d2a72e2f3d3649ee39",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4380,
+      "recovered": false
+    },
+    {
+      "slot": 4,
+      "reservation": 4,
+      "caseId": "latest-customers",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 692,
+        "cachedInputTokens": 0,
+        "outputTokens": 29,
+        "reasoningTokens": 11,
+        "totalTokens": 721,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1047.2249999999995,
+      "responseId": "resp_09f01aa62db65270016ad1b129224c87d28c16adeeb541de3e",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4286,
+      "recovered": false
+    },
+    {
+      "slot": 5,
+      "reservation": 5,
+      "caseId": "monthly-revenue",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "chart",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 547,
+        "cachedInputTokens": 0,
+        "outputTokens": 91,
+        "reasoningTokens": 73,
+        "totalTokens": 638,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 3596.8697079999993,
+      "responseId": "resp_01171b8fb6a3d231016ad1b12a3b9487d299e2bda4a576881f",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 5162,
+      "recovered": false
+    },
+    {
+      "slot": 6,
+      "reservation": 6,
+      "caseId": "monthly-revenue",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "chart",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 692,
+        "cachedInputTokens": 0,
+        "outputTokens": 49,
+        "reasoningTokens": 31,
+        "totalTokens": 741,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1659.5216249999994,
+      "responseId": "resp_09348978dd25fad9016ad1b12dd18887d280f1a2ca98cf8c5a",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4656,
+      "recovered": false
+    },
+    {
+      "slot": 7,
+      "reservation": 7,
+      "caseId": "regional-comparison",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "infographic:comparison",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 634,
+        "cachedInputTokens": 0,
+        "outputTokens": 64,
+        "reasoningTokens": 43,
+        "totalTokens": 698,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1962.9545830000006,
+      "responseId": "resp_0f5e22b14737e0da016ad1b12f8b7887d2b305f156930bb719",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 43,
+      "responseBytes": 4862,
+      "recovered": false
+    },
+    {
+      "slot": 8,
+      "reservation": 8,
+      "caseId": "regional-comparison",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "chart",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 489,
+        "cachedInputTokens": 0,
+        "outputTokens": 61,
+        "reasoningTokens": 43,
+        "totalTokens": 550,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1391.0960830000004,
+      "responseId": "resp_083896bb8c6a66c9016ad1b1316a8c87d28682bceaf1a85e7c",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4778,
+      "recovered": false
+    },
+    {
+      "slot": 9,
+      "reservation": 9,
+      "caseId": "order-history",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": false,
+        "contentVerified": false,
+        "passed": false,
+        "errors": [
+          "ineligible_representation"
+        ]
+      },
+      "usage": {
+        "inputTokens": 583,
+        "cachedInputTokens": 0,
+        "outputTokens": 271,
+        "reasoningTokens": 253,
+        "totalTokens": 854,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 4607.893167000002,
+      "responseId": "resp_031ae4a87bae7808016ad1b132ce0087d29204ea22a2cfdcd9",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 7984,
+      "recovered": false
+    },
+    {
+      "slot": 10,
+      "reservation": 10,
+      "caseId": "order-history",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "infographic:timeline",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 728,
+        "cachedInputTokens": 0,
+        "outputTokens": 55,
+        "reasoningTokens": 34,
+        "totalTokens": 783,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1782.1030410000021,
+      "responseId": "resp_0a67dc5faf0f4dec016ad1b1376c6087d29147c25865e0860e",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 41,
+      "responseBytes": 4770,
+      "recovered": false
+    },
+    {
+      "slot": 11,
+      "reservation": 11,
+      "caseId": "return-policy",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "infographic:process",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 830,
+        "cachedInputTokens": 0,
+        "outputTokens": 19,
+        "reasoningTokens": 0,
+        "totalTokens": 849,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1428.509750000001,
+      "responseId": "resp_045d23f2d75466ec016ad1b139345487d2be3ebf5fd54f092b",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 40,
+      "responseBytes": 2704,
+      "recovered": false
+    },
+    {
+      "slot": 12,
+      "reservation": 12,
+      "caseId": "return-policy",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": false,
+        "contentVerified": false,
+        "passed": false,
+        "errors": [
+          "ineligible_representation"
+        ]
+      },
+      "usage": {
+        "inputTokens": 685,
+        "cachedInputTokens": 0,
+        "outputTokens": 58,
+        "reasoningTokens": 40,
+        "totalTokens": 743,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1904.726541,
+      "responseId": "resp_092092f217e29bc2016ad1b13aa33c87d2a065b29010e74766",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4738,
+      "recovered": false
+    },
+    {
+      "slot": 13,
+      "reservation": 13,
+      "caseId": "ambiguous",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 396,
+        "cachedInputTokens": 0,
+        "outputTokens": 38,
+        "reasoningTokens": 20,
+        "totalTokens": 434,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1609.844000000001,
+      "responseId": "resp_0fb94703078a6c19016ad1b13c97d887d2903aaacb522aaa5a",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4442,
+      "recovered": false
+    },
+    {
+      "slot": 14,
+      "reservation": 14,
+      "caseId": "ambiguous",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 541,
+        "cachedInputTokens": 0,
+        "outputTokens": 16,
+        "reasoningTokens": 0,
+        "totalTokens": 557,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1322.6599169999972,
+      "responseId": "resp_0c5af49b389460f7016ad1b13e323887d287e584176d8e37d8",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 2680,
+      "recovered": false
+    },
+    {
+      "slot": 15,
+      "reservation": 15,
+      "caseId": "missing-order",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "result",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 562,
+        "cachedInputTokens": 0,
+        "outputTokens": 187,
+        "reasoningTokens": 169,
+        "totalTokens": 749,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 2966.3309160000026,
+      "responseId": "resp_0c574494d597d787016ad1b13f7db487d2878acf27b176dba2",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 27,
+      "responseBytes": 6664,
+      "recovered": false
+    },
+    {
+      "slot": 16,
+      "reservation": 16,
+      "caseId": "missing-order",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": false,
+        "contentVerified": false,
+        "passed": false,
+        "errors": [
+          "ineligible_representation"
+        ]
+      },
+      "usage": {
+        "inputTokens": 417,
+        "cachedInputTokens": 0,
+        "outputTokens": 283,
+        "reasoningTokens": 265,
+        "totalTokens": 700,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 4242.9906660000015,
+      "responseId": "resp_0f8150d8b3f1924f016ad1b14273c087d28c6203a5a7907698",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 8048,
+      "recovered": false
+    },
+    {
+      "slot": 17,
+      "reservation": 17,
+      "caseId": "empty-customers",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 486,
+        "cachedInputTokens": 0,
+        "outputTokens": 35,
+        "reasoningTokens": 17,
+        "totalTokens": 521,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1220.3668749999997,
+      "responseId": "resp_007c872f91103e6d016ad1b146b36887d2ba95ad129fbcd6a8",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4394,
+      "recovered": false
+    },
+    {
+      "slot": 18,
+      "reservation": 18,
+      "caseId": "empty-customers",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 631,
+        "cachedInputTokens": 0,
+        "outputTokens": 34,
+        "reasoningTokens": 16,
+        "totalTokens": 665,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1166.5733340000006,
+      "responseId": "resp_0e5038360f10b426016ad1b147eb8087d28fae922b684788d8",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4444,
+      "recovered": false
+    },
+    {
+      "slot": 19,
+      "reservation": 19,
+      "caseId": "zero-revenue",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 624,
+        "cachedInputTokens": 0,
+        "outputTokens": 34,
+        "reasoningTokens": 16,
+        "totalTokens": 658,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1081.5455419999998,
+      "responseId": "resp_03c59a32bd1886ef016ad1b149141c87d29033b41a3fd19c16",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4444,
+      "recovered": false
+    },
+    {
+      "slot": 20,
+      "reservation": 20,
+      "caseId": "zero-revenue",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 479,
+        "cachedInputTokens": 0,
+        "outputTokens": 92,
+        "reasoningTokens": 74,
+        "totalTokens": 571,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1869.971666999998,
+      "responseId": "resp_0caa92686bb97816016ad1b14a2ab887d29da8f810d1860ae4",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 5246,
+      "recovered": false
+    },
+    {
+      "slot": 21,
+      "reservation": 21,
+      "caseId": "future-forecast",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 402,
+        "cachedInputTokens": 0,
+        "outputTokens": 38,
+        "reasoningTokens": 20,
+        "totalTokens": 440,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1421.3849159999954,
+      "responseId": "resp_0889a0fe479a78a2016ad1b14c0dac87d291f1bd4ef2362253",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4442,
+      "recovered": false
+    },
+    {
+      "slot": 22,
+      "reservation": 22,
+      "caseId": "future-forecast",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 547,
+        "cachedInputTokens": 0,
+        "outputTokens": 16,
+        "reasoningTokens": 0,
+        "totalTokens": 563,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1125.5258329999997,
+      "responseId": "resp_0b91534739f85e0d016ad1b14d828c87d28a8646ca9ba3f5b4",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 2680,
+      "recovered": false
+    },
+    {
+      "slot": 23,
+      "reservation": 23,
+      "caseId": "causality",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 546,
+        "cachedInputTokens": 0,
+        "outputTokens": 65,
+        "reasoningTokens": 47,
+        "totalTokens": 611,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1627.515542000001,
+      "responseId": "resp_02cdac3768f32d26016ad1b14e9c0c87d2904cec55f8adb0bf",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4896,
+      "recovered": false
+    },
+    {
+      "slot": 24,
+      "reservation": 24,
+      "caseId": "causality",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 401,
+        "cachedInputTokens": 0,
+        "outputTokens": 46,
+        "reasoningTokens": 28,
+        "totalTokens": 447,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1618.507000000005,
+      "responseId": "resp_08d2e7872a47c977016ad1b1503f9c87d298c6b2e5a6b9c4e5",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4570,
+      "recovered": false
+    },
+    {
+      "slot": 25,
+      "reservation": 25,
+      "caseId": "order-eligibility",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 406,
+        "cachedInputTokens": 0,
+        "outputTokens": 48,
+        "reasoningTokens": 30,
+        "totalTokens": 454,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1481.4054590000014,
+      "responseId": "resp_093c795bf5c9b5e5016ad1b151de7c87d285de8a6ca3d09df9",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4610,
+      "recovered": false
+    },
+    {
+      "slot": 26,
+      "reservation": 26,
+      "caseId": "order-eligibility",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 551,
+        "cachedInputTokens": 0,
+        "outputTokens": 46,
+        "reasoningTokens": 28,
+        "totalTokens": 597,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1369.2705410000053,
+      "responseId": "resp_0ab953bbcf76af52016ad1b1535e2087d2b44f8e178e11c36a",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4616,
+      "recovered": false
+    },
+    {
+      "slot": 27,
+      "reservation": 27,
+      "caseId": "incompatible-scope",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 546,
+        "cachedInputTokens": 0,
+        "outputTokens": 53,
+        "reasoningTokens": 35,
+        "totalTokens": 599,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1343.8851250000007,
+      "responseId": "resp_01ed15d1c844c4f7016ad1b154b56087d29568954ed2eaa07c",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4724,
+      "recovered": false
+    },
+    {
+      "slot": 28,
+      "reservation": 28,
+      "caseId": "incompatible-scope",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "message",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 401,
+        "cachedInputTokens": 0,
+        "outputTokens": 55,
+        "reasoningTokens": 37,
+        "totalTokens": 456,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1558.3038749999978,
+      "responseId": "resp_07fb80a0848e9fd6016ad1b15610d487d28234f963308cf516",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 28,
+      "responseBytes": 4654,
+      "recovered": false
+    },
+    {
+      "slot": 29,
+      "reservation": 29,
+      "caseId": "adversarial-label",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 442,
+        "cachedInputTokens": 0,
+        "outputTokens": 50,
+        "reasoningTokens": 32,
+        "totalTokens": 492,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1354.7490000000034,
+      "responseId": "resp_07ddadf6214d25f7016ad1b1579ebc87d2904979e17e47d4a4",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4606,
+      "recovered": false
+    },
+    {
+      "slot": 30,
+      "reservation": 30,
+      "caseId": "adversarial-label",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "table",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 587,
+        "cachedInputTokens": 0,
+        "outputTokens": 37,
+        "reasoningTokens": 19,
+        "totalTokens": 624,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1079.4797920000055,
+      "responseId": "resp_0293e6df04ba1392016ad1b158fb6887d2a8207b53aa323196",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4464,
+      "recovered": false
+    },
+    {
+      "slot": 31,
+      "reservation": 31,
+      "caseId": "explicit-line",
+      "arm": "candidate",
+      "outcome": "completed",
+      "choice": {
+        "representation": "chart",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 700,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 730,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1046.1978329999984,
+      "responseId": "resp_08a004f70ddafbbf016ad1b15a162c87d2b28347d978d796e9",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4380,
+      "recovered": false
+    },
+    {
+      "slot": 32,
+      "reservation": 32,
+      "caseId": "explicit-line",
+      "arm": "baseline",
+      "outcome": "completed",
+      "choice": {
+        "representation": "chart",
+        "catalogValid": true,
+        "eligible": true,
+        "contentVerified": true,
+        "passed": true,
+        "errors": []
+      },
+      "usage": {
+        "inputTokens": 555,
+        "cachedInputTokens": 0,
+        "outputTokens": 31,
+        "reasoningTokens": 13,
+        "totalTokens": 586,
+        "cacheWriteTokens": 0
+      },
+      "durationMs": 1055.283209000001,
+      "responseId": "resp_0e279c6ec44dd96e016ad1b15b1db487d2876ace1efcd6b973",
+      "responseModelFingerprint": "c4b5a917552265e5fafafe6cbd4330942045da42e40c70738fe20719b3c8b3d7",
+      "outputBytes": 26,
+      "responseBytes": 4330,
+      "recovered": false
+    }
+  ],
+  "complete": true,
+  "promotion": {
+    "promoted": false,
+    "reason": "One paired selection per task is a bounded pilot, not model superiority, general NLUI reliability or human benefit."
+  },
+  "scope": {
+    "selectionOnly": true,
+    "sqlOrToolSelection": false,
+    "modelGeneratedCaptionQuality": false,
+    "humanStudy": "not_run",
+    "noCrossModelComparison": true,
+    "modelValuesRedacted": true,
+    "latencyBoundary": "One nonstreaming provider request; no browser or participant task time."
+  }
+}

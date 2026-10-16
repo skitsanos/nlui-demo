@@ -193,6 +193,13 @@ export interface PolicyMatch {
     sourcePath: string;
 }
 
+export interface PolicySection {
+    title: string;
+    section: string;
+    text: string;
+    sourcePath: string;
+}
+
 export type DemoActionInput =
     | {
           type: "return_order";
@@ -233,6 +240,7 @@ export interface DemoRepository {
     searchProducts(filters?: ProductSearchFilters): ProductSummary[];
     getOrder(orderNumber: string | number): OrderDetails | null;
     searchPolicies(query: string, limit?: number): PolicyMatch[];
+    getPolicySections(sourcePath: string): PolicySection[];
     prepareAction(input: DemoActionInput, ownerScope?: string): ActionConfirmation;
     confirmAction(actionId: string, ownerScope?: string): DemoActionResult;
     close(): void;

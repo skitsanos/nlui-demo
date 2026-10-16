@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {infographicBlockSchema} from './infographic/schema.ts';
 import {productFactSchema} from './productFacts.ts';
 
 const cellValueSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
@@ -168,6 +169,7 @@ const resultBlockSchema = blockBaseSchema.extend({
 });
 
 export const nluiBlockSchema = z.discriminatedUnion('type', [
+    infographicBlockSchema,
     statsBlockSchema,
     chartBlockSchema,
     tableBlockSchema,

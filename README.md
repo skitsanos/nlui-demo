@@ -20,6 +20,7 @@ The model never emits React, JSX, executable HTML, API routes, validation rules,
 - **Explore dataset** creates immutable analytical results and typed refinements with exact scope/provenance; it needs no model call.
 - **Inspect a dataset** validates a fixed aggregate CSV template into quarantine, never automatic activation.
 - `?renderer=a2ui` opts into the pinned X Card/A2UI v0.9 experiment; controlled blocks stay the default.
+- `NLUI_INFOGRAPHICS=1` enables three experimental, source-backed visual explanations; it is off by default.
 
 ## Quick start
 
@@ -69,7 +70,19 @@ Browser
   -> Ant Design X bubble + controlled block renderer
 ```
 
-The block catalog is deliberately finite: `stats`, `chart`, `table`, `choices`, `form`, `confirmation`, `sources`, and `result`. Unknown or invalid blocks never reach the client.
+The block catalog is deliberately finite: `stats`, `chart`, `table`, `choices`, `form`, `confirmation`, `sources`, and `result`, plus the gated `infographic` experiment. Unknown or invalid blocks never reach the client.
+
+## Experimental visual explanations
+
+Run `NLUI_INFOGRAPHICS=1 bun run dev` to expose the three additional conversation starters and read-only `get_infographic` tool. This reuses existing ignored provider configuration; do not replace `.env` or reset retained data. Ordinary chat still makes billable provider requests. Browser qualification uses a separate disposable fixture without a provider.
+
+- Comparison: exactly two named regions and an explicit observed date range; eligible order revenue in EUR, excluding cancelled/returned orders.
+- Timeline: one order's recorded UTC events, never delivery forecasts, inferred milestones or an invented refund-completion date. Spacing shows sequence, not duration.
+- Process: full application-owned return-policy sections, including exclusions, authorization and refund conditions. This never decides an order's eligibility or prepares an action.
+
+Strict JSON responses select issued block IDs as before. The model cannot submit values, template syntax, SVG/HTML, resources, SDK options or actions. Only three pinned AntV 0.2.20 templates and local system fonts are used; editing, remote fonts/assets and font-embedding export are disabled. Unexpected layouts/errors preserve the readable alternative; narrow chat cards use it automatically. Exact scope, sources and a content fingerprint remain visible. This fingerprint is not an independent database-revision receipt. `?renderer=a2ui` falls back to controlled rendering for these unsupported surfaces.
+
+The existing scalar/table/chart capabilities remain defaults. [NLUI-033](docs/issues/NLUI-033.md) records capability qualification; [NLUI-034](docs/issues/NLUI-034.md) records the deterministic/rendered evaluation and completed 32-attempt live selection pilot, with a **no-promotion** decision. Candidate choices passed 16/16 frozen contracts versus 13/16 for the existing catalog, but fallback instruction/oracle ambiguity prevents a clean superiority claim. [NLUI-035](docs/issues/NLUI-035.md) aligns a separate v2 contract without relabelling that pilot; live verification remains pending new authorization. No cross-model or human-benefit comparison was performed. `bun run measure:infographic` measures the incremental SDK build footprint, not network transfer or human benefit. The PostCSS alias in `tsconfig.json` explicitly rejects the SDK's excluded remote-font parsing/export path so compiled browser bundles cannot pull in Node filesystem modules.
 
 ## Request budgets and shutdown
 
@@ -180,6 +193,19 @@ bun run eval:fixtures
 
 It executes real tools, renderers, structured composition, isolated routes and the declared trajectory using explicit oracle arguments/annotations. The expected profile is **35 passed, zero incomplete**, with no failures or errors. Qualification checks the exact case IDs and current report versions. This is bounded reference/plumbing evidence, not a live-model quality score. [NLUI-031](docs/issues/NLUI-031.md) records the seven newly qualified contracts and their limitations.
 
+Evaluate matched presentation contracts without any provider requests:
+
+```bash
+bun run eval:presentation
+NODE_ENV=production bun --no-env-file tests/fixtures/presentation-selection-server.ts
+```
+
+The second command prints a loopback fixture port for the browser lab; Ctrl-C stops it. Its database is disposable and already removed before serving. The frozen `presentation-v1` catalog contains 16 hand-labelled tasks, three eligible infographic alternatives, 39 deliberately wrong infographic choices and 24 semantic-error canaries. Raw SQLite/full-policy oracles grade exact content separately from valid JSON/rendering. The lab reuses production renderers, preserves annotations, and exposes exact readable alternatives plus explicitly bounded mount measurements. Neither authored reference choices nor fixture prompts are model predictions or a production intent classifier. [Evaluation evidence](docs/issues/reviews/2026-10-15-presentation-selection.md) separates deterministic checks, browser observations, build/serialized bytes, unperformed live-model evaluation and unperformed participant research. Defaults remain unchanged.
+
+The separate selection-only live harness requires both `NLUI_PRESENTATION_LIVE=1` and `--confirm-billable` when invoking `bun run eval:presentation:live`. Its **fixed, immutable 2026-10-16 ledger is already exhausted at 32/32**; it must not be deleted/reset to obtain more requests. Normal reruns reuse preserved results without resending reserved slots, or reject changed protocol/data/model/dependency bindings. The [live evidence](docs/issues/reviews/2026-10-16-selection-pilot.md) preserves all actual outputs, 19,981 tokens with complete usage, errors against frozen labels, provider-free replay regressions and the inconclusive no-promotion decision. It isolates enum selection with verified data; it does not evaluate SQL/tool discovery, model-generated annotations, another model, browser speed or participants. Raw sanitized journals stay in ignored `eval-results/`; frozen plans, sanitized reports/replay/inventory are durable issue evidence. No future provider run is implied by the script's availability.
+
+`bun run eval:presentation:fallback` checks the separate **presentation-fallback-v2** contract without a provider or new ledger. An unavailable visual falls back to an exact event table, full policy sources or existing bar chart; it is not grounds for clarification. Insufficient scope/evidence still uses a message, and a verified missing-record lookup uses an informational result rather than an invented history. Typed rules generate both instructions/catalog descriptions and eligibility; golden fixture contexts/choices never enter model inputs. [NLUI-035](docs/issues/NLUI-035.md) records the correction and its limits. These are reused development fixtures, not held-out live results or proof of model comprehension. The original v1 harness, 13/16 versus 16/16 scores and all three misses stay frozen. No v2 transport is enabled; confirmatory live replication remains pending a new approved cap and a separate preregistered study plan.
+
 ## Validation
 
 ```bash
@@ -187,6 +213,8 @@ bun run check       # Biome, TypeScript, and Bun tests
 bun run compile     # production single-file executable
 bun run eval:offline # non-network scenario and scorer validation
 bun run eval:fixtures # real isolated tools/routes with reference answers; no provider
+bun run eval:presentation # matched eligibility/denotation reference benchmark; no provider
+bun run eval:presentation:fallback # aligned v2 fallback rules/references; no provider
 bun run verify      # static/tests/offline/reference/source HTTP; Hurl required
 bun run test:compiled # owned production binaries: HTTP + source-free SQL worker
 bun run test:docker # pulled production image: HTTP/data/permissions/health/shutdown

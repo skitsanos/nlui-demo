@@ -5,6 +5,11 @@
       "@/*": [
         "./src/*"
       ],
+      // AntV's optional remote-font export imports server-side PostCSS. This
+      // capability uses local fonts only and explicitly denies that unused path.
+      "postcss": [
+        "./src/client/infographicFontCss.ts"
+      ],
       // Ant Design X 2.9 deep-imports the CommonJS util build. Bun's HTML/HMR
       // bundle double-wraps those defaults, so resolve the equivalent ESM files.
       "@rc-component/util/lib/*": [

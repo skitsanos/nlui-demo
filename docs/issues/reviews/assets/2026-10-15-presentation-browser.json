@@ -1,0 +1,313 @@
+{
+  "boundary": "Owned authored-selection fixture, actual production renderers. DOM mount observations; not provider or participant measurements. Cache and viewport transitions uncontrolled.",
+  "samples": [
+    {
+      "arm": "baseline",
+      "caseId": "regional-comparison",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 5.9,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "regional-comparison",
+      "mode": "figure",
+      "mountToReadyMs": 331.8,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "order-history",
+      "mode": "figure",
+      "mountToReadyMs": 4.8,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "baseline",
+      "caseId": "order-history",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "baseline",
+      "caseId": "return-policy",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.4,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "return-policy",
+      "mode": "figure",
+      "mountToReadyMs": 5.8,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "return-policy",
+      "mode": "figure",
+      "mountToReadyMs": 4.3,
+      "overflow": false,
+      "width": 358
+    },
+    {
+      "arm": "candidate",
+      "caseId": "return-policy",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 5.3,
+      "overflow": false,
+      "width": 358
+    },
+    {
+      "arm": "candidate",
+      "caseId": "return-policy",
+      "mode": "figure",
+      "mountToReadyMs": 5,
+      "overflow": false,
+      "width": 288
+    },
+    {
+      "arm": "candidate",
+      "caseId": "customer-count",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 10.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "latest-customers",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 9.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "monthly-revenue",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "regional-comparison",
+      "mode": "figure",
+      "mountToReadyMs": 6.1,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "order-history",
+      "mode": "figure",
+      "mountToReadyMs": 6.7,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "return-policy",
+      "mode": "figure",
+      "mountToReadyMs": 8.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "ambiguous",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.1,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "missing-order",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 14,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "empty-customers",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 7.6,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "zero-revenue",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "future-forecast",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 14.1,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "causality",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 9.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "order-eligibility",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 7.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "incompatible-scope",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 9.8,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "adversarial-label",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.2,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "explicit-line",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 8.7,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "adversarial-label",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 5,
+      "overflow": false,
+      "width": 960
+    },
+    {
+      "arm": "candidate",
+      "caseId": "latest-customers",
+      "mode": "controlled-or-readable",
+      "mountToReadyMs": 6.5,
+      "overflow": false,
+      "width": 960
+    }
+  ],
+  "desktopReferenceChecks": [
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: stats · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: table · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: chart · No infographic admitted"
+    },
+    {
+      "infographics": 1,
+      "overflow": false,
+      "selection": "Selected: infographic:comparison · An infographic is eligible, not proven better"
+    },
+    {
+      "infographics": 1,
+      "overflow": false,
+      "selection": "Selected: infographic:timeline · An infographic is eligible, not proven better"
+    },
+    {
+      "infographics": 1,
+      "overflow": false,
+      "selection": "Selected: infographic:process · An infographic is eligible, not proven better"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: message · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: result · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: table · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: table · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: message · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: message · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: message · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: message · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: table · No infographic admitted"
+    },
+    {
+      "infographics": 0,
+      "overflow": false,
+      "selection": "Selected: chart · No infographic admitted"
+    }
+  ],
+  "resources": {
+    "requests": 5,
+    "thirdParty": 0,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "notes": [
+    "390px table transiently reported document width 434 during resize/popup exit; settled width 390, table scroller 356/816.",
+    "320px policy candidate automatically used the complete readable alternative; 390px policy figure needs internal panning or explicit readable mode."
+  ]
+}

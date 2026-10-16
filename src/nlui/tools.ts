@@ -1,3 +1,5 @@
+import {infographicsEnabled} from './infographic/catalog.ts';
+import {infographicHandler} from './infographic/handler.ts';
 import {responsePolicySchema} from './responsePolicy.ts';
 import {nluiBlockSchema, nluiBlocksSchema} from './schemas.ts';
 import {OPENAI_TOOLS, type QueryArm, toolsForQueryArm} from './toolDefinitions.ts';
@@ -14,6 +16,7 @@ export type {ToolExecution} from './toolTypes.ts';
 export {OPENAI_TOOLS, type QueryArm, toolsForQueryArm};
 
 const handlers = {
+    get_infographic: infographicHandler,
     get_dashboard: dashboardHandler,
     query_dataset: queryDatasetHandler,
     semantic_query: semanticQueryHandler,
@@ -26,6 +29,7 @@ const handlers = {
 } satisfies Record<string, ToolHandler>;
 
 export const NLUI_TOOL_BLOCK_TYPES = {
+    get_infographic: ['infographic'],
     get_dashboard: ['stats', 'chart'],
     query_dataset: ['stats', 'chart', 'table', 'result'],
     semantic_query: ['stats', 'chart', 'table', 'result'],
@@ -50,6 +54,8 @@ export const executeNluiTool = async (
 
     try
     {
+        if (name === 'get_infographic' && !(context?.infographics ?? infographicsEnabled()))
+            throw new Error('Visual explanations are not enabled. Use the existing table, chart or policy tools.');
         const execution = await handler(JSON.parse(encodedArguments) as unknown, {...context, signal, data});
         signal?.throwIfAborted();
         return {

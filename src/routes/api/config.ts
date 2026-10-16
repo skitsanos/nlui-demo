@@ -1,5 +1,6 @@
 import config from '../../core/configuration.ts';
 import type {RouteHandler} from '../../core/types.ts';
+import {infographicsEnabled} from '../../nlui/infographic/catalog.ts';
 
 /**
  * Exposes the effective configuration for demo purposes.
@@ -24,6 +25,7 @@ export const GET: RouteHandler = () =>
         },
         chat: {
             configured: Boolean(process.env.OPENAI_API_KEY?.trim() && process.env.CHAT_MODEL?.trim())
-        }
+        },
+        features: {infographics: infographicsEnabled()}
     });
 };

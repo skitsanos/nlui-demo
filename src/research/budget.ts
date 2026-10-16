@@ -32,5 +32,7 @@ export class ProviderRequestBudget
             round.usage.inputTokens, round.usage.cachedInputTokens, round.usage.outputTokens, round.usage.totalTokens, round.usageKnown ? 1 : 0, id);
     }
     summary() {return this.database.query('SELECT (SELECT used FROM budget) requests, (SELECT maximum FROM budget) maximum, COUNT(*) accounted, COALESCE(SUM(input),0) inputTokens, COALESCE(SUM(cached),0) cachedTokens, COALESCE(SUM(output),0) outputTokens, COALESCE(SUM(total),0) totalTokens FROM usage WHERE known=1').get();}
+    reservations(): Array<{id: number; label: string}>
+    {return this.database.query<{id: number; label: string}, []>('SELECT id, label FROM usage ORDER BY id').all();}
     close(): void {this.database.close();}
 }

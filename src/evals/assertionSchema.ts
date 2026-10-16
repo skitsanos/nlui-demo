@@ -3,6 +3,7 @@ import {z} from 'zod';
 export const EVALUATION_TOOL_NAMES = [
     'confirm_action',
     'get_dashboard',
+    'get_infographic',
     'get_order',
     'list_orders',
     'prepare_action',
@@ -21,6 +22,7 @@ export const EVALUATION_BLOCK_NAMES = [
     'confirmation',
     'error',
     'form',
+    'infographic',
     'markdown',
     'metrics',
     'table'

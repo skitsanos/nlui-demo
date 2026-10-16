@@ -1,0 +1,119 @@
+{
+  "id": "nlui-034-selection-2026-10-16-v1",
+  "date": "2026-10-16",
+  "maximumAttempts": 32,
+  "caseFingerprint": "82ab42df009114cbcc11d759c37bd5a781983a84fe04863b6dae65e27d12a063",
+  "fixtureFingerprint": "4058b52984743515bdd8e6404708cdad1b3192d03279b3bc21ba5b239586377c",
+  "protocolFingerprint": "ba05cc7bdf5052e27fb339da2f3cf2432d56a5ea013c2771fb8629edf28e6751",
+  "dependencyFingerprint": "f829848f20c6d01d1e37c298e5155f89d41577a45599d6ec9056a43d3957eb52",
+  "schedule": [
+    "customer-count:baseline",
+    "customer-count:candidate",
+    "latest-customers:candidate",
+    "latest-customers:baseline",
+    "monthly-revenue:baseline",
+    "monthly-revenue:candidate",
+    "regional-comparison:candidate",
+    "regional-comparison:baseline",
+    "order-history:baseline",
+    "order-history:candidate",
+    "return-policy:candidate",
+    "return-policy:baseline",
+    "ambiguous:baseline",
+    "ambiguous:candidate",
+    "missing-order:candidate",
+    "missing-order:baseline",
+    "empty-customers:baseline",
+    "empty-customers:candidate",
+    "zero-revenue:candidate",
+    "zero-revenue:baseline",
+    "future-forecast:baseline",
+    "future-forecast:candidate",
+    "causality:candidate",
+    "causality:baseline",
+    "order-eligibility:baseline",
+    "order-eligibility:candidate",
+    "incompatible-scope:candidate",
+    "incompatible-scope:baseline",
+    "adversarial-label:baseline",
+    "adversarial-label:candidate",
+    "explicit-line:candidate",
+    "explicit-line:baseline"
+  ],
+  "commonInputHashes": [
+    {
+      "caseId": "customer-count",
+      "hash": "5bc78de6722d6446c0b605382f6eaa3328ea6398956b85432d82419006bf3ffc"
+    },
+    {
+      "caseId": "latest-customers",
+      "hash": "4258b80c233b51a6401502e1d3aae9db20e021c1f1f9afb50a3aa000366eac3c"
+    },
+    {
+      "caseId": "monthly-revenue",
+      "hash": "7fa6a65a245d1ecf2e9adc571cd2a086b264aa35707728c7ce84f4a42950dafd"
+    },
+    {
+      "caseId": "regional-comparison",
+      "hash": "a80f936335a860399b56c07fea7c2983a5f7fec1c0d5633260e65d53a25fb151"
+    },
+    {
+      "caseId": "order-history",
+      "hash": "ef246092e2180f404343cbbb268e566e3dc68c429d32b5237a1dfa5d59d6b9fc"
+    },
+    {
+      "caseId": "return-policy",
+      "hash": "df0001d8524a49b956a87d2accbeea350a786d02acffd2bf4618eddfc2d5e086"
+    },
+    {
+      "caseId": "ambiguous",
+      "hash": "03327cc3fb1ac4af22d056a2ce3dfb03e2c1fea7a5beaccbd1650f169ddbd478"
+    },
+    {
+      "caseId": "missing-order",
+      "hash": "50cc650a8347b77902421419f7d7525f610e78b0104e8a8ac07df99ffa1cba92"
+    },
+    {
+      "caseId": "empty-customers",
+      "hash": "661644b23ff25128f2ddd117aaf860e4505c5756b4551f4cb1c7b5544667e4a3"
+    },
+    {
+      "caseId": "zero-revenue",
+      "hash": "edaddf7ee9ce5e47a54dc518f466b353a2ddcf846c6851601b85c9791230d504"
+    },
+    {
+      "caseId": "future-forecast",
+      "hash": "ea1af58ac5bf12a4821257ef453a699c132f244ba8da77fd8a0548e3c88dd3ae"
+    },
+    {
+      "caseId": "causality",
+      "hash": "80bdb6c2189df03f77ff954550652d04d489e70c289cdbe9bf182b2038e9c1af"
+    },
+    {
+      "caseId": "order-eligibility",
+      "hash": "70ed4895971dd836956630350a86906d445af4ca915c165a77a119efa2db8a0b"
+    },
+    {
+      "caseId": "incompatible-scope",
+      "hash": "8e03b08b4da6008eb0e9b1e656f4661b2e4775d1e97075bb377995bbd618a95d"
+    },
+    {
+      "caseId": "adversarial-label",
+      "hash": "19dc760b55b6466eba72c5e30ea6d55088785044eed2b4728f3efb5f084ba331"
+    },
+    {
+      "caseId": "explicit-line",
+      "hash": "a0a8e4d01d2905bf943bc1a0821576fff2c6cc22b0caf0555f432d3c2b8032f0"
+    }
+  ],
+  "controls": {
+    "retries": 0,
+    "repairs": 0,
+    "timeoutMs": 45000,
+    "maxOutputTokens": 1200,
+    "store": false,
+    "modelSelectionOnly": true,
+    "humanStudy": false
+  },
+  "oldLedgerExists": true
+}

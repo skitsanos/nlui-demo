@@ -1,4 +1,5 @@
 import type {ArtifactReceipt} from '../analysis/artifacts.ts';
+import type {InfographicBlock} from './infographic/schema.ts';
 import type {ProductFact} from './productFacts.ts';
 
 export type CellValue = string | number | boolean | null;
@@ -6,6 +7,7 @@ export type ValueFormat = 'text' | 'number' | 'currency' | 'date' | 'status';
 export type StringValueFormat = Extract<ValueFormat, 'text' | 'date' | 'status'>;
 
 export type NluiBlock =
+    | InfographicBlock
     | StatsBlock
     | ChartBlock
     | TableBlock

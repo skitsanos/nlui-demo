@@ -12,6 +12,7 @@ registerCatalog({$id: A2UI_CATALOG_ID, catalogId: A2UI_CATALOG_ID, components: O
     ['Column', 'Text', 'Metric', 'Chart', 'Table', 'Choice', 'Form', 'Notice', 'Button'].map((name) => [name, {type: 'object'}]))});
 
 interface Props {blocks: NluiBlock[]; conversationId: string; disabled?: boolean; states?: Record<string, ControlState>;
+    infographics?: boolean;
     onInteraction: (input: ChatInput, displayText: string) => Promise<boolean>; onAnalyze?: (input: AnalysisSubmission) => Promise<boolean>;
     commands?: unknown[]; actions?: Record<string, {input: ChatInput; label: string}>}
 

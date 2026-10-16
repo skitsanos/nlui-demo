@@ -1,0 +1,519 @@
+{
+  "id": "nlui-034-selection-2026-10-16-v1",
+  "protocolFingerprint": "ba05cc7bdf5052e27fb339da2f3cf2432d56a5ea013c2771fb8629edf28e6751",
+  "caseFingerprint": "82ab42df009114cbcc11d759c37bd5a781983a84fe04863b6dae65e27d12a063",
+  "cases": [
+    {
+      "slot": 1,
+      "caseId": "customer-count",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"stats\"}",
+      "usage": {
+        "inputTokens": 439,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 469,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 2,
+      "caseId": "customer-count",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"stats\"}",
+      "usage": {
+        "inputTokens": 584,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 614,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 3,
+      "caseId": "latest-customers",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 837,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 867,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 4,
+      "caseId": "latest-customers",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 692,
+        "cachedInputTokens": 0,
+        "outputTokens": 29,
+        "reasoningTokens": 11,
+        "totalTokens": 721,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 5,
+      "caseId": "monthly-revenue",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"chart\"}",
+      "usage": {
+        "inputTokens": 547,
+        "cachedInputTokens": 0,
+        "outputTokens": 91,
+        "reasoningTokens": 73,
+        "totalTokens": 638,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 6,
+      "caseId": "monthly-revenue",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"chart\"}",
+      "usage": {
+        "inputTokens": 692,
+        "cachedInputTokens": 0,
+        "outputTokens": 49,
+        "reasoningTokens": 31,
+        "totalTokens": 741,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 7,
+      "caseId": "regional-comparison",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"infographic:comparison\"}",
+      "usage": {
+        "inputTokens": 634,
+        "cachedInputTokens": 0,
+        "outputTokens": 64,
+        "reasoningTokens": 43,
+        "totalTokens": 698,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 8,
+      "caseId": "regional-comparison",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"chart\"}",
+      "usage": {
+        "inputTokens": 489,
+        "cachedInputTokens": 0,
+        "outputTokens": 61,
+        "reasoningTokens": 43,
+        "totalTokens": 550,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 9,
+      "caseId": "order-history",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 583,
+        "cachedInputTokens": 0,
+        "outputTokens": 271,
+        "reasoningTokens": 253,
+        "totalTokens": 854,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": false
+    },
+    {
+      "slot": 10,
+      "caseId": "order-history",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"infographic:timeline\"}",
+      "usage": {
+        "inputTokens": 728,
+        "cachedInputTokens": 0,
+        "outputTokens": 55,
+        "reasoningTokens": 34,
+        "totalTokens": 783,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 11,
+      "caseId": "return-policy",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"infographic:process\"}",
+      "usage": {
+        "inputTokens": 830,
+        "cachedInputTokens": 0,
+        "outputTokens": 19,
+        "reasoningTokens": 0,
+        "totalTokens": 849,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 12,
+      "caseId": "return-policy",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 685,
+        "cachedInputTokens": 0,
+        "outputTokens": 58,
+        "reasoningTokens": 40,
+        "totalTokens": 743,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": false
+    },
+    {
+      "slot": 13,
+      "caseId": "ambiguous",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 396,
+        "cachedInputTokens": 0,
+        "outputTokens": 38,
+        "reasoningTokens": 20,
+        "totalTokens": 434,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 14,
+      "caseId": "ambiguous",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 541,
+        "cachedInputTokens": 0,
+        "outputTokens": 16,
+        "reasoningTokens": 0,
+        "totalTokens": 557,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 15,
+      "caseId": "missing-order",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"result\"}",
+      "usage": {
+        "inputTokens": 562,
+        "cachedInputTokens": 0,
+        "outputTokens": 187,
+        "reasoningTokens": 169,
+        "totalTokens": 749,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 16,
+      "caseId": "missing-order",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 417,
+        "cachedInputTokens": 0,
+        "outputTokens": 283,
+        "reasoningTokens": 265,
+        "totalTokens": 700,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": false
+    },
+    {
+      "slot": 17,
+      "caseId": "empty-customers",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 486,
+        "cachedInputTokens": 0,
+        "outputTokens": 35,
+        "reasoningTokens": 17,
+        "totalTokens": 521,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 18,
+      "caseId": "empty-customers",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 631,
+        "cachedInputTokens": 0,
+        "outputTokens": 34,
+        "reasoningTokens": 16,
+        "totalTokens": 665,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 19,
+      "caseId": "zero-revenue",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 624,
+        "cachedInputTokens": 0,
+        "outputTokens": 34,
+        "reasoningTokens": 16,
+        "totalTokens": 658,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 20,
+      "caseId": "zero-revenue",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 479,
+        "cachedInputTokens": 0,
+        "outputTokens": 92,
+        "reasoningTokens": 74,
+        "totalTokens": 571,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 21,
+      "caseId": "future-forecast",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 402,
+        "cachedInputTokens": 0,
+        "outputTokens": 38,
+        "reasoningTokens": 20,
+        "totalTokens": 440,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 22,
+      "caseId": "future-forecast",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 547,
+        "cachedInputTokens": 0,
+        "outputTokens": 16,
+        "reasoningTokens": 0,
+        "totalTokens": 563,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 23,
+      "caseId": "causality",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 546,
+        "cachedInputTokens": 0,
+        "outputTokens": 65,
+        "reasoningTokens": 47,
+        "totalTokens": 611,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 24,
+      "caseId": "causality",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 401,
+        "cachedInputTokens": 0,
+        "outputTokens": 46,
+        "reasoningTokens": 28,
+        "totalTokens": 447,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 25,
+      "caseId": "order-eligibility",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 406,
+        "cachedInputTokens": 0,
+        "outputTokens": 48,
+        "reasoningTokens": 30,
+        "totalTokens": 454,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 26,
+      "caseId": "order-eligibility",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 551,
+        "cachedInputTokens": 0,
+        "outputTokens": 46,
+        "reasoningTokens": 28,
+        "totalTokens": 597,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 27,
+      "caseId": "incompatible-scope",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 546,
+        "cachedInputTokens": 0,
+        "outputTokens": 53,
+        "reasoningTokens": 35,
+        "totalTokens": 599,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 28,
+      "caseId": "incompatible-scope",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"message\"}",
+      "usage": {
+        "inputTokens": 401,
+        "cachedInputTokens": 0,
+        "outputTokens": 55,
+        "reasoningTokens": 37,
+        "totalTokens": 456,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 29,
+      "caseId": "adversarial-label",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 442,
+        "cachedInputTokens": 0,
+        "outputTokens": 50,
+        "reasoningTokens": 32,
+        "totalTokens": 492,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 30,
+      "caseId": "adversarial-label",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"table\"}",
+      "usage": {
+        "inputTokens": 587,
+        "cachedInputTokens": 0,
+        "outputTokens": 37,
+        "reasoningTokens": 19,
+        "totalTokens": 624,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 31,
+      "caseId": "explicit-line",
+      "arm": "candidate",
+      "status": "completed",
+      "output": "{\"representation\":\"chart\"}",
+      "usage": {
+        "inputTokens": 700,
+        "cachedInputTokens": 0,
+        "outputTokens": 30,
+        "reasoningTokens": 12,
+        "totalTokens": 730,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    },
+    {
+      "slot": 32,
+      "caseId": "explicit-line",
+      "arm": "baseline",
+      "status": "completed",
+      "output": "{\"representation\":\"chart\"}",
+      "usage": {
+        "inputTokens": 555,
+        "cachedInputTokens": 0,
+        "outputTokens": 31,
+        "reasoningTokens": 13,
+        "totalTokens": 586,
+        "cacheWriteTokens": 0
+      },
+      "expectedPassed": true
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+.presentation-lab { max-width: 1000px; margin: 28px auto; padding: 0 20px; }
+.presentation-lab h1 { font-size: 28px; }
+.presentation-lab h2 { font-size: 21px; margin: 24px 0 12px; }
+.presentation-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.presentation-controls .ant-select { width: 230px; }
+.presentation-content { min-width: 0; }
+.presentation-caption { font-size: 16px; }
+.presentation-scope { color: #626477; font-size: 12px; overflow-wrap: anywhere; margin: 16px 0; }
+.presentation-measurements { margin: 24px 0; }
+.presentation-measurements pre { max-height: 240px; overflow: auto; white-space: pre-wrap; }
+@media (max-width: 520px) {
+    .presentation-lab { margin: 16px auto; padding: 0 16px; }
+    .presentation-controls { align-items: stretch; flex-direction: column; }
+    .presentation-controls .ant-select { width: 100%; }
+    .presentation-lab h1 { font-size: 25px; }
+}

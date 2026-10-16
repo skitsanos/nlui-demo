@@ -16,6 +16,7 @@ import {AnalysisControls} from './components/AnalysisControls.tsx';
 import {AssistantMarkdown} from './components/AssistantMarkdown.tsx';
 import {ConversationStarters} from './components/ConversationStarters.tsx';
 import {DatasetOnboarding} from './components/DatasetOnboarding.tsx';
+import {InfographicStarters} from './components/InfographicStarters.tsx';
 import {ResponseSurface} from './components/ResponseSurface.tsx';
 import {useChat} from './useChat.ts';
 
@@ -24,6 +25,7 @@ const App = () =>
     const [draft, setDraft] = useState('');
     const [now, setNow] = useState(Date.now);
     const [chatConfigured, setChatConfigured] = useState<boolean>();
+    const [infographics, setInfographics] = useState(false);
     const {messages, loading, conversationId, states, historyError, submit, analyze, cancel, reset} = useChat();
     const consumedInteractions = useRef(new Set<string>());
     const messageListRef = useRef<BubbleListRef>(null);
@@ -35,9 +37,9 @@ const App = () =>
         const controller = new AbortController();
         void fetch('/api/config', {signal: controller.signal})
             .then(async (response) => response.ok
-                ? response.json() as Promise<{chat?: {configured?: boolean}}>
+                ? response.json() as Promise<{chat?: {configured?: boolean}; features?: {infographics?: boolean}}>
                 : Promise.reject(new Error('Configuration request failed')))
-            .then(({chat}) => setChatConfigured(Boolean(chat?.configured)))
+            .then(({chat, features}) => {setChatConfigured(Boolean(chat?.configured)); setInfographics(features?.infographics === true);})
             .catch(() =>
             {
                 if (!controller.signal.aborted)
@@ -109,7 +111,7 @@ const App = () =>
         return {
             key: message.id,
             role: message.role,
-            classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table' || type === 'chart' || type === 'stats')
+            classNames: message.role === 'assistant' && message.blocks.some(({type}) => type === 'table' || type === 'chart' || type === 'stats' || type === 'infographic')
                 ? {root: 'assistant-bubble-table'}
                 : undefined,
             loading: message.state === 'loading'
@@ -131,13 +133,14 @@ const App = () =>
                         disabled={loading || message.state !== 'complete'}
                         states={states}
                         now={now}
+                        infographics={infographics}
                         onAnalyze={analyze}
                         onInteraction={send}
                     />
                 </div>
             )
         };
-    }), [conversationId, loading, messages, send, states, analyze, now]);
+    }), [conversationId, loading, messages, send, states, analyze, now, infographics]);
 
     return (
         <XProvider theme={{
@@ -205,6 +208,7 @@ const App = () =>
                                 description="This assistant can answer with prose, live data, and safe interactive controls."
                             />
                             <ConversationStarters disabled={loading} onChoose={sendText}/>
+                            {infographics && <InfographicStarters disabled={loading} onChoose={sendText}/>}
                         </div> : <Bubble.List
                             ref={messageListRef}
                             autoScroll={false}
