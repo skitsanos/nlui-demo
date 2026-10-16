@@ -4,7 +4,7 @@
 - Priority: P2
 - Kind: Verification gap
 - Created: 2026-10-14
-- Updated: 2026-10-15
+- Updated: 2026-10-16
 - Scope: package.json; biome.json; Taskfile.tests.yaml; Dockerfile; .github/workflows
 - Evidence: 2026-10-14 repository review
 
@@ -41,3 +41,5 @@ The user authorized publication of all pending work; release 1.4.0 was committed
 Subsequent qualification on 2026-10-15: [run 38727922140](https://github.com/skitsanos/nlui-demo/actions/runs/38727922140) passes all three hosted jobs for release 1.5.0, `cc4c00d016dbc698d925e011699adb7311fcfc52`. NLUI-031 replaces the earlier seven incomplete reference cases with bounded rendered/question/policy contracts: 717 tests pass on each matrix platform and all 35 reference cases pass in each execution mode. See [the later presentation review](reviews/2026-10-15-presentation-qualification.md) for exact jobs, fingerprints and limits. The original closure evidence above remains historical, not the current case classification.
 
 Remaining-milestone publication: release 1.6.3, `3b1150ca3fd6edbf1970d598eb4bc50b2ead476e`, passes all three jobs in [run 38750393451](https://github.com/skitsanos/nlui-demo/actions/runs/38750393451). Hosted Linux/macOS each pass 812 tests / 2,624 expectations, lint/typecheck, 60 source and 60 compiled Hurl requests plus eight separate-session probes per mode, and all 35 exact reference cases. The production container passes non-root HTTP/data/permissions/health/shutdown and reference gates. [Publication reconciliation](reviews/2026-10-15-owned-workflows.md#hosted-publication-and-ci-reconciliation) records the initial Linux plugin-case failure and macOS SQLite contention failure, regression fixes, successful runs and scope limits. No checks were disabled or waived. The registry/evidence-only follow-up bumps to 1.6.4 before its push and must pass its own workflow; this earlier run is not silently reused as current-head evidence.
+
+Presentation-research publication on 2026-10-16: **1.7.0**, `8446350366f2d8752f47d632a305a2b6e0c6c572`, passes all three jobs in [run 38869687421](https://github.com/skitsanos/nlui-demo/actions/runs/38869687421). Both matrix platforms pass **912 tests / 4,682 expectations**, static/offline gates, 60 source + 60 compiled Hurl requests with separate-session probes and all 35 exact references; the Linux production container passes its full non-root/HTTP/data/permissions/health/shutdown/reference gate. No failure, waived check or rerun occurred. [The receipt](reviews/2026-10-16-publication.md) preserves exact job IDs and scope. No provider calls were made; both exhausted ledgers and retained configuration/data are unchanged. The evidence-only 1.7.1 follow-up receives its own full workflow before handoff.

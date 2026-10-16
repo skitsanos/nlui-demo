@@ -4,7 +4,7 @@
 - Priority: P2
 - Kind: Research milestone
 - Created: 2026-10-15
-- Updated: 2026-10-15
+- Updated: 2026-10-16
 - Scope: Owned infographic catalog, read-only tools, strict JSON responses and React rendering
 - Evidence: Source inspection; independent regression checks; real source/compiled HTTP and desktop/mobile browser qualification
 
@@ -33,3 +33,7 @@ Hypothesis: bounded visual explanations can convey relationships and recorded se
 Implemented the off-by-default capability with pinned AntV Infographic 0.2.20, strict owned descriptors and the existing JSON block-reference envelope. Full local qualification and the initial failures/corrections are recorded in [the qualification review](reviews/2026-10-15-infographic-qualification.md): 847 tests, lint/typecheck, source/compiled HTTP and 35 reference cases per mode, and the Linux production-container gate. Actual browser checks verify exact content, full policy conditions, no duplicate IDs or page-width overflow, keyboard/mobile alternatives, normal-load zero third-party requests, recovery from forced asynchronous SDK failures, and controlled fallback for unsupported A2UI surfaces.
 
 Enable locally with `NLUI_INFOGRAPHICS=1 bun run dev`; no `.env` edit or retained-data reset is needed. No paid provider call, commit, push, release or hosted CI run occurred. The SDK adds roughly 808 kB minified / 269 kB independently gzipped in the explicit split build probe; no free disabled-state, transfer/latency or human-benefit claim is made. Editing and remote-font embedding exports are intentionally excluded. NLUI-034 remains Open; no renderer is promoted.
+
+## Publication follow-up, 2026-10-16
+
+The paragraph above records the initial capability phase. NLUI-034 subsequently closed its bounded pilot, and NLUI-035 closed provider-free fallback alignment; neither promotes the renderer. Release **1.7.0**, `8446350366f2d8752f47d632a305a2b6e0c6c572`, now publishes all three milestones to `main`. [Run 38869687421](https://github.com/skitsanos/nlui-demo/actions/runs/38869687421) passes all three hosted jobs, with **912 tests / 4,682 expectations** per matrix platform, source/compiled HTTP and exact references, and Linux production-container qualification. [Publication evidence](reviews/2026-10-16-publication.md) records exact jobs, safety checks and limits. No new provider call or default change occurred. The registry/evidence-only follow-up bumps to 1.7.1 and must pass its own workflow.

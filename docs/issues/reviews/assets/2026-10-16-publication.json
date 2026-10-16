@@ -1,0 +1,97 @@
+{
+  "release": "1.7.0",
+  "commit": "8446350366f2d8752f47d632a305a2b6e0c6c572",
+  "run": {
+    "id": 38869687421,
+    "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38869687421",
+    "event": "push",
+    "attempt": 1,
+    "createdAt": "2026-10-16T07:49:49Z",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "jobs": [
+    {
+      "id": 116870597220,
+      "name": "Source and compiled (ubuntu-latest)",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38869687421/job/116870597220",
+      "startedAt": "2026-10-16T07:49:53Z",
+      "completedAt": "2026-10-16T07:51:30Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116870597359,
+      "name": "Source and compiled (macos-latest)",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38869687421/job/116870597359",
+      "startedAt": "2026-10-16T07:49:57Z",
+      "completedAt": "2026-10-16T07:52:40Z",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 116871553038,
+      "name": "Production container (Linux)",
+      "url": "https://github.com/skitsanos/nlui-demo/actions/runs/38869687421/job/116871553038",
+      "startedAt": "2026-10-16T07:52:43Z",
+      "completedAt": "2026-10-16T07:53:41Z",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "observed": {
+    "bun": "1.4.3",
+    "matrixPlatforms": [
+      "linux/x64",
+      "darwin/arm64"
+    ],
+    "testsPerPlatform": 912,
+    "expectationsPerPlatform": 4682,
+    "testFilesPerPlatform": 106,
+    "sourceHurlRequestsPerPlatform": 60,
+    "compiledHurlRequestsPerPlatform": 60,
+    "separateSessionProbesPerMode": 8,
+    "exactReferencesPerMode": 35,
+    "offlineScenarios": 35,
+    "assertionLabels": 77,
+    "deterministicRules": 100,
+    "unsupportedAssertions": 0,
+    "ungradedAssertions": 0,
+    "container": {
+      "uid": 1000,
+      "port": 3180,
+      "providerConfigured": false,
+      "http": true,
+      "data": true,
+      "permissions": true,
+      "health": true,
+      "shutdown": true,
+      "references": 35
+    }
+  },
+  "preservation": {
+    "checkedFiles": 112,
+    "changedFiles": 0,
+    "originalJournalFiles": 99,
+    "inventoryMismatches": 0,
+    "priorBudget": {
+      "maximum": 40,
+      "used": 40
+    },
+    "selectionBudget": {
+      "maximum": 32,
+      "used": 32
+    }
+  },
+  "scope": {
+    "newProviderCalls": 0,
+    "newBudget": false,
+    "defaultRendererChanged": false,
+    "liveFallbackV2": "pending_new_authorization",
+    "humanStudy": "not_run",
+    "deployment": "not_performed",
+    "branchPolicy": "unchanged"
+  },
+  "failures": [],
+  "note": "Hosted observations qualify this exact implementation commit. The separately version-bumped evidence follow-up must pass its own full workflow."
+}
